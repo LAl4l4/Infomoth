@@ -17,5 +17,15 @@ public interface UserMapper {
 
     Profile findProfileById(@Param("userid") Integer userid);
 
-    void updateProfileBio(@Param("userid") Integer userid, @Param("bio") String bio);
+    void updateProfileBio(
+        @Param("userid") Integer userid, 
+        @Param("bio") String bio);
+
+    void updateProfileBirthday(
+        @Param("userid") Integer userid, 
+        @Param("birthday") java.time.LocalDate birthday);
+
+    void updateProfileGender(
+        @Param("userid") Integer userid, 
+        @Param("gender") Profile.Gender gender);
 }

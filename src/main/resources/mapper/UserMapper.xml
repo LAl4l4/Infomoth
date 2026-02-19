@@ -70,6 +70,22 @@
         SET bio = #{bio}
         WHERE user_id = #{userid}
     </update>
+
+    <!-- updateProfileBirthday --> 
+
+    <update id="updateProfileBirthday">
+        UPDATE profiles
+        SET birthday = #{birthday}
+        WHERE user_id = #{userid}
+    </update>
+
+    <!-- updateProfileGender --> 
+
+    <update id="updateProfileGender">
+        UPDATE profiles
+        SET gender = #{gender}
+        WHERE user_id = #{userid}
+    </update>    
 </mapper>
 
 

@@ -59,12 +59,16 @@ public class UserService {
         return userMapper.findProfileById(userid);
     }
 
-    public String findBioById(Integer userid) {
-        return userMapper.findProfileById(userid).getBio();
-    }
+    @Transactional
+    public void updateProfile(Profile profile) {
+        if (profile.getBio() != null)
+        userMapper.updateProfileBio(profile.getId(), profile.getBio());
 
-    public void updateBio(Integer userid, String bio) {
-        userMapper.updateProfileBio(userid, bio);
+        if (profile.getBirthday() != null)
+        userMapper.updateProfileBirthday(profile.getId(), profile.getBirthday());
+
+        if (profile.getGender() != null)
+        userMapper.updateProfileGender(profile.getId(), profile.getGender());
     }
 
 }

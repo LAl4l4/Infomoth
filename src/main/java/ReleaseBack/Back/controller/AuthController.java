@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ReleaseBack.Back.entity.User;
 import ReleaseBack.Back.service.UserService;
-import org.springframework.web.bind.annotation.PostMapping;
 import ReleaseBack.Back.entity.Profile;
 import ReleaseBack.Back.DTO.ProfileDTO;
 import ReleaseBack.Back.VO.*;
@@ -84,8 +83,15 @@ public class AuthController {
     public String pushProfile(@RequestBody ProfileDTO profileDTO) {
         try {
             if (profileDTO.getId()==null) {
+                System.out.println("接收到的 DTO: " + profileDTO);
                 return "Invalid DTO";
             }
+            Profile profile = new Profile();
+            profile.setId(profileDTO.getId());
+            profile.setBio(profileDTO.getBio());
+            profile.setBirthday(profileDTO.getBirthday());
+            profile.setGender(profileDTO.getGender());
+            userService.updateProfile(profile);
         } catch (Exception e) {
             return "服务器发生异常";
         }
