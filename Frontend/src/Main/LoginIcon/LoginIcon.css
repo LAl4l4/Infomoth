@@ -1,0 +1,105 @@
+/* Styles for the circular profile / login icon
+
+Behavior:
+- When front page (open === false) the container has class `center` -> icon sits center of page and larger
+- When open === true the container removes `center` -> icon moves to top-left and scales to 0.5
+- Hover shows a dropdown menu below the (shrunk) icon
+*/
+
+.login-icon-container{
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 200px;
+    height: 200px;
+    transform-origin: left top;
+    transform: translate(0,0) scale(0.5);
+    transition: transform 500ms cubic-bezier(.2,.9,.3,1), top 500ms ease, left 500ms ease;
+    z-index: 15;
+    pointer-events: auto;
+    background: transparent;
+}
+
+/* center on homepage: bigger and centered */
+.login-icon-container.center{
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    width: 200px;
+    height: 200px;
+    transition: transform 600ms cubic-bezier(.2,.9,.3,1), top 600ms ease, left 600ms ease, width 600ms ease, height 600ms ease;
+    z-index: 40; /* above front image */
+}
+
+/* circular clipping wrapper */
+.icon-clip{
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    background: #fff;
+    position: relative;
+    filter: drop-shadow(0 0 15px rgba(0, 234, 255, 0.7));
+}
+
+.blog-icon{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 5% 10%; /* crop center portion */
+    display: block;
+}
+
+/* dropdown menu - appears on hover; positioned relative to top-left icon */
+.icon-dropdown{
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 110px;
+    background: rgba(255,255,255,0.98);
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    opacity: 0;
+    transform-origin: top left;
+    transform: translateY(-6px) scale(3);
+    pointer-events: none;
+    transition: opacity 220ms ease, transform 220ms ease;
+    display: flex;
+    flex-direction: column;
+    padding: 6px 4px;
+    gap: 6px;
+    z-index: 60;
+}
+
+.icon-dropdown.visible{
+    opacity: 1;
+    transform: translateY(0) scale(2);
+    pointer-events: auto;
+}
+
+.dropdown-item{
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.dropdown-item:hover{
+    background: rgba(0,0,0,0.06);
+}
+
+/* responsive smaller screens adjust sizes */
+@media (max-width: 640px){
+    .login-icon-container.center{
+        width: 150px;
+        height: 150px;
+    }
+    .login-icon-container{
+        width: 100px;
+        height: 100px;
+    }
+}
