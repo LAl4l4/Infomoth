@@ -1,0 +1,272 @@
+[
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "AUD",
+    "quote_currency_name": "Australian Dollar",
+    "rate": "1.4577",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "CAD",
+    "quote_currency_name": "Canadian Dollar",
+    "rate": "1.3921",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "CHF",
+    "quote_currency_name": "Swiss Franc",
+    "rate": "0.79998",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "CNY",
+    "quote_currency_name": "Chinese Yuan",
+    "rate": "6.9114",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "EUR",
+    "quote_currency_name": "Euro",
+    "rate": "0.87078",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "GBP",
+    "quote_currency_name": "British Pound",
+    "rate": "0.75586",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "HKD",
+    "quote_currency_name": "Hong Kong Dollar",
+    "rate": "7.8343",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "JPY",
+    "quote_currency_name": "Japanese Yen",
+    "rate": "159.46",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "KRW",
+    "quote_currency_name": "South Korean Won",
+    "rate": "1517.7",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "USD",
+    "base_currency_name": "US Dollar",
+    "quote_currency": "SGD",
+    "quote_currency_name": "Singapore Dollar",
+    "rate": "1.2898",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "AUD",
+    "quote_currency_name": "Australian Dollar",
+    "rate": "0.21091",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "CAD",
+    "quote_currency_name": "Canadian Dollar",
+    "rate": "0.20142",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "CHF",
+    "quote_currency_name": "Swiss Franc",
+    "rate": "0.11575",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "EUR",
+    "quote_currency_name": "Euro",
+    "rate": "0.12599",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "GBP",
+    "quote_currency_name": "British Pound",
+    "rate": "0.10936",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "HKD",
+    "quote_currency_name": "Hong Kong Dollar",
+    "rate": "1.1335",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "JPY",
+    "quote_currency_name": "Japanese Yen",
+    "rate": "23.072",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "KRW",
+    "quote_currency_name": "South Korean Won",
+    "rate": "219.6",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "SGD",
+    "quote_currency_name": "Singapore Dollar",
+    "rate": "0.18662",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "CNY",
+    "base_currency_name": "Chinese Yuan",
+    "quote_currency": "USD",
+    "quote_currency_name": "US Dollar",
+    "rate": "0.14469",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "CAD",
+    "quote_currency_name": "Canadian Dollar",
+    "rate": "0.95502",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "CHF",
+    "quote_currency_name": "Swiss Franc",
+    "rate": "0.54881",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "CNY",
+    "quote_currency_name": "Chinese Yuan",
+    "rate": "4.7413",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "EUR",
+    "quote_currency_name": "Euro",
+    "rate": "0.59737",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "GBP",
+    "quote_currency_name": "British Pound",
+    "rate": "0.51854",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "HKD",
+    "quote_currency_name": "Hong Kong Dollar",
+    "rate": "5.3745",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "JPY",
+    "quote_currency_name": "Japanese Yen",
+    "rate": "109.39",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "KRW",
+    "quote_currency_name": "South Korean Won",
+    "rate": "1041.18",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "SGD",
+    "quote_currency_name": "Singapore Dollar",
+    "rate": "0.88483",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  },
+  {
+    "base_currency": "AUD",
+    "base_currency_name": "Australian Dollar",
+    "quote_currency": "USD",
+    "quote_currency_name": "US Dollar",
+    "rate": "0.68602",
+    "date": "2026-03-30",
+    "source": "Frankfurter (ECB)"
+  }
+]

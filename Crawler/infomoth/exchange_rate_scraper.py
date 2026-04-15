@@ -1,0 +1,83 @@
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
+
+import requests
+from requests.exceptions import RequestException, Timeout
+
+LOGGER = logging.getLogger(__name__)
+
+# Major currencies to track (must include USD/CNY/AUD)
+MAJOR_CURRENCIES = ["USD", "CNY", "AUD", "EUR", "GBP", "JPY", "CAD", "CHF", "HKD", "SGD", "KRW"]
+
+# Base currencies for which we fetch full rate tables
+BASE_CURRENCIES = ["USD", "CNY", "AUD"]
+
+CURRENCY_NAMES: Dict[str, str] = {
+    "USD": "US Dollar",
+    "CNY": "Chinese Yuan",
+    "AUD": "Australian Dollar",
+    "EUR": "Euro",
+    "GBP": "British Pound",
+    "JPY": "Japanese Yen",
+    "CAD": "Canadian Dollar",
+    "CHF": "Swiss Franc",
+    "HKD": "Hong Kong Dollar",
+    "SGD": "Singapore Dollar",
+    "KRW": "South Korean Won",
+}
+
+_TIMEOUT = 15
+_API_BASE = "https://api.frankfurter.app"
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; InfoMoth/1.0)",
+    "Accept": "application/json",
+}
+
+
+class ExchangeRateScraper:
+    """Scrapes current exchange rates for major world currencies."""
+
+    def scrape(self) -> List[Dict[str, str]]:
+        results: List[Dict[str, str]] = []
+        seen: set[str] = set()
+        fetched_date: Optional[str] = None
+
+        for base in BASE_CURRENCIES:    
+            targets = [c for c in MAJOR_CURRENCIES if c != base]
+            url = f"{_API_BASE}/latest?from={base}&to={','.join(targets)}"
+            try:
+                response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
+                response.raise_for_status()
+                data = response.json()
+            except Timeout:
+                LOGGER.warning("Timeout fetching exchange rates for base %s", base)
+                continue
+            except RequestException as exc:
+                LOGGER.warning("Failed to fetch exchange rates for base %s: %s", base, exc)
+                continue
+
+            fetched_date = data.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+            rates: Dict[str, float] = data.get("rates", {})
+
+            for quote, rate in rates.items():
+                pair_key = f"{base}/{quote}"
+                if pair_key in seen:
+                    continue
+                seen.add(pair_key)
+                results.append(
+                    {
+                        "base_currency": base,
+                        "base_currency_name": CURRENCY_NAMES.get(base, base),
+                        "quote_currency": quote,
+                        "quote_currency_name": CURRENCY_NAMES.get(quote, quote),
+                        "rate": str(rate),
+                        "date": fetched_date,
+                        "source": "Frankfurter (ECB)",
+                    }
+                )
+
+        LOGGER.info("Fetched %s exchange rate pairs", len(results))
+        return results
