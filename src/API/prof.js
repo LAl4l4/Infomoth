@@ -1,20 +1,8 @@
 import axios from "./axios";
 
 
-export async function pullProfiles(userid) {
-    if (!userid) {
-        throw new Error('Invalid userid');
-    }
-
-    const res = await axios.get(
-        '/auth/pullProfiles',
-        // 第二个参数就是 config，在get里
-        {
-            params: {
-                userid: userid
-            }
-        }
-    );
+export async function pullProfiles() {
+    const res = await axios.get('/auth/pullProfiles');
 
     if (res.data === null) {
         throw new Error('No response from server');
@@ -24,7 +12,7 @@ export async function pullProfiles(userid) {
 }
 
 export async function updateProfile(data) {
-    if (!data || !data.userid) {
+    if (!data) {
         throw new Error('Invalid data');
     }
 

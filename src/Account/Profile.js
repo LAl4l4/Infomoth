@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './Profile.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { logOut, selectUserId } from '../Variable/login';
+import { logOut } from '../Variable/login';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../Variable/profile';
 import { useForm } from 'react-hook-form';
@@ -13,7 +13,6 @@ export default function Profile(){
   const navigate = useNavigate();
   const profile = useSelector(state => state.profile.userData);
   const profileError = useSelector(state => state.profile.error);
-  const userid = useSelector(selectUserId);
   const [isSaving, setIsSaving] = useState(false);
 
   //这里拉取Profile
@@ -47,9 +46,7 @@ export default function Profile(){
 
   // 统一的表单提交逻辑
   const onSubmit = async (data) => {
-    const patchData = {
-      userid: userid
-    };
+    const patchData = {};
     Object.keys(dirtyFields).forEach(key => {
       patchData[key] = data[key];
     });

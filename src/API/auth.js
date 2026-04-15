@@ -12,7 +12,10 @@ export async function checkLogin(email, password) {
       }
     }
   );
-  //前端已经使用了res.data进行判断，所以这里直接返回res
+  // 登录成功时保存 token
+  if (res.data.result === '登录成功' && res.data.token) {
+    localStorage.setItem('authToken', res.data.token);
+  }
   return res;
 }
 
@@ -33,15 +36,3 @@ export async function register(email, password, username) {
   return res;
 }
 
-export async function pullBio(userid) {
-    const res = await axios.get(
-        '/auth/getbio',
-        {
-            params: {
-                userid: userid
-            }
-        }
-    );
-
-    return res.data;
-}

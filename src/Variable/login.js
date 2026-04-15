@@ -10,7 +10,9 @@ export const checkLoginThunk = createAsyncThunk(
       const res = await checkLogin(email, password);
 
       if (res.data.result === '登录成功') {
-        return res.data;
+        return {
+          token: res.data.token
+        };
       } else {
         return rejectWithValue(res.data.result);
       }
@@ -24,7 +26,7 @@ export const loginSlice = createSlice({
     name: 'login',
     initialState: {
         isLoggedIn: false,
-        userId: null,
+        token: null,
         loading: false,
         error: null
     },
@@ -37,7 +39,7 @@ export const loginSlice = createSlice({
         .addCase(checkLoginThunk.fulfilled, (state, action) => {
             state.loading = false;
             state.isLoggedIn = true;
-            state.userId = action.payload.userid;
+            state.token = action.payload.token;
         })
         .addCase(checkLoginThunk.rejected, (state, action) => {
             state.loading = false;
@@ -50,15 +52,16 @@ export const loginSlice = createSlice({
         },
         logOut(state) {
             state.isLoggedIn = false;
+            state.token = null;
+            localStorage.removeItem('authToken');
         },
-        //这里存储id
-        storeUserId(state, action) {
-            state.userId = action.payload;
+        storeToken(state, action) {
+            state.token = action.payload;
         }
     }
 });
 
-export const { logIn, logOut, storeUserId } = loginSlice.actions;
+export const { logIn, logOut, storeToken } = loginSlice.actions;
 
 export const selectIsLoggedIn = (state) => state.login.isLoggedIn;
-export const selectUserId = (state) => state.login.userId;
+export const selectToken = (state) => state.login.token;

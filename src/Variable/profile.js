@@ -6,12 +6,9 @@ import { logOut } from './login';
 // 异步action：从数据库获取用户数据
 export const getUserProfile = createAsyncThunk(
     'profile/getUserProfile',
-    async (_, { getState, rejectWithValue }) => {
-        const state = getState();
-        const id = state.login.userId; // 从login slice获取用户ID
-
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await pullProfiles(id);//通过id拉取
+            const response = await pullProfiles();
 
             //这里做错误handle
             if (!response) {
@@ -30,7 +27,6 @@ export const profileSlice = createSlice({
     name: 'profile',
     initialState: {
         userData: {
-            id: null,
             bio: '',
             avatar: '',
             birthday: '',
@@ -42,7 +38,6 @@ export const profileSlice = createSlice({
     reducers: {
         clearProfile(state) {
             state.userData = {
-                id: null,
                 bio: '',
                 avatar: '',
                 birthday: '',
@@ -62,9 +57,8 @@ export const profileSlice = createSlice({
             })
             .addCase(getUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
-                const { id, bio, avatarUrl, birthday, gender } = action.payload;
+                const { bio, avatarUrl, birthday, gender } = action.payload;
                 state.userData = {
-                    id,
                     bio,
                     avatar: avatarUrl,
                     birthday,
@@ -78,7 +72,6 @@ export const profileSlice = createSlice({
             //监听logout action，清空profile
             .addCase(logOut, (state) => {
                 state.userData = {
-                    id: null,
                     bio: '',
                     avatar: '',
                     birthday: '',
