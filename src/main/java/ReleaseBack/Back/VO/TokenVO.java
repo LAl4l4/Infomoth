@@ -3,7 +3,7 @@ package ReleaseBack.Back.VO;
 import lombok.Data;
 
 @Data
-public class loginVO {
+public class TokenVO {
     private String result;
-    private Integer userid;
+    private String token;
 }

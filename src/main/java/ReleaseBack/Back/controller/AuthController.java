@@ -6,9 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ReleaseBack.Back.entity.User;
 import ReleaseBack.Back.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import ReleaseBack.Back.entity.Profile;
 import ReleaseBack.Back.DTO.ProfileDTO;
 import ReleaseBack.Back.VO.*;
+import ReleaseBack.Back.security.JwtUtil;
 
 
 @RestController
@@ -18,25 +20,28 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
 
     //测试账号 admin@admin.com/admin1/admin1
 
     @PostMapping("/login")
-    public loginVO login(
+    public TokenVO login(
         @RequestParam String username, //可能是email或username
         @RequestParam String pass
     ) {
         User foundUser = userService.findByNameEmail(username);
+        TokenVO tokenVO = new TokenVO();
         if (foundUser != null && foundUser.getPassword().equals(pass)) {
-            loginVO loginVO = new loginVO();
-            loginVO.setResult("登录成功");
-            loginVO.setUserid(foundUser.getId());
-            return loginVO;
+            String token = jwtUtil.generateToken(foundUser.getId());
+            tokenVO.setResult("登录成功");
+            tokenVO.setToken(token);
+            return tokenVO;
         }
-        loginVO loginVO = new loginVO();
-        loginVO.setResult("用户名/邮箱或密码错误");
-        loginVO.setUserid(null);
-        return loginVO;
+        tokenVO.setResult("用户名/邮箱或密码错误");
+        tokenVO.setToken(null);
+        return tokenVO;
     }
 
 
@@ -65,13 +70,13 @@ public class AuthController {
     
     
     @GetMapping("/pullProfiles")
-    public ProfileVO pullProfiles(@RequestParam Integer userid) {
+    public ProfileVO pullProfiles(HttpServletRequest request) {
+        int userid = (int) request.getAttribute("userId");
         Profile profile = userService.findProfileById(userid);
         if (profile == null) {
             return null;
         }
         ProfileVO profileVO = new ProfileVO();
-        profileVO.setId(profile.getId());
         profileVO.setBio(profile.getBio());
         profileVO.setAvatarUrl(profile.getAvatarUrl());
         profileVO.setBirthday(profile.getBirthday());
@@ -80,14 +85,11 @@ public class AuthController {
     }
 
     @PostMapping("/pushProfile")
-    public String pushProfile(@RequestBody ProfileDTO profileDTO) {
+    public String pushProfile(@RequestBody ProfileDTO profileDTO, HttpServletRequest request) {
         try {
-            if (profileDTO.getId()==null) {
-                System.out.println("接收到的 DTO: " + profileDTO);
-                return "Invalid DTO";
-            }
+            int userid = (int) request.getAttribute("userId");
             Profile profile = new Profile();
-            profile.setId(profileDTO.getId());
+            profile.setId(userid);
             profile.setBio(profileDTO.getBio());
             profile.setBirthday(profileDTO.getBirthday());
             profile.setGender(profileDTO.getGender());
