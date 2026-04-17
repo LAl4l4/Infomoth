@@ -3,30 +3,38 @@ package ReleaseBack.Back.security;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 import java.util.Date;
+
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtil {
-    private final String SECRET = "my_secret_key";
+    private final String SECRET = "my_secret_key_which_should_be_long_enough";
     private final long EXPIRE = 1000 * 60 * 60; // 1 hour
 
 
     public String generateToken(Integer userId) {
         return Jwts.builder()
-                .setSubject("auth")
+                .subject("auth")
                 .claim("userId", userId)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRE))
-                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRE))
+                .signWith(getSigningKey())
                 .compact();
     }
 
     public Integer parseId(String token) {
         return (Integer) Jwts.parser()
-                .setSigningKey(SECRET)
-                .parseClaimsJws(token)
-                .getBody()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
                 .get("userId");
+    }
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 }

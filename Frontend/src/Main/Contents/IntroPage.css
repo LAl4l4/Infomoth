@@ -86,3 +86,59 @@
 .card-large {
     flex: 1; /* 右侧主卡片占满右侧列 */
 }
+
+.currency-widget {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.currency-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.currency-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.currency-label {
+    font-size: 14px;
+    color: #5f6368;
+}
+
+.currency-field select {
+    appearance: none;
+    border: 1px solid #dcdfe3;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background-color: #fff;
+    color: #222;
+    font-size: 15px;
+    outline: none;
+}
+
+.currency-field select:focus {
+    border-color: #1e90ff;
+    box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.12);
+}
+
+.currency-result {
+    min-height: 28px;
+}
+
+.currency-rate {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.currency-error {
+    margin: 0;
+    color: #d93025;
+}
