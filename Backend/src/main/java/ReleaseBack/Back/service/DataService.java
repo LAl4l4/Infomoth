@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.exchangeRateDTO;
 
 import java.nio.file.Paths;
@@ -17,19 +18,10 @@ import java.util.Set;
 
 @Service
 public class DataService {
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private List<exchangeRateDTO> loadAllRates() {
-        Path path = Paths.get(
-            System.getProperty("user.dir"),
-            "..", "Crawler", "exchangeRates.json"
-        );
-        File jsonFile = path.toFile();
-
-        if (!jsonFile.exists()) {
-            throw new RuntimeException("Data file not found: " + jsonFile.getAbsolutePath());
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
+        File jsonFile = resolveCrawlerFile("exchangeRates.json");
         try {
             return mapper.readValue(
                 jsonFile,
@@ -38,6 +30,18 @@ public class DataService {
         } catch (Exception e) {
             throw new RuntimeException("Error reading JSON stream: " + e.getMessage(), e);
         }
+    }
+
+    private File resolveCrawlerFile(String fileName) {
+        Path path = Paths.get(
+            System.getProperty("user.dir"),
+            "..", "Crawler", fileName
+        );
+        File jsonFile = path.toFile();
+        if (!jsonFile.exists()) {
+            throw new RuntimeException("Data file not found: " + jsonFile.getAbsolutePath());
+        }
+        return jsonFile;
     }
     
     public double getExchangeRate(String base, String quote) {
@@ -68,5 +72,17 @@ public class DataService {
         }
 
         return currencies;
+    }
+
+    public List<aiSkillDTO> getPopularAISkills() {
+        File jsonFile = resolveCrawlerFile("ai_skills_today.json");
+        try {
+            return mapper.readValue(
+                jsonFile,
+                new TypeReference<List<aiSkillDTO>>() {}
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Error reading AI skills JSON stream: " + e.getMessage(), e);
+        }
     }
 }

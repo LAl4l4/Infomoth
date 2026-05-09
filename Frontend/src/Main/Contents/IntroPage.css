@@ -48,26 +48,41 @@
 }
 
 /* Base card style */
-.card {
-    background: #fff;
-    border-radius: 12px; /* 圆角 */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); /* 阴影 */
+.intro-grid .card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.16));
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(16px) saturate(145%);
+    -webkit-backdrop-filter: blur(16px) saturate(145%);
     padding: 16px;
-    color: #222;
+    color: #0f172a;
 }
 
-.card-title {
+.intro-grid .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+}
+
+.intro-grid .card-title {
     margin: 0 0 8px 0;
     font-weight: 600;
+    color: #0f172a;
 }
 
-.card-text {
+.intro-grid .card-text {
     margin: 0;
     line-height: 1.6;
+    color: rgba(15, 23, 42, 0.9);
 }
 
 /* Specific sizing */
-.card-top {
+.intro-grid .card-top {
     min-height: 140px;
 }
 
@@ -79,11 +94,11 @@
     background: transparent;
 }
 
-.card-small {
+.intro-grid .card-small {
     min-height: 120px;
 }
 
-.card-large {
+.intro-grid .card-large {
     flex: 1; /* 右侧主卡片占满右侧列 */
 }
 
@@ -108,23 +123,25 @@
 
 .currency-label {
     font-size: 14px;
-    color: #5f6368;
+    color: rgba(15, 23, 42, 0.75);
 }
 
 .currency-field select {
     appearance: none;
-    border: 1px solid #dcdfe3;
+    border: 1px solid rgba(255, 255, 255, 0.55);
     border-radius: 10px;
     padding: 10px 12px;
-    background-color: #fff;
-    color: #222;
+    background: rgba(255, 255, 255, 0.45);
+    color: #0f172a;
     font-size: 15px;
     outline: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .currency-field select:focus {
-    border-color: #1e90ff;
-    box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.12);
+    border-color: rgba(59, 130, 246, 0.85);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
 }
 
 .currency-result {
@@ -141,4 +158,29 @@
 .currency-error {
     margin: 0;
     color: #d93025;
+}
+
+.ai-skill-list {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ai-skill-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(15, 23, 42, 0.9);
+}
+
+.ai-skill-name {
+    font-weight: 600;
+}
+
+.ai-skill-meta {
+    white-space: nowrap;
+    color: rgba(15, 23, 42, 0.72);
 }

@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 import ReleaseBack.Back.service.DataService;
 import java.util.Set;
+import ReleaseBack.Back.DTO.aiSkillDTO;
 
 @RestController
 @RequestMapping("/data")
@@ -29,5 +32,10 @@ public class DataController {
     @GetMapping("/currencies")
     public ResponseEntity<Set<String>> getCurrencies() {
         return ResponseEntity.ok(dataService.getCurrencies());
+    }
+
+    @GetMapping("/ai-skills")
+    public ResponseEntity<List<aiSkillDTO>> getPopularAISkills() {
+        return ResponseEntity.ok(dataService.getPopularAISkills());
     }
 }

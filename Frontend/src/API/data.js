@@ -18,3 +18,11 @@ export async function pullExchangeRate(base, quote) {
   }
   return res.data;
 }
+
+export async function pullPopularAISkills() {
+  const res = await axios.get("/data/ai-skills");
+  if (!Array.isArray(res.data)) {
+    throw new Error("Invalid AI skills response");
+  }
+  return res.data;
+}

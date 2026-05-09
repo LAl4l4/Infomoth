@@ -1,6 +1,6 @@
 import './IntroPage.css';
 import { useEffect, useMemo, useState } from "react";
-import { pullCurrencies, pullExchangeRate } from "../../API/data";
+import { pullCurrencies, pullExchangeRate, pullPopularAISkills } from "../../API/data";
 
 
 export default function Intro({ pagenum }) {
@@ -27,8 +27,7 @@ export default function Intro({ pagenum }) {
                             <p className="card-text">最近的版本更新内容概览。</p>
                         </div>
                         <div className="card card-small">
-                            <h4 className="card-title">热门文章</h4>
-                            <p className="card-text">社区关注的主题与讨论。</p>
+                            <AISkillsCard />
                         </div>
                         <div className="card card-small">
                             <h4 className="card-title">快速开始</h4>
@@ -49,6 +48,54 @@ export default function Intro({ pagenum }) {
                 </div>
             </div>
         </div>
+    );
+}
+
+function AISkillsCard() {
+    const [skills, setSkills] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let mounted = true;
+        pullPopularAISkills()
+            .then((items) => {
+                if (!mounted) return;
+                setSkills(items.slice(0, 3));
+            })
+            .catch((e) => {
+                if (!mounted) return;
+                setError(e.message || "AI 技能数据加载失败");
+            })
+            .finally(() => {
+                if (!mounted) return;
+                setLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    return (
+        <>
+            <h4 className="card-title">AI 热门技能</h4>
+            {loading && <p className="card-text">加载中...</p>}
+            {!loading && error && <p className="currency-error">{error}</p>}
+            {!loading && !error && skills.length === 0 && (
+                <p className="card-text">今天暂无可用数据。</p>
+            )}
+            {!loading && !error && skills.length > 0 && (
+                <ol className="ai-skill-list">
+                    {skills.map((item) => (
+                        <li key={`${item.rank}-${item.skill}`}>
+                            <span className="ai-skill-name">{item.skill}</span>
+                            <span className="ai-skill-meta">{item.mentions} mentions</span>
+                        </li>
+                    ))}
+                </ol>
+            )}
+        </>
     );
 }
 

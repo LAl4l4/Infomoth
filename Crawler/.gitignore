@@ -1,0 +1,11 @@
+./ai_skills_today.json
+
+./exchangeRates.json
+
+./politics_news.json
+
+./tech_news.json
+
+./__pycache__
+
+./infomoth/__pycache__
