@@ -1,11 +1,11 @@
-./ai_skills_today.json
+ai_skills_today.json
 
-./exchangeRates.json
+exchangeRates.json
 
-./politics_news.json
+politics_news.json
 
-./tech_news.json
+tech_news.json
 
-./__pycache__
+__pycache__
 
-./infomoth/__pycache__
+infomoth/__pycache__
