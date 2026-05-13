@@ -1,4 +1,4 @@
+from .finance import FinanceAnalyser
 
 
-
-__all__ = []
+__all__ = ["FinanceAnalyser"]

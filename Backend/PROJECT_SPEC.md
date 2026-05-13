@@ -5,7 +5,7 @@
 - **Responsibilities**:
   - User authentication and profile management (`/auth/*`)
   - Exchange rate data retrieval (`/data/*`)
-- **External Dependencies**: Reads `../Crawler/exchangeRates.json` as the data source for exchange rates.
+- **External Dependencies**: Reads `../Shared/exchangeRates.json` as the data source for exchange rates.
 
 ## 2. Tech Stack & Frameworks
 - **Language/Runtime**: Java 25

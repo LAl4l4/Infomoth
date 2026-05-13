@@ -21,7 +21,7 @@ public class DataService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private List<exchangeRateDTO> loadAllRates() {
-        File jsonFile = resolveCrawlerFile("exchangeRates.json");
+        File jsonFile = resolveSharedFile("exchangeRates.json");
         try {
             return mapper.readValue(
                 jsonFile,
@@ -32,10 +32,10 @@ public class DataService {
         }
     }
 
-    private File resolveCrawlerFile(String fileName) {
+    private File resolveSharedFile(String fileName) {
         Path path = Paths.get(
             System.getProperty("user.dir"),
-            "..", "Crawler", fileName
+            "..", "Shared", fileName
         );
         File jsonFile = path.toFile();
         if (!jsonFile.exists()) {
@@ -75,7 +75,7 @@ public class DataService {
     }
 
     public List<aiSkillDTO> getPopularAISkills() {
-        File jsonFile = resolveCrawlerFile("ai_skills_today.json");
+        File jsonFile = resolveSharedFile("ai_skills_today.json");
         try {
             return mapper.readValue(
                 jsonFile,

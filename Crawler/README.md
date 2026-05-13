@@ -1,8 +1,10 @@
 # InfoMoth
 
-InfoMoth scrapes global news into two categories:
-- Technology (`tech_news.json`)
-- Global Politics (`politics_news.json`)
+InfoMoth scrapes and aggregates data into:
+- Technology news (`tech_news.json`)
+- Global politics news (`politics_news.json`)
+- Exchange rates (`exchangeRates.json`)
+- AI skills trends (`ai_skills_today.json`)
 
 The scraper flow is:
 1. RSS/Atom with `feedparser` (first choice)
@@ -33,9 +35,11 @@ python main.py
 
 ## Output
 
-Running the script writes exactly these JSON outputs in the project root:
+Running the script writes JSON outputs into `../Shared`:
 - `tech_news.json`
 - `politics_news.json`
+- `exchangeRates.json`
+- `ai_skills_today.json`
 
 Each record includes:
 - `title`

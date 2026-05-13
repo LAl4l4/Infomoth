@@ -15,13 +15,15 @@ from infomoth import (
 
 
 ROOT_DIR = Path(__file__).resolve().parent
-TECH_OUTPUT = ROOT_DIR / "tech_news.json"
-POLITICS_OUTPUT = ROOT_DIR / "politics_news.json"
-EXCHANGE_RATE_OUTPUT = ROOT_DIR / "exchangeRates.json"
-AI_SKILLS_OUTPUT = ROOT_DIR / "ai_skills_today.json"
+SHARED_DIR = ROOT_DIR.parent / "Shared"
+TECH_OUTPUT = SHARED_DIR / "tech_news.json"
+POLITICS_OUTPUT = SHARED_DIR / "politics_news.json"
+EXCHANGE_RATE_OUTPUT = SHARED_DIR / "exchangeRates.json"
+AI_SKILLS_OUTPUT = SHARED_DIR / "ai_skills_today.json"
 
 
 def save_json(path: Path, payload: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file:
         json.dump(payload, file, ensure_ascii=False, indent=2)
 

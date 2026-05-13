@@ -29,10 +29,11 @@
 
 ## 4. Input/Output Contracts
 - **Execution Command**: `python main.py`
-- **Output Files** (Root directory):
+- **Output Files** (`../Shared` directory):
   - `tech_news.json`
   - `politics_news.json`
   - `exchangeRates.json`
+  - `ai_skills_today.json`
 - **News Item Fields**:
   - `title`, `link`, `summary`, `published_date`, `source`
 - **Exchange Rate Item Fields**:
@@ -49,5 +50,5 @@
 ## 6. AI Agent Development Guidelines (Crawler)
 - **Source Expansion**: When adding news sources, only modify the source configuration and necessary parsing logic in the corresponding `*_scraper.py`. Do not break the `BaseNewsScraper` contract.
 - **Field Consistency**: New fields must be compatible with Backend parsing (especially field naming in `exchangeRates.json`).
-- **File Stability**: Maintain stable output filenames; otherwise, the file paths in the Backend `DataService` will become invalid.
+- **File Stability**: Maintain stable output filenames and write location (`../Shared`); otherwise, the file paths in the Backend `DataService` will become invalid.
 - **Logic Abstraction**: When modifying scraping strategies, prioritize extending the common base class instead of duplicating logic across multiple modules.

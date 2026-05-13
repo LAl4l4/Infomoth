@@ -20,28 +20,20 @@ POLITICS_SOURCES = [
     {
         "name": "AP News",
         "type": "rss",
-        "url": "https://feeds.apnews.com/apf-topnews",
+        "url": "https://news.google.com/rss/search?q=site:apnews.com+world",
         "limit": 20,
     },
     {
-        "name": "Reuters World",
-        "type": "html",
-        "url": "https://www.reuters.com/world/",
-        "base_url": "https://www.reuters.com",
-        "selectors": [
-            "a[data-testid='Heading']",
-            "article a",
-        ],
-        "limit": 15,
+        "name": "NYTimes World",
+        "type": "rss",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+        "limit": 20,
     },
     {
         "name": "BBC Politics",
-        "type": "selenium",
-        "url": "https://www.bbc.com/news/politics",
-        "article_selector": "main a[href*='/news/']",
-        "limit": 10,
-        "wait_seconds": 5,
-        "browser": "chrome",
+        "type": "rss",
+        "url": "https://feeds.bbci.co.uk/news/politics/rss.xml",
+        "limit": 20,
     },
 ]
 

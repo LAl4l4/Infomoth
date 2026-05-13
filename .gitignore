@@ -5,3 +5,7 @@
 .vscode
 
 models
+
+Shared/*.json
+
+__pycache__

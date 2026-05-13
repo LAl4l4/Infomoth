@@ -93,8 +93,8 @@ Detailed Specification is in `PROJECT_SPEC.md` in the root directory. This file 
 
 ## High-level architecture
 
-- **Crawler-first data pipeline**: `Crawler/main.py` orchestrates `TechNewsScraper`, `PoliticsNewsScraper`, and `ExchangeRateScraper`, then writes JSON artifacts (`tech_news.json`, `politics_news.json`, `exchangeRates.json`) into the `Crawler` directory.
-- **Backend as API + file-backed data service**: `Backend` exposes auth/profile and exchange-rate APIs. `DataService` reads exchange rates from `../Crawler/exchangeRates.json` at request time, so crawler output format/path is part of the runtime contract.
+- **Crawler-first data pipeline**: `Crawler/main.py` orchestrates `TechNewsScraper`, `PoliticsNewsScraper`, and `ExchangeRateScraper`, then writes JSON artifacts (`tech_news.json`, `politics_news.json`, `exchangeRates.json`) into the `Shared` directory.
+- **Backend as API + file-backed data service**: `Backend` exposes auth/profile and exchange-rate APIs. `DataService` reads exchange rates from `../Shared/exchangeRates.json` at request time, so crawler output format/path is part of the runtime contract.
 - **Frontend as API-driven SPA**: `Frontend` calls backend APIs through `src/API/*` wrappers, with centralized Axios interceptors for JWT injection and 401 handling.
 - **Auth flow spans frontend + backend**:
   - Frontend stores JWT in `localStorage` key `authToken`.
