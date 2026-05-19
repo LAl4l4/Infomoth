@@ -1,13 +1,51 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'http://localhost:8080', // 后续改为从环境注入
   timeout: 5000
 });
 
+const configClient = axios.create({ timeout: 5000 });
+let apiBaseUrlPromise = null;
+
+async function loadApiBaseUrl() {
+  const configEndpoints = [
+    '/config/baseurl',
+    'http://localhost:8080/config/baseurl'
+  ];
+
+  for (const endpoint of configEndpoints) {
+    try {
+      const response = await configClient.get(endpoint);
+      const apiBaseUrl = response?.data?.baseUrl;
+      if (apiBaseUrl) {
+        return apiBaseUrl;
+      }
+    } catch (error) {
+      // try next candidate url
+    }
+  }
+
+  throw new Error('Cannot load api base URL from /config/baseurl');
+}
+
+async function ensureBaseUrl() {
+  if (instance.defaults.baseURL) {
+    return instance.defaults.baseURL;
+  }
+
+  if (!apiBaseUrlPromise) {
+    apiBaseUrlPromise = loadApiBaseUrl();
+  }
+
+  const apiBaseUrl = await apiBaseUrlPromise;
+  instance.defaults.baseURL = apiBaseUrl;
+  return apiBaseUrl;
+}
+
 // 请求拦截器：自动添加 Authorization header
 instance.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    await ensureBaseUrl();
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

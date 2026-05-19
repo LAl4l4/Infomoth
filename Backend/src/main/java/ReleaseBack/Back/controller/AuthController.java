@@ -11,11 +11,13 @@ import ReleaseBack.Back.entity.Profile;
 import ReleaseBack.Back.DTO.ProfileDTO;
 import ReleaseBack.Back.VO.*;
 import ReleaseBack.Back.security.JwtUtil;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000") 
 public class AuthController {
 
     @Autowired
@@ -99,4 +101,5 @@ public class AuthController {
         }
         return "保存成功";
     }
+    
 }

@@ -2,7 +2,6 @@ package ReleaseBack.Back.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,7 +14,6 @@ import ReleaseBack.Back.DTO.aiSkillDTO;
 
 @RestController
 @RequestMapping("/data")
-@CrossOrigin(origins = "http://localhost:3000") 
 public class DataController {
     
     @Autowired
@@ -37,5 +35,10 @@ public class DataController {
     @GetMapping("/ai-skills")
     public ResponseEntity<List<aiSkillDTO>> getPopularAISkills() {
         return ResponseEntity.ok(dataService.getPopularAISkills());
+    }
+
+    @GetMapping("/sentiment")
+    public ResponseEntity<Double> getSentimentScore() {
+        return ResponseEntity.ok(dataService.getSentimentScore());
     }
 }

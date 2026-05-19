@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.exchangeRateDTO;
+import ReleaseBack.Back.entity.SentimentAverage;
+import ReleaseBack.Back.mapper.SentimentMapper;
 
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
@@ -15,10 +17,15 @@ import java.nio.file.Path;
 import java.io.File;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 @Service
 public class DataService {
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Autowired
+    private SentimentMapper sentimentMapper;
 
     private List<exchangeRateDTO> loadAllRates() {
         File jsonFile = resolveSharedFile("exchangeRates.json");
@@ -72,6 +79,22 @@ public class DataService {
         }
 
         return currencies;
+    }
+
+    public double getSentimentScore() {
+        SentimentAverage politics = sentimentMapper.findLatestByTable("politics_average");
+        SentimentAverage tech = sentimentMapper.findLatestByTable("tech_average");
+
+        if (politics == null && tech == null) {
+            throw new RuntimeException("No sentiment data available");
+        }
+        if (politics == null) {
+            return tech.getSentimentScore();
+        }
+        if (tech == null) {
+            return politics.getSentimentScore();
+        }
+        return (politics.getSentimentScore() + tech.getSentimentScore()) / 2.0;
     }
 
     public List<aiSkillDTO> getPopularAISkills() {

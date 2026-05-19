@@ -24,7 +24,9 @@ public class JwtInterceptor implements HandlerInterceptor {
         
         String uri = request.getRequestURI();
         // 公开端点不需要验证
-        if (uri.contains("/auth/login") || uri.contains("/auth/register")) {
+        if (uri.contains("/auth/login") || 
+            uri.contains("/auth/register") ||
+            uri.contains("/Config/**")) {
             return true;
         }
         

@@ -1,7 +1,7 @@
-import axios from "./axios";
+import instance from "./axios";
 
 export async function pullCurrencies() {
-  const res = await axios.get("/data/currencies");
+  const res = await instance.get("/data/currencies");
   if (!Array.isArray(res.data)) {
     throw new Error("Invalid currencies response");
   }
@@ -9,7 +9,7 @@ export async function pullCurrencies() {
 }
 
 export async function pullExchangeRate(base, quote) {
-  const res = await axios.get("/data/exchangerate", {
+  const res = await instance.get("/data/exchangerate", {
     params: { base, quote },
   });
 
@@ -20,9 +20,17 @@ export async function pullExchangeRate(base, quote) {
 }
 
 export async function pullPopularAISkills() {
-  const res = await axios.get("/data/ai-skills");
+  const res = await instance.get("/data/ai-skills");
   if (!Array.isArray(res.data)) {
     throw new Error("Invalid AI skills response");
+  }
+  return res.data;
+}
+
+export async function pullSentimentScore() {
+  const res = await instance.get("/data/sentiment");
+  if (typeof res.data !== "number") {
+    throw new Error("Invalid sentiment response");
   }
   return res.data;
 }

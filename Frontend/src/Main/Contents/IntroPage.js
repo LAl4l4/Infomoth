@@ -1,6 +1,6 @@
 import './IntroPage.css';
 import { useEffect, useMemo, useState } from "react";
-import { pullCurrencies, pullExchangeRate, pullPopularAISkills } from "../../API/data";
+import { pullCurrencies, pullExchangeRate, pullPopularAISkills, pullSentimentScore } from "../../API/data";
 
 
 export default function Intro({ pagenum }) {
@@ -23,8 +23,7 @@ export default function Intro({ pagenum }) {
 
                     <div className="card-2x2">
                         <div className="card card-small">
-                            <h4 className="card-title">最新发布</h4>
-                            <p className="card-text">最近的版本更新内容概览。</p>
+                            <SentimentCard />
                         </div>
                         <div className="card card-small">
                             <AISkillsCard />
@@ -48,6 +47,60 @@ export default function Intro({ pagenum }) {
                 </div>
             </div>
         </div>
+    );
+}
+
+function SentimentCard() {
+    const [score, setScore] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let mounted = true;
+        pullSentimentScore()
+            .then((value) => {
+                if (!mounted) return;
+                setScore(value);
+            })
+            .catch((e) => {
+                if (!mounted) return;
+                setError(e.message || "情绪数据加载失败");
+            })
+            .finally(() => {
+                if (!mounted) return;
+                setLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const sentimentColor = score !== null
+        ? (score > 0.05 ? "var(--sentiment-positive, #16a34a)"
+           : score < -0.05 ? "var(--sentiment-negative, #dc2626)"
+           : "var(--sentiment-neutral, #6b7280)")
+        : undefined;
+
+    return (
+        <>
+            <h4 className="card-title">市场情绪</h4>
+            {loading && <p className="card-text">加载中...</p>}
+            {!loading && error && <p className="currency-error">{error}</p>}
+            {!loading && !error && score === null && (
+                <p className="card-text">今天暂无可用数据。</p>
+            )}
+            {!loading && !error && score !== null && (
+                <div className="sentiment-widget">
+                    <span className="sentiment-score" style={{ color: sentimentColor }}>
+                        {score > 0 ? "+" : ""}{score.toFixed(4)}
+                    </span>
+                    <span className="sentiment-label">
+                        {score > 0.05 ? "偏乐观" : score < -0.05 ? "偏悲观" : "中性"}
+                    </span>
+                </div>
+            )}
+        </>
     );
 }
 

@@ -9,12 +9,14 @@
 
 ## 2. Tech Stack & Frameworks
 - **Language/Runtime**: Python `3.13.3`
-- **Core Dependencies**:
-  - `requests`: HTTP requests
-  - `beautifulsoup4`: HTML parsing
-  - `feedparser`: RSS/Atom parsing
-  - `selenium`: Fallback for JavaScript-heavy dynamic pages
-  - `ThreadPoolExecutor`: Improve the performance by multi-thread
+- **Core Dependencies** (from `requirements.txt`):
+  - `requests==2.31.0`: HTTP requests
+  - `beautifulsoup4==4.12.2`: HTML parsing
+  - `feedparser==6.0.11`: RSS/Atom parsing
+  - `selenium==4.18.1`: Fallback for JavaScript-heavy dynamic pages
+  - `python==3.13.3`
+- **Standard Library Usage**:
+  - `ThreadPoolExecutor`: improve performance via multi-thread execution
 
 ## 3. Module Structure
 - `main.py`: Entry point for tasks, orchestrates execution and writes JSON outputs.
@@ -29,6 +31,7 @@
 
 ## 4. Input/Output Contracts
 - **Execution Command**: `python main.py`
+- **Setup Command**: `pip install -r requirements.txt`
 - **Output Files** (`../Shared` directory):
   - `tech_news.json`
   - `politics_news.json`
@@ -46,6 +49,18 @@
 - All network requests must include a timeout to prevent indefinite hanging.
 - Handle 403 responses by retrying with different User-Agents.
 - Selenium should only be used for sources that strictly require JS rendering to minimize resource overhead.
+- Source strategy:
+  1. RSS/Atom with `feedparser` (first choice)
+  2. Standard HTML with `requests` + `BeautifulSoup`
+  3. Headless Selenium only for JS-rendered pages
+- Selenium runtime prerequisites:
+  - Install one of:
+    - Chrome + ChromeDriver
+    - Firefox + GeckoDriver
+  - Driver version must match browser version and be available in `PATH`.
+- Current implementation notes:
+  - Chinese-specific sources and language-specific parsing have been removed.
+  - HTTP calls use rotating custom User-Agents and explicit timeout handling.
 
 ## 6. AI Agent Development Guidelines (Crawler)
 - **Source Expansion**: When adding news sources, only modify the source configuration and necessary parsing logic in the corresponding `*_scraper.py`. Do not break the `BaseNewsScraper` contract.

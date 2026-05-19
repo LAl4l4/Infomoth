@@ -66,9 +66,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Build, test, and lint commands
 
-This repository has 3 runnable parts: `Backend` (Spring Boot), `Frontend` (React), and `Crawler` (Python scraper).
+This repository has 4 runnable parts: `Backend` (Spring Boot), `Frontend` (React), `Crawler` (Python scraper), and `Analyser` (Python analysis task).
 
-Detailed Specification is in `PROJECT_SPEC.md` in the root directory. This file is a high-level overview and reference for developers.
+Detailed specification files:
+- Root overview: `PROJECT_SPEC.md`
+- Backend: `Backend/PROJECT_SPEC.md`
+- Crawler: `Crawler/PROJECT_SPEC.md`
+- Analyser: `Analyser/PROJECT_SPEC.md`
 
 ### Backend (`Backend/`)
 - Run app: `./mvnw spring-boot:run`
@@ -86,6 +90,11 @@ Detailed Specification is in `PROJECT_SPEC.md` in the root directory. This file 
 ### Crawler (`Crawler/`)
 - Install deps: `pip install -r requirements.txt`
 - Run scraper: `python main.py`
+- There is currently no dedicated automated test or lint command configured for this package.
+
+### Analyser (`Analyser/`)
+- Install deps: ensure `transformers` and runtime backend (`torch`) are available in your Python environment.
+- Run analyser: `python main.py`
 - There is currently no dedicated automated test or lint command configured for this package.
 
 ### Root helper command

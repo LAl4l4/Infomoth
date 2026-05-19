@@ -1,0 +1,18 @@
+{
+  "analyser": {
+    "mysql": {
+      "host": "localhost",
+      "user": "root",
+      "password": "",
+      "database": "blog"
+    }
+  },
+  "frontend": {
+    "apiBaseUrl": "http://localhost:8080"
+  },
+  "backend": {
+    "corsAllowedOrigins": [
+      "http://localhost:3000"
+    ]
+  }
+}

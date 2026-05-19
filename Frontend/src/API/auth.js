@@ -1,7 +1,7 @@
-import axios from './axios';
+import instance from './axios';
 
 export async function checkLogin(email, password) {
-  const res = await axios.post(
+  const res = await instance.post(
     '/auth/login',   // 注意：没有 localhost
     //后端是RequestParam
     null, // body为空
@@ -20,7 +20,7 @@ export async function checkLogin(email, password) {
 }
 
 export async function register(email, password, username) {
-  const res = await axios.post(
+  const res = await instance.post(
     '/auth/register',
     //后端是RequestParam
     null,
