@@ -69,51 +69,86 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 This repository has 4 runnable parts: `Backend` (Spring Boot), `Frontend` (React), `Crawler` (Python scraper), and `Analyser` (Python analysis task).
 
 Detailed specification files:
-- Root overview: `PROJECT_SPEC.md`
+- Frontend: `Frontend/PROJECT_SPEC.md`
 - Backend: `Backend/PROJECT_SPEC.md`
 - Crawler: `Crawler/PROJECT_SPEC.md`
 - Analyser: `Analyser/PROJECT_SPEC.md`
 
 ### Backend (`Backend/`)
-- Run app: `./mvnw spring-boot:run`
-- Build jar: `./mvnw package`
-- Run all tests: `./mvnw test`
-- Run a single test class: `./mvnw -Dtest=BackApplicationTests test`
+- Run app: `cd Backend && ./mvnw spring-boot:run`
+- Build jar: `cd Backend && ./mvnw package`
+- Run all tests: `cd Backend && ./mvnw test`
+- Run a single test class: `cd Backend && ./mvnw -Dtest=BackApplicationTests test`
+- Requires MySQL database `blog` on `localhost:3306`, user `root`, empty password (see `Backend/src/main/resources/application.yaml`).
 
 ### Frontend (`Frontend/`)
-- Install deps: `pnpm install` (lockfile present) or `npm install`
-- Run dev server: `pnpm start`
-- Build: `pnpm build`
-- Run all tests once: `pnpm test --watchAll=false`
-- Run a single test file: `pnpm test --watchAll=false --runTestsByPath src/App.test.js`
+- Install deps: `cd Frontend && pnpm install` (lockfile present) 
+- Run dev server: `cd Frontend && pnpm start`
+- Build: `cd Frontend && pnpm build`
+- Run all tests once: `cd Frontend && pnpm test --watchAll=false`
+- Run a single test file: `cd Frontend && pnpm test --watchAll=false --runTestsByPath src/App.test.js`
 
 ### Crawler (`Crawler/`)
-- Install deps: `pip install -r requirements.txt`
-- Run scraper: `python main.py`
+- Install deps: `cd Crawler && pip install -r requirements.txt`
+- Run scraper: `cd Crawler && python main.py`
 - There is currently no dedicated automated test or lint command configured for this package.
 
 ### Analyser (`Analyser/`)
-- Install deps: ensure `transformers` and runtime backend (`torch`) are available in your Python environment.
-- Run analyser: `python main.py`
+- Install deps: ensure `transformers` and `torch` are available in your Python environment.
+- Run analyser: `cd Analyser && python main.py`
+- First run downloads the FinBERT model (~500MB) to `models/` if not cached.
 - There is currently no dedicated automated test or lint command configured for this package.
 
-### Root helper command
-- `make dev` starts backend and frontend in separate macOS Terminal windows via `osascript`.
+### Root helper commands
+- `make dev` — starts backend and frontend in separate macOS Terminal windows via `osascript`.
+- `make dev-backend` — opens a Terminal window for the backend only.
+- `make dev-frontend` — opens a Terminal window for the frontend only.
 
 ## High-level architecture
 
-- **Crawler-first data pipeline**: `Crawler/main.py` orchestrates `TechNewsScraper`, `PoliticsNewsScraper`, and `ExchangeRateScraper`, then writes JSON artifacts (`tech_news.json`, `politics_news.json`, `exchangeRates.json`) into the `Shared` directory.
-- **Backend as API + file-backed data service**: `Backend` exposes auth/profile and exchange-rate APIs. `DataService` reads exchange rates from `../Shared/exchangeRates.json` at request time, so crawler output format/path is part of the runtime contract.
+### Data flow (order matters)
+
+```
+Crawler/main.py
+  ├── TechNewsScraper      → Shared/tech_news.json
+  ├── PoliticsNewsScraper  → Shared/politics_news.json
+  ├── ExchangeRateScraper  → Shared/exchangeRates.json
+  └── AiSkillScraper       → Shared/ai_skills_today.json
+
+Analyser/main.py  (runs AFTER Crawler)
+  ├── Reads Shared/tech_news.json & politics_news.json
+  ├── FinBERT sentiment analysis (ProsusAI/finbert, cached in models/)
+  └── Writes back to the SAME files, appending financeInfluence to each item
+
+Backend (Spring Boot, port 8080)
+  ├── Reads Shared/exchangeRates.json at request time (no caching)
+  ├── Reads Shared/ai_skills_today.json (via aiSkillDTO)
+  ├── MySQL database "blog" (tables: user, profiles, + dynamic sentiment tables)
+  └── JWT-protected REST API
+
+Frontend (React, port 3000)
+  ├── Axios → Backend API (localhost:8080)
+  └── Redux Toolkit state management
+```
+
+The pipeline must run Crawler before Analyser. The Analyser mutates source JSON in-place — do not run it while the Crawler is writing.
+
+### Component details
+
+- **Crawler scraping strategy**: `base_scraper.py` implements a 3-tier fallback per source: RSS feed → static HTML parse → headless Selenium (only when JS rendering is required). UA rotation and dedup are built into the base class.
+- **Backend as API + file-backed data service**: `DataService` reads exchange rates from `../Shared/exchangeRates.json` at request time, so crawler output format/path is part of the runtime contract.
 - **Frontend as API-driven SPA**: `Frontend` calls backend APIs through `src/API/*` wrappers, with centralized Axios interceptors for JWT injection and 401 handling.
 - **Auth flow spans frontend + backend**:
   - Frontend stores JWT in `localStorage` key `authToken`.
   - Axios request interceptor sends `Authorization: Bearer <token>`.
   - Backend `WebConfig` + `JwtInterceptor` protect all routes except `/auth/login` and `/auth/register`.
+- **Config directory**: `Config/app-config.json` is a centralized config reference (MySQL, API base URL, CORS origins), but backend currently reads from its own `application.yaml`.
 
 ## Key conventions in this codebase
 
 - **Crawler owns data acquisition**: All crawlers and data normalization must stay under `Crawler/`. The backend only reads crawler-produced JSON files and must not implement crawling or external data-fetch logic.
 - **Backend persistence style is MyBatis XML-first**: SQL is defined in `src/main/resources/mapper/*.xml`, with mapper interfaces in `mapper/`. Do not assume JPA annotations drive persistence behavior.
+- **SentimentMapper uses dynamic table names**: `${table}` in `SentimentMapper.xml` is string interpolation (not a prepared-statement parameter). Callers control the table name — sanitize if ever exposing to user input.
 - **Backend API layering is strict**: controller -> service -> mapper; DTO/VO classes are used for request/response shaping (`DTO/`, `VO/`).
 - **Auth endpoints expect query params, not JSON body** for login/register (`@RequestParam` in `AuthController`), and frontend API helpers follow that contract.
 - **Exchange-rate JSON schema is compatibility-sensitive**: backend `exchangeRateDTO` supports aliases (`base_currency`/`base`, `quote_currency`/`quote`). Keep scraper output backward-compatible when changing fields.
@@ -121,3 +156,5 @@ Detailed specification files:
 - **CORS and local dev assumptions are explicit**:
   - Backend controllers are currently configured for `http://localhost:3000`.
   - Frontend Axios base URL is `http://localhost:8080`.
+- **Shared/ is gitignored**: JSON artifacts in `Shared/` are not versioned. They must be generated by running the Crawler (and optionally Analyser) before the backend can serve exchange-rate or AI-skill data.
+- **Analyser mutates source files in-place**: It reads news JSON from `Shared/`, adds `financeInfluence` to each item, and writes back. Do not assume the news JSON is read-only after the Crawler runs.

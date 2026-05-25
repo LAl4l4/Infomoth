@@ -27,6 +27,18 @@ public class DataService {
     @Autowired
     private SentimentMapper sentimentMapper;
 
+    private final Path sharedDir;
+
+    // default constructor for production use, assumes Shared directory is at ../Shared
+    public DataService() {
+        this(Path.of("../Shared"));
+    }
+
+    // only used for testing, allows injection of a custom Shared directory path
+    public DataService(Path sharedDir) {
+        this.sharedDir = sharedDir;
+    }
+
     private List<exchangeRateDTO> loadAllRates() {
         File jsonFile = resolveSharedFile("exchangeRates.json");
         try {
@@ -40,10 +52,7 @@ public class DataService {
     }
 
     private File resolveSharedFile(String fileName) {
-        Path path = Paths.get(
-            System.getProperty("user.dir"),
-            "..", "Shared", fileName
-        );
+        Path path = Paths.get(sharedDir.toString(), fileName);
         File jsonFile = path.toFile();
         if (!jsonFile.exists()) {
             throw new RuntimeException("Data file not found: " + jsonFile.getAbsolutePath());

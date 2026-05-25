@@ -1,0 +1,73 @@
+package ReleaseBack.Back.controller;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
+
+import ReleaseBack.Back.DTO.aiSkillDTO;
+import ReleaseBack.Back.service.DataService;
+
+@ExtendWith(MockitoExtension.class)
+class DataControllerTest {
+
+    @Mock
+    private DataService dataService;
+
+    @InjectMocks
+    private DataController dataController;
+
+    @Test
+    void getExchangeRateShouldReturnServiceValue() {
+        when(dataService.getExchangeRate("USD", "AUD")).thenReturn(1.52);
+
+        ResponseEntity<Double> response = dataController.getExchangeRate("USD", "AUD");
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(1.52, response.getBody());
+    }
+
+    @Test
+    void getCurrenciesShouldReturnServiceValue() {
+        Set<String> expected = Set.of("USD", "AUD");
+        when(dataService.getCurrencies()).thenReturn(expected);
+
+        ResponseEntity<Set<String>> response = dataController.getCurrencies();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    void getPopularAISkillsShouldReturnServiceValue() {
+        aiSkillDTO dto = new aiSkillDTO();
+        dto.setRank(1);
+        dto.setSkill("RAG");
+        dto.setMentions(10);
+        List<aiSkillDTO> expected = List.of(dto);
+        when(dataService.getPopularAISkills()).thenReturn(expected);
+
+        ResponseEntity<List<aiSkillDTO>> response = dataController.getPopularAISkills();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    void getSentimentScoreShouldReturnServiceValue() {
+        when(dataService.getSentimentScore()).thenReturn(0.42);
+
+        ResponseEntity<Double> response = dataController.getSentimentScore();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(0.42, response.getBody());
+    }
+}

@@ -40,7 +40,7 @@ def main():
     financeAnalyserPolitic.closeMysql()
     financeAnalyserTech.closeMysql()
     
-    print("MySQL connections closed")
+    print("MySQL connections closed successfully")
 
 if __name__ == "__main__":
     main()
