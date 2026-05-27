@@ -1,6 +1,6 @@
 # InfoMoth
 
-InfoMoth is a multi-module project for collecting market/news data, analyzing sentiment, and serving it to a web app.
+InfoMoth is a multi-module project for collecting market/news data, analyzing sentiment, and serving it to a web app/pages.
 
 ## Core Functions
 - Crawl and aggregate:
