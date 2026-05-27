@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.exchangeRateDTO;
 import ReleaseBack.Back.entity.SentimentAverage;
+import ReleaseBack.Back.exception.DataFileNotFoundException;
+import ReleaseBack.Back.exception.DataReadException;
 import ReleaseBack.Back.mapper.SentimentMapper;
 
 import java.nio.file.Paths;
@@ -47,7 +49,7 @@ public class DataService {
                 new TypeReference<List<exchangeRateDTO>>() {}
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error reading JSON stream: " + e.getMessage(), e);
+            throw new DataReadException("Error reading JSON stream: " + e.getMessage());
         }
     }
 
@@ -55,7 +57,7 @@ public class DataService {
         Path path = Paths.get(sharedDir.toString(), fileName);
         File jsonFile = path.toFile();
         if (!jsonFile.exists()) {
-            throw new RuntimeException("Data file not found: " + jsonFile.getAbsolutePath());
+            throw new DataFileNotFoundException(jsonFile.getAbsolutePath());
         }
         return jsonFile;
     }
@@ -69,7 +71,7 @@ public class DataService {
             }
         }
 
-        throw new RuntimeException("Exchange rate not found for " + base + "/" + quote);
+        throw new DataFileNotFoundException("Exchange rate not found for " + base + "/" + quote);
 
     
     }
@@ -95,7 +97,7 @@ public class DataService {
         SentimentAverage tech = sentimentMapper.findLatestByTable("tech_average");
 
         if (politics == null && tech == null) {
-            throw new RuntimeException("No sentiment data available");
+            throw new DataFileNotFoundException("No sentiment data available");
         }
         if (politics == null) {
             return tech.getSentimentScore();
@@ -114,7 +116,7 @@ public class DataService {
                 new TypeReference<List<aiSkillDTO>>() {}
             );
         } catch (Exception e) {
-            throw new RuntimeException("Error reading AI skills JSON stream: " + e.getMessage(), e);
+            throw new DataReadException("Error reading AI skills JSON stream: " + e.getMessage());
         }
     }
 }

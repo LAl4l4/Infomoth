@@ -62,7 +62,26 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-## After this is the project details
+# Tools for token-efficiency
+
+## Project Context (OpenWolf)
+This project uses OpenWolf for context management.
+- At the start of every session, read `.wolf/anatomy.md` to understand the project structure.
+- Before generating or modifying code, check `.wolf/cerebrum.md` for project conventions and preferences.
+- If you are unsure about file organization, refer to `.wolf/anatomy.md` first instead of scanning many files.
+
+### For Claude Code
+- Claude Code already integrates OpenWolf natively via project-level hooks. It automatically reads `.wolf/anatomy.md` and `.wolf/cerebrum.md` according to its own lifecycle. **Do not manually re-read these files or add extra OpenWolf steps.**
+
+## Token-Efficient Commands (RTK)
+This project uses RTK (Rust Token Killer) to reduce token consumption from command output.
+- **Golden Rule:** Always prefix shell commands with `rtk`.  
+  Example: `rtk git status`, `rtk npm test`, `rtk mvn test`
+- For command chains, prefix each subcommand:
+  ```bash
+  rtk git add . && rtk git commit -m "message" && rtk git push
+
+# After this is the project details
 
 ## Build, test, and lint commands
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
-from unitTestHelper import save_json, US_STOCK_INDICES_OUTPUT
+from .unitTestHelper import save_json, US_STOCK_INDICES_OUTPUT
 
 import yfinance as yf
 

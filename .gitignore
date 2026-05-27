@@ -9,3 +9,13 @@ models
 Shared/*.json
 
 __pycache__
+
+.DS_Store
+
+CLAUDE.md
+
+.claude
+
+.wolf
+
+.rtk
