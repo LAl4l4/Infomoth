@@ -1,18 +1,18 @@
 package ReleaseBack.Back.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ReleaseBack.Back.mapper.UserMapper;
+import lombok.RequiredArgsConstructor;
 import ReleaseBack.Back.entity.User;
 import ReleaseBack.Back.entity.Profile;
 
+@RequiredArgsConstructor
 @Service
 public class UserService {
     
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     public User findByNameEmail(String username) {
         if (username.contains("@")){

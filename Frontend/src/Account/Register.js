@@ -2,14 +2,15 @@ import {useState} from 'react';
 import './Login.css';
 import { register } from '../API/auth';
 import { useNavigate } from "react-router-dom";
+import { AuthGlyph } from '../Main/LoginIcon/LoginIcon';
 
 // Front-end only shell. Replace the endpoint/params to match your backend contract.
 async function createAccount({email, password, username}) {
   try {
-    const params = { 
-        username: username, 
+    const params = {
+        username: username,
         pass: password,
-        email: email 
+        email: email
     };
 
     const res = await register(params.email, params.pass, params.username);
@@ -34,7 +35,7 @@ function validateEmail(email) {
     const address = email.split('@');
 
     if (address.length !== 2) return false;
-    
+
     const domainParts = address[1].split('.');
     if (domainParts.length < 2) return false;
 
@@ -58,7 +59,7 @@ export default function Register({ onSuccess }) {
   const navigate = useNavigate();
 
   function handleChange(field) {
-    
+
     return (e) => {
         if (field === 'email') {
             setEmailValid(validateEmail(e.target.value));
@@ -76,7 +77,7 @@ export default function Register({ onSuccess }) {
     setLocalError('');
     setSuccessMessage('');
 
-    
+
     if (!form.email || !form.password || !form.confirm || !form.username) {
       setLocalError('请完整填写所有必填项');
       return;
@@ -93,7 +94,7 @@ export default function Register({ onSuccess }) {
       setLocalError('密码至少需要 6 位字符');
       return;
     }
-    
+
 
     setSubmitting(true);
     const result = await createAccount({
@@ -114,38 +115,34 @@ export default function Register({ onSuccess }) {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-brand">
-          <div className="brand-bubble" aria-hidden />
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-brand">
+          <div className="auth-glyph-circle" aria-hidden>
+            <AuthGlyph loggedIn={false} />
+          </div>
           <h1 className="brand-title">创建账户</h1>
           <p className="brand-sub">注册以继续</p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <div className="avatar-wrap" aria-hidden>
-            <div className="avatar-clip">
-              <img src="/image/profile.webp" alt="avatar" />
-            </div>
-          </div>
-
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <label className="field">
-            <span className="label">邮箱</span>
+            <span className="field-label">邮箱</span>
             <input
               type="email"
               value={form.email}
               onChange={handleChange('email')}
               placeholder="you@example.com"
-              className="input"
+              className="field-input"
               required
             />
             {!emailValid && form.email && (
-              <div className="error">请输入有效的邮箱地址</div>
+              <div className="auth-error">请输入有效的邮箱地址</div>
             )}
           </label>
 
           <label className="field">
-            <span className="label">昵称</span>
+            <span className="field-label">昵称</span>
             <input
               type="text"
               value={form.username}
@@ -155,43 +152,43 @@ export default function Register({ onSuccess }) {
                   return;
                 }
                 handleChange('username')(e);
-            }}
+              }}
               placeholder="username"
-              className="input"
+              className="field-input"
             />
           </label>
 
           <label className="field">
-            <span className="label">密码</span>
+            <span className="field-label">密码</span>
             <input
               type="password"
               value={form.password}
               onChange={handleChange('password')}
               placeholder="至少 6 位"
-              className="input"
+              className="field-input"
               required
             />
           </label>
 
           <label className="field">
-            <span className="label">确认密码</span>
+            <span className="field-label">确认密码</span>
             <input
               type="password"
               value={form.confirm}
               onChange={handleChange('confirm')}
               placeholder="再次输入密码"
-              className="input"
+              className="field-input"
               required
             />
           </label>
 
-          {localError && <div className="error">{localError}</div>}
-          {successMessage && <div className="success">{successMessage}</div>}
+          {localError && <div className="auth-error">{localError}</div>}
+          {successMessage && <div className="auth-success">{successMessage}</div>}
 
           <button className="btn primary" type="submit" disabled={submitting}>
             {submitting ? '提交中…' : '创建账户'}
           </button>
-            <div className="row">
+            <div className="auth-row">
 			    <button type="button" className="btn ghost"
 			    onClick={() => navigate('/login')}
 				>账户登录</button>

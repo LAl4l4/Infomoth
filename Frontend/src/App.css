@@ -1,27 +1,14 @@
 .App {
-    text-align: center;
-    width: 100%;
-    height: 100%;           /* 控制显示高度 */
-    overflow: hidden;         /* 裁掉超出的部分 */
-    background-color: white;  /* 白色背景 */
-    top: 0px;
-    margin-top: 0%;
-    position: absolute;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+  text-align: center;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  position: relative;
+  color: #0f172a;
 }
 
 .App-header {
-  /* header no longer occupies full viewport so route components (like Login) are visible */
   background-color: transparent;
   min-height: auto;
   display: block;
@@ -30,15 +17,8 @@
   color: inherit;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Each route mounts inside .App */
+.App > * {
+  position: relative;
+  z-index: 10;
 }
