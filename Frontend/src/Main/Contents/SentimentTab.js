@@ -1,26 +1,21 @@
 import './IntroPage.css';
-import { useEffect, useState } from 'react';
-import { pullSentimentScore } from '../../API/data';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchSentimentScore, selectSentimentScore } from '../../Variable/dataCache';
 
 export default function SentimentTab() {
-  const [score, setScore] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  const { data: score, loading, error } = useSelector(selectSentimentScore);
 
   useEffect(() => {
-    let mounted = true;
-    pullSentimentScore()
-      .then((v) => mounted && setScore(v))
-      .catch((e) => mounted && setError(e.message || '情绪数据加载失败'))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, []);
+    dispatch(fetchSentimentScore());
+  }, [dispatch]);
 
   const color = score !== null
     ? (score > 0.05 ? '#16a34a'
-       : score < -0.05 ? '#dc2626'
+       : score < -0.05 ? '#FF4D4F'
        : '#6b7280')
-    : '#0f172a';
+    : '#ffffff';
 
   const label = score === null
     ? '—'

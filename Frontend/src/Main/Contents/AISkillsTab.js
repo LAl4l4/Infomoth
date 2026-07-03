@@ -1,20 +1,15 @@
 import './IntroPage.css';
-import { useEffect, useState } from 'react';
-import { pullPopularAISkills } from '../../API/data';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchAISkills, selectAISkills } from '../../Variable/dataCache';
 
 export default function AISkillsTab() {
-  const [skills, setSkills] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  const { data: skills, loading, error } = useSelector(selectAISkills);
 
   useEffect(() => {
-    let mounted = true;
-    pullPopularAISkills()
-      .then((items) => mounted && setSkills(items))
-      .catch((e) => mounted && setError(e.message || 'AI 技能数据加载失败'))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, []);
+    dispatch(fetchAISkills());
+  }, [dispatch]);
 
   return (
     <section className="glass-panel" aria-label="AI 热门技能">
@@ -26,10 +21,10 @@ export default function AISkillsTab() {
 
       {loading && <p className="state-text">加载中…</p>}
       {!loading && error && <p className="exchange-error">{error}</p>}
-      {!loading && !error && skills.length === 0 && (
+      {!loading && !error && (!skills || skills.length === 0) && (
         <p className="state-text">今天暂无可用数据。</p>
       )}
-      {!loading && !error && skills.length > 0 && (
+      {!loading && !error && skills && skills.length > 0 && (
         <ol className="skill-list">
           {skills.map((item) => (
             <li key={`${item.rank}-${item.skill}`} className="skill-row">

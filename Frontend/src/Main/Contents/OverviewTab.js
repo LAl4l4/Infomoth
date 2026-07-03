@@ -1,20 +1,22 @@
 import './IntroPage.css';
-import { useEffect, useState } from 'react';
-import { pullExchangeRate, pullPopularAISkills, pullSentimentScore } from '../../API/data';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  fetchSentimentScore,
+  fetchAISkills,
+  fetchExchangeRate,
+  selectSentimentScore,
+  selectAISkills,
+  selectExchangeRates,
+} from '../../Variable/dataCache';
 
 function OverviewSentimentRow() {
-  const [score, setScore] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  const { data: score, loading, error } = useSelector(selectSentimentScore);
 
   useEffect(() => {
-    let mounted = true;
-    pullSentimentScore()
-      .then((v) => mounted && setScore(v))
-      .catch((e) => mounted && setError(e.message || '加载失败'))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, []);
+    dispatch(fetchSentimentScore());
+  }, [dispatch]);
 
   let valueText;
   if (loading) valueText = '加载中…';
@@ -33,17 +35,14 @@ function OverviewSentimentRow() {
 }
 
 function OverviewAISkillRow() {
-  const [top, setTop] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { data: skills, loading } = useSelector(selectAISkills);
 
   useEffect(() => {
-    let mounted = true;
-    pullPopularAISkills()
-      .then((items) => mounted && setTop(items[0] || null))
-      .catch(() => mounted && setTop(null))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, []);
+    dispatch(fetchAISkills());
+  }, [dispatch]);
+
+  const top = skills && skills.length > 0 ? skills[0] : null;
 
   let valueText;
   if (loading) valueText = '加载中…';
@@ -59,28 +58,24 @@ function OverviewAISkillRow() {
 }
 
 function OverviewRateRow() {
-  const [rate, setRate] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { data: rates, loading } = useSelector(selectExchangeRates);
 
   useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    pullExchangeRate('USD', 'CNY')
-      .then((v) => mounted && setRate(v))
-      .catch(() => mounted && setRate(null))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, []);
+    dispatch(fetchExchangeRate({ base: 'USD', quote: 'CNY' }));
+  }, [dispatch]);
+
+  const rate = rates['USD-CNY'];
 
   let valueText;
   if (loading) valueText = '加载中…';
-  else if (rate === null) valueText = '今日暂无';
+  else if (rate === undefined || rate === null) valueText = '今日暂无';
   else valueText = `1 USD = ${rate} CNY`;
 
   return (
     <div className="snapshot-row">
       <span className="snapshot-label">汇率速查 (USD/CNY)</span>
-      <span className={'snapshot-value' + (rate === null && !loading ? ' muted' : '')}>{valueText}</span>
+      <span className={'snapshot-value' + (rate === undefined || rate === null ? ' muted' : '')}>{valueText}</span>
     </div>
   );
 }

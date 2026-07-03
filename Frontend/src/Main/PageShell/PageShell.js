@@ -2,7 +2,8 @@ import './PageShell.css';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPageNum, setPageNum } from '../../Variable/pagenum';
 import LoginIcon from '../LoginIcon/LoginIcon';
-import RainbowBubble from '../RainbowBubble/RainbowBubble';
+//import { BgGlobe } from '../BackgroundGlobe/BackgroundGlobe';
+import Globe from '../BackgroundGlobe/Globe.tsx';
 import TabBar from '../TabBar/TabBar';
 import OverviewTab from '../Contents/OverviewTab';
 import SentimentTab from '../Contents/SentimentTab';
@@ -24,7 +25,7 @@ export default function PageShell() {
 
   return (
     <div className="page-shell">
-      <RainbowBubble />
+      <Globe />
       <TabBar
         tabs={TABS}
         active={safeTab}

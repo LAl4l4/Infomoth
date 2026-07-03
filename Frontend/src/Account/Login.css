@@ -17,15 +17,16 @@
   max-width: 100%;
   border-radius: 28px;
   padding: 40px 36px 44px 36px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6),
-              0 24px 60px rgba(15, 23, 42, 0.22);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+              inset 0 -1px 0 rgba(255, 200, 150, 0.08),
+              0 20px 48px rgba(0, 0, 0, 0.4);
   position: relative;
   overflow: visible;
-  color: #0f172a;
+  color: #ffffff;
   text-align: left;
 }
 
@@ -34,8 +35,29 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 50%);
   border-radius: inherit;
+}
+
+.auth-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 180deg,
+    rgba(255, 120, 120, 0.15),
+    rgba(255, 200, 100, 0.12),
+    rgba(100, 255, 180, 0.1),
+    rgba(100, 180, 255, 0.12),
+    rgba(180, 100, 255, 0.1),
+    rgba(255, 120, 120, 0.15)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .auth-card > * {
@@ -59,13 +81,13 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
-              0 10px 28px rgba(15, 23, 42, 0.18);
-  color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+              0 8px 24px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
   position: relative;
   overflow: hidden;
 }
@@ -74,7 +96,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 60%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
   border-radius: inherit;
 }
 
@@ -90,13 +112,13 @@
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .brand-sub {
   margin: 0;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.6);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 /* form */
@@ -118,18 +140,18 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.55);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .field-input {
   height: 46px;
   padding: 10px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  color: #ffffff;
   font-size: 15px;
   outline: none;
   font-family: inherit;
@@ -138,9 +160,9 @@
 }
 
 .field-input:focus {
-  border-color: rgba(59, 130, 246, 0.7);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
-  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 textarea.field-input {
@@ -151,11 +173,11 @@ textarea.field-input {
 }
 
 .auth-error {
-  color: #dc2626;
+  color: #FF4D4F;
   font-size: 13px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: rgba(220, 38, 38, 0.08);
+  background: rgba(255, 77, 79, 0.12);
 }
 
 .auth-success {
@@ -195,7 +217,7 @@ textarea.field-input {
 
 .btn.ghost {
   background: transparent;
-  color: rgba(15, 23, 42, 0.6);
+  color: rgba(255, 255, 255, 0.65);
   border: none;
   padding: 0;
   height: auto;
@@ -203,7 +225,7 @@ textarea.field-input {
 }
 
 .btn.ghost:hover {
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .auth-row {
@@ -214,13 +236,13 @@ textarea.field-input {
 }
 
 .auth-link {
-  color: rgba(15, 23, 42, 0.6);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 13px;
   text-decoration: none;
 }
 
 .auth-link:hover {
-  color: #0f172a;
+  color: #ffffff;
 }
 
 @media (max-width: 480px) {

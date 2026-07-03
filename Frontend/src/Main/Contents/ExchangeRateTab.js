@@ -1,28 +1,32 @@
 import './IntroPage.css';
 import { useEffect, useMemo, useState } from 'react';
-import { pullCurrencies, pullExchangeRate } from '../../API/data';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  fetchCurrencies,
+  fetchExchangeRate,
+  selectCurrencies,
+  selectExchangeRates,
+} from '../../Variable/dataCache';
 
 export default function ExchangeRateTab() {
-  const [currencies, setCurrencies] = useState([]);
+  const dispatch = useDispatch();
+  const { data: currencies, loading: curLoading, error: curError } = useSelector(selectCurrencies);
+  const { data: rates, loading: rateLoading, error: rateError } = useSelector(selectExchangeRates);
+
   const [base, setBase] = useState('USD');
   const [quote, setQuote] = useState('CNY');
-  const [rate, setRate] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    let mounted = true;
-    pullCurrencies()
-      .then((list) => {
-        if (!mounted) return;
-        const sorted = [...list].sort();
-        setCurrencies(sorted);
-        setBase((p) => (sorted.includes(p) ? p : (sorted[0] || '')));
-        setQuote((p) => (sorted.includes(p) ? p : (sorted[1] || sorted[0] || '')));
-      })
-      .catch((e) => mounted && setError(e.message || '货币列表加载失败'));
-    return () => { mounted = false; };
-  }, []);
+    dispatch(fetchCurrencies());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (currencies && currencies.length > 0) {
+      const sorted = [...currencies].sort();
+      setBase((p) => (sorted.includes(p) ? p : (sorted[0] || '')));
+      setQuote((p) => (sorted.includes(p) ? p : (sorted[1] || sorted[0] || '')));
+    }
+  }, [currencies]);
 
   const canQuery = useMemo(
     () => Boolean(base) && Boolean(quote) && base !== quote,
@@ -30,20 +34,16 @@ export default function ExchangeRateTab() {
   );
 
   useEffect(() => {
-    if (!canQuery) { setRate(null); return; }
-    let mounted = true;
-    setLoading(true);
-    setError('');
-    pullExchangeRate(base, quote)
-      .then((v) => mounted && setRate(v))
-      .catch((e) => {
-        if (!mounted) return;
-        setRate(null);
-        setError(e.message || '汇率加载失败');
-      })
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, [base, quote, canQuery]);
+    if (!canQuery) return;
+    const key = `${base}-${quote}`;
+    if (!(key in rates)) {
+      dispatch(fetchExchangeRate({ base, quote }));
+    }
+  }, [base, quote, canQuery, rates, dispatch]);
+
+  const rate = canQuery ? rates[`${base}-${quote}`] : null;
+  const loading = curLoading || rateLoading;
+  const error = curError || rateError;
 
   function swap() {
     setBase(quote);
@@ -67,7 +67,7 @@ export default function ExchangeRateTab() {
               value={base}
               onChange={(e) => setBase(e.target.value)}
             >
-              {currencies.map((cur) => (
+              {(currencies || []).map((cur) => (
                 <option key={`base-${cur}`} value={cur}>{cur}</option>
               ))}
             </select>
@@ -82,7 +82,7 @@ export default function ExchangeRateTab() {
               value={quote}
               onChange={(e) => setQuote(e.target.value)}
             >
-              {currencies.map((cur) => (
+              {(currencies || []).map((cur) => (
                 <option key={`quote-${cur}`} value={cur}>{cur}</option>
               ))}
             </select>
@@ -95,7 +95,7 @@ export default function ExchangeRateTab() {
           {!loading && !error && !canQuery && (
             <p className="state-text">请选择两个不同的货币。</p>
           )}
-          {!loading && !error && canQuery && rate !== null && (
+          {!loading && !error && canQuery && rate !== undefined && rate !== null && (
             <>
               <p className="exchange-rate-xl">
                 1 {base} = {rate} {quote}
