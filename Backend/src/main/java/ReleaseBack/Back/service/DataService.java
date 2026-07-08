@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.exchangeRateDTO;
+import ReleaseBack.Back.DTO.usStockIndexDTO;
 import ReleaseBack.Back.entity.SentimentAverage;
 import ReleaseBack.Back.exception.DataFileNotFoundException;
 import ReleaseBack.Back.exception.DataReadException;
@@ -117,6 +118,18 @@ public class DataService {
             );
         } catch (Exception e) {
             throw new DataReadException("Error reading AI skills JSON stream: " + e.getMessage());
+        }
+    }
+
+    public List<usStockIndexDTO> getUsStockIndices() {
+        File jsonFile = resolveSharedFile("us_stock_indices.json");
+        try {
+            return mapper.readValue(
+                jsonFile,
+                new TypeReference<List<usStockIndexDTO>>() {}
+            );
+        } catch (Exception e) {
+            throw new DataReadException("Error reading US stock indices JSON stream: " + e.getMessage());
         }
     }
 }

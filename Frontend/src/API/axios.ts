@@ -5,9 +5,9 @@ const instance = axios.create({
 });
 
 const configClient = axios.create({ timeout: 5000 });
-let apiBaseUrlPromise = null;
+let apiBaseUrlPromise: Promise<string> | null = null;
 
-async function loadApiBaseUrl() {
+async function loadApiBaseUrl(): Promise<string> {
   const configEndpoints = [
     '/config/baseurl',
     'http://localhost:8080/config/baseurl'
@@ -18,7 +18,7 @@ async function loadApiBaseUrl() {
       const response = await configClient.get(endpoint);
       const apiBaseUrl = response?.data?.baseUrl;
       if (apiBaseUrl) {
-        return apiBaseUrl;
+        return apiBaseUrl as string;
       }
     } catch (error) {
       // try next candidate url
@@ -28,7 +28,7 @@ async function loadApiBaseUrl() {
   throw new Error('Cannot load api base URL from /config/baseurl');
 }
 
-async function ensureBaseUrl() {
+async function ensureBaseUrl(): Promise<string> {
   if (instance.defaults.baseURL) {
     return instance.defaults.baseURL;
   }

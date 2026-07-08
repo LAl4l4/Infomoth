@@ -1,8 +1,8 @@
 import instance from "./axios";
+import type { ProfileData } from "../customTypes";
 
-
-export async function pullProfiles() {
-    const res = await instance.get('/auth/pullProfiles');
+export async function pullProfiles(): Promise<ProfileData> {
+    const res = await instance.get<ProfileData>('/auth/pullProfiles');
 
     if (res.data === null) {
         throw new Error('No response from server');
@@ -11,7 +11,7 @@ export async function pullProfiles() {
     return res.data;
 }
 
-export async function updateProfile(data) {
+export async function updateProfile(data: Record<string, unknown>): Promise<unknown> {
     if (!data) {
         throw new Error('Invalid data');
     }

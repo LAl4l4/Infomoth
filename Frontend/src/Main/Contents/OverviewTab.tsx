@@ -5,13 +5,16 @@ import {
   fetchSentimentScore,
   fetchAISkills,
   fetchExchangeRate,
+  fetchUsStockIndices,
   selectSentimentScore,
   selectAISkills,
   selectExchangeRates,
+  selectUsStockIndices,
 } from '../../Variable/dataCache';
+import type { AppDispatch } from '../../customTypes';
 
 function OverviewSentimentRow() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: score, loading, error } = useSelector(selectSentimentScore);
 
   useEffect(() => {
@@ -35,7 +38,7 @@ function OverviewSentimentRow() {
 }
 
 function OverviewAISkillRow() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: skills, loading } = useSelector(selectAISkills);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ function OverviewAISkillRow() {
 }
 
 function OverviewRateRow() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: rates, loading } = useSelector(selectExchangeRates);
 
   useEffect(() => {
@@ -80,6 +83,32 @@ function OverviewRateRow() {
   );
 }
 
+function OverviewStockRow() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { data: indices, loading } = useSelector(selectUsStockIndices);
+
+  useEffect(() => {
+    dispatch(fetchUsStockIndices());
+  }, [dispatch]);
+
+  const sp = indices && indices.find((i) => i.symbol === '^GSPC');
+
+  let valueText;
+  if (loading) valueText = '加载中…';
+  else if (!sp) valueText = '今日暂无';
+  else {
+    const sign = sp.change >= 0 ? '+' : '';
+    valueText = `${sp.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${sign}${sp.changePercent.toFixed(2)}%)`;
+  }
+
+  return (
+    <div className="snapshot-row">
+      <span className="snapshot-label">S&P 500</span>
+      <span className={'snapshot-value' + (!sp && !loading ? ' muted' : '')}>{valueText}</span>
+    </div>
+  );
+}
+
 export default function OverviewTab() {
   return (
     <section className="glass-panel" aria-label="概览">
@@ -94,6 +123,7 @@ export default function OverviewTab() {
         <OverviewSentimentRow />
         <OverviewAISkillRow />
         <OverviewRateRow />
+        <OverviewStockRow />
       </div>
 
       <p className="overview-foot">

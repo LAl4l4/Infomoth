@@ -2,17 +2,54 @@ import { useState, useEffect } from 'react';
 import './Profile.css';
 import { useSelector, useDispatch } from 'react-redux';
 import { logOut } from '../Variable/login';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, type NavigateFunction } from 'react-router-dom';
 import { getUserProfile } from '../Variable/profile';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormRegister, type UseFormHandleSubmit, type SubmitHandler } from 'react-hook-form';
 import { updateProfile } from '../API/prof';
+import type { RootState, AppDispatch } from '../customTypes';
 
 
-export default function Profile(){
-  const dispatch = useDispatch();
+interface ProfileFormValues {
+  bio?: string;
+  birthday?: string;
+  gender?: string;
+}
+
+interface ProfilesProps {
+  avatar?: string;
+  handleLogout: () => void;
+  tab: string;
+  setTab: (tab: string) => void;
+  register: UseFormRegister<ProfileFormValues>;
+  handleSubmit: UseFormHandleSubmit<ProfileFormValues>;
+  onSubmit: SubmitHandler<ProfileFormValues>;
+  isDirty: boolean;
+  isSaving: boolean;
+}
+
+interface LeftSectionProps {
+  tab: string;
+  setTab: (tab: string) => void;
+}
+
+interface ProfileInfoProps {
+  avatar?: string;
+  register: UseFormRegister<ProfileFormValues>;
+  handleSubmit: UseFormHandleSubmit<ProfileFormValues>;
+  onSubmit: SubmitHandler<ProfileFormValues>;
+  isDirty: boolean;
+  isSaving: boolean;
+}
+
+interface EmailPasswordProps {
+  handleLogout: () => void;
+}
+
+export default function Profile() {
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const profile = useSelector(state => state.profile.userData);
-  const profileError = useSelector(state => state.profile.error);
+  const profile = useSelector((state: RootState) => state.profile.userData);
+  const profileError = useSelector((state: RootState) => state.profile.error);
   const [isSaving, setIsSaving] = useState(false);
 
   //这里拉取Profile
@@ -28,7 +65,7 @@ export default function Profile(){
   }, [profileError]);
 
   // 集中管理表单逻辑
-  const { register, handleSubmit, formState: { isDirty, dirtyFields }, reset } = useForm({
+  const { register, handleSubmit, formState: { isDirty, dirtyFields }, reset } = useForm<ProfileFormValues>({
     defaultValues: {
       bio: profile.bio || '',
       birthday: profile.birthday || '',
@@ -45,10 +82,10 @@ export default function Profile(){
   });
 
   // 统一的表单提交逻辑
-  const onSubmit = async (data) => {
-    const patchData = {};
-    Object.keys(dirtyFields).forEach(key => {
-      patchData[key] = data[key];
+  const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
+    const patchData: Record<string, unknown> = {};
+    Object.keys(dirtyFields).forEach((key) => {
+      patchData[key] = (data as Record<string, unknown>)[key];
     });
 
     try {
@@ -62,18 +99,18 @@ export default function Profile(){
         dispatch(getUserProfile());
         setIsSaving(false);
       } else {
-        throw new Error(res);
+        throw new Error(typeof res === 'string' ? res : '保存失败');
       }
     } catch (error) {
       console.error('保存失败', error);
-      alert(`保存失败: ${error.message}`);
+      alert(`保存失败: ${error instanceof Error ? error.message : String(error)}`);
       setIsSaving(false);
     }
   };
 
   const [tab, setTab] = useState('info');
 
-  function handleLogout(){
+  function handleLogout() {
     dispatch(logOut());
     navigate('/');
   }
@@ -82,10 +119,10 @@ export default function Profile(){
     <div className="profile-screen">
         <NavigateBar navigate={navigate} />
 
-        <Profiles 
+        <Profiles
           avatar={profile.avatar}
-          handleLogout={handleLogout} 
-          tab={tab} 
+          handleLogout={handleLogout}
+          tab={tab}
           setTab={setTab}
           register={register}
           handleSubmit={handleSubmit}
@@ -98,7 +135,8 @@ export default function Profile(){
 }
 
 
-function NavigateBar({ navigate }){
+
+function NavigateBar({ navigate }: { navigate: NavigateFunction }) {
   return (
     <div>
         <div className="profile-header">
@@ -113,8 +151,8 @@ function NavigateBar({ navigate }){
 }
 
 function Profiles(
-  { avatar, handleLogout, tab, setTab, register, handleSubmit, onSubmit, isDirty, isSaving }
-){
+  { avatar, handleLogout, tab, setTab, register, handleSubmit, onSubmit, isDirty, isSaving }: ProfilesProps
+) {
     return (
         <div className='infopart'>
             <LeftSection tab={tab} setTab={setTab} />
@@ -143,19 +181,19 @@ function Profiles(
     );
 }
 
-function LeftSection({ tab, setTab }){
+function LeftSection({ tab, setTab }: LeftSectionProps) {
   return (
     <div className='leftsection'>
         <div className="left-section">
-            <h2 
+            <h2
                 className={"card-title" + (tab === 'info' ? " active" : "")}
                 onClick={()=>setTab('info')}
             >基本信息</h2>
-            <h2 
+            <h2
                 className={"card-title" + (tab === 'email' ? " active" : "")}
                 onClick={()=>setTab('email')}
             >密码/邮箱</h2>
-            <h2 
+            <h2
                 className={"card-title" + (tab === 'others' ? " active" : "")}
                 onClick={()=>setTab('others')}
             >其他设置</h2>
@@ -164,7 +202,7 @@ function LeftSection({ tab, setTab }){
   );
 }
 
-function ProfileInfo({ avatar, register, handleSubmit, onSubmit, isDirty, isSaving }){
+function ProfileInfo({ avatar, register, handleSubmit, onSubmit, isDirty, isSaving }: ProfileInfoProps) {
   return (
     <div className='contentsection right-inner'>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -183,8 +221,8 @@ function ProfileInfo({ avatar, register, handleSubmit, onSubmit, isDirty, isSavi
 
                   <div className="field-group">
                       <label className="field-label">头像链接</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={avatar || ''}
                         readOnly={true}
                         className="field-input"
@@ -193,8 +231,8 @@ function ProfileInfo({ avatar, register, handleSubmit, onSubmit, isDirty, isSavi
 
                   <div className="field-group">
                       <label className="field-label">生日</label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         {...register('birthday')}
                         className="field-input"
                       />
@@ -213,9 +251,9 @@ function ProfileInfo({ avatar, register, handleSubmit, onSubmit, isDirty, isSavi
                       </select>
                   </div>
 
-                  <button 
-                    type="submit" 
-                    className="save-btn" 
+                  <button
+                    type="submit"
+                    className="save-btn"
                     disabled={!isDirty || isSaving}
                   >
                     {isSaving ? '保存中...' : '保存修改'}
@@ -227,7 +265,7 @@ function ProfileInfo({ avatar, register, handleSubmit, onSubmit, isDirty, isSavi
   );
 }
 
-function EmailPassword({ handleLogout }){
+function EmailPassword({ handleLogout }: EmailPasswordProps) {
   return (
     <div className="contentsection right-inner">
         <div className="card-block">
@@ -246,17 +284,13 @@ function EmailPassword({ handleLogout }){
   );
 }
 
-function OtherSettings(){
+function OtherSettings() {
   return (
     <div className="contentsection right-inner">
         <div className="card-block">
-            <h3 className="section-title">其他设置</h3>
-            <div className="decor-text">waitforit</div>
+          <h3 className="section-title">其他设置</h3>
+          <div className="decor-text">waitforit</div>
         </div>
     </div>
   );
 }
-
-
-
-

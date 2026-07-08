@@ -31,13 +31,6 @@ CODEBUDDY.md
 opencode.json
 .claude
 .github
+.qwen
 
-.memoryanchor
-CLAUDE.md
-.codex
-CODEBUDDY.md
-.codebuddy
-.opencode
-opencode.json
-.claude
-.github
+.qoder

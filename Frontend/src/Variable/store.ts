@@ -1,9 +1,9 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 
-import { loginSlice } from "./login.js";
-import { pageSlice } from "./pagenum.js";
-import { profileSlice } from "./profile.js";
-import { dataCacheSlice_ } from "./dataCache.js";
+import { loginSlice } from "./login";
+import { pageSlice } from "./pagenum";
+import { profileSlice } from "./profile";
+import { dataCacheSlice_ } from "./dataCache";
 
 
 const rootReducer = combineReducers({

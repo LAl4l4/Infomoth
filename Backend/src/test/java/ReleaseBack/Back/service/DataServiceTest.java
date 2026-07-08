@@ -120,6 +120,27 @@ class DataServiceTest {
     }
 
     @Test
+    void getUsStockIndicesShouldReadSharedJson() throws IOException {
+        writeSharedFile(
+                "us_stock_indices.json",
+                """
+                [
+                  {"symbol":"^GSPC","name":"S&P 500","price":7483.23,"change":-16.13,"change_percent":-0.22,"date":"2026-07-02","source":"Yahoo Finance"},
+                  {"symbol":"^DJI","name":"Dow Jones","price":52305.24,"change":-13.96,"change_percent":-0.03,"date":"2026-07-02","source":"Yahoo Finance"}
+                ]
+                """
+        );
+
+        var result = dataService.getUsStockIndices();
+
+        assertEquals(2, result.size());
+        assertEquals("^GSPC", result.get(0).getSymbol());
+        assertEquals("S&P 500", result.get(0).getName());
+        assertEquals(7483.23, result.get(0).getPrice());
+        assertEquals(-0.22, result.get(0).getChangePercent());
+    }
+
+    @Test
     void getSentimentScoreShouldReturnAverageWhenBothTablesHaveValues() {
         SentimentAverage politics = sentiment(1.0);
         SentimentAverage tech = sentiment(3.0);

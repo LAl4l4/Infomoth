@@ -299,6 +299,90 @@
   color: rgba(255, 255, 255, 0.65);
 }
 
+/* ---------- US stock indices tab ---------- */
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stock-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 22px 24px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  overflow: hidden;
+}
+
+.stock-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+
+.stock-card.stock-up::before {
+  background: #34D399;
+}
+
+.stock-card.stock-down::before {
+  background: #F87171;
+}
+
+.stock-name {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.02em;
+}
+
+.stock-price {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.stock-change-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.stock-change,
+.stock-change-pct {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock-up .stock-change,
+.stock-up .stock-change-pct {
+  color: #34D399;
+}
+
+.stock-down .stock-change,
+.stock-down .stock-change-pct {
+  color: #F87171;
+}
+
+.stock-date {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
 @media (max-width: 640px) {
   .glass-panel {
     padding: 28px 22px;
@@ -313,4 +397,8 @@
   .exchange-swap {
     display: none;
   }
+  .stock-grid {
+    grid-template-columns: 1fr;
+  }
+  .stock-price { font-size: 22px; }
 }

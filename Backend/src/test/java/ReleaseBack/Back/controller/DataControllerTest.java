@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
+import ReleaseBack.Back.DTO.usStockIndexDTO;
 import ReleaseBack.Back.service.DataService;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,5 +70,22 @@ class DataControllerTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals(0.42, response.getBody());
+    }
+
+    @Test
+    void getUsStockIndicesShouldReturnServiceValue() {
+        usStockIndexDTO dto = new usStockIndexDTO();
+        dto.setSymbol("^GSPC");
+        dto.setName("S&P 500");
+        dto.setPrice(7483.23);
+        dto.setChange(-16.13);
+        dto.setChangePercent(-0.22);
+        List<usStockIndexDTO> expected = List.of(dto);
+        when(dataService.getUsStockIndices()).thenReturn(expected);
+
+        ResponseEntity<List<usStockIndexDTO>> response = dataController.getUsStockIndices();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expected, response.getBody());
     }
 }

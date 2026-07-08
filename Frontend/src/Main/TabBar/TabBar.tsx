@@ -1,6 +1,13 @@
 import './TabBar.css';
+import type { TabItem } from '../../customTypes';
 
-export default function TabBar({ tabs, active, onSelect }) {
+interface TabBarProps {
+  tabs: TabItem[];
+  active: number;
+  onSelect: (key: number) => void;
+}
+
+export default function TabBar({ tabs, active, onSelect }: TabBarProps) {
   return (
     <div className="tabbar-wrap">
       <div className="tabbar" role="tablist">

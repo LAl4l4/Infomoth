@@ -1,11 +1,29 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import './Login.css';
 import { register } from '../API/auth';
 import { useNavigate } from "react-router-dom";
 import { AuthGlyph } from '../Main/LoginIcon/LoginIcon';
 
+interface RegisterForm {
+  email: string;
+  password: string;
+  confirm: string;
+  username: string;
+}
+
+interface AccountInput {
+  email: string;
+  password: string;
+  username: string;
+}
+
+interface RegisterSuccess {
+  success: boolean;
+  message: string;
+}
+
 // Front-end only shell. Replace the endpoint/params to match your backend contract.
-async function createAccount({email, password, username}) {
+async function createAccount({ email, password, username }: AccountInput): Promise<RegisterSuccess> {
   try {
     const params = {
         username: username,
@@ -31,7 +49,7 @@ async function createAccount({email, password, username}) {
   }
 }
 
-function validateEmail(email) {
+function validateEmail(email: string): boolean {
     const address = email.split('@');
 
     if (address.length !== 2) return false;
@@ -44,8 +62,8 @@ function validateEmail(email) {
 }
 
 
-export default function Register({ onSuccess }) {
-  const [form, setForm] = useState({
+export default function Register({ onSuccess }: { onSuccess?: (info: { email: string }) => void }) {
+  const [form, setForm] = useState<RegisterForm>({
     email: '',
     password: '',
     confirm: '',
@@ -58,9 +76,8 @@ export default function Register({ onSuccess }) {
 
   const navigate = useNavigate();
 
-  function handleChange(field) {
-
-    return (e) => {
+  function handleChange(field: string) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
         if (field === 'email') {
             setEmailValid(validateEmail(e.target.value));
         }
@@ -72,7 +89,7 @@ export default function Register({ onSuccess }) {
     };
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLocalError('');
     setSuccessMessage('');

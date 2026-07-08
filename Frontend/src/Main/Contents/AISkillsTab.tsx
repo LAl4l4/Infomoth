@@ -2,9 +2,10 @@ import './IntroPage.css';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchAISkills, selectAISkills } from '../../Variable/dataCache';
+import type { AppDispatch } from '../../customTypes';
 
 export default function AISkillsTab() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: skills, loading, error } = useSelector(selectAISkills);
 
   useEffect(() => {

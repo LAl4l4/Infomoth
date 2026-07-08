@@ -3,16 +3,21 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsLoggedIn, logOut } from '../../Variable/login';
+import type { AppDispatch } from '../../customTypes';
+
+interface AuthGlyphProps {
+  loggedIn: boolean;
+}
 
 export default function Icon() {
   const [hover, setHover] = useState(false);
-  const hideTimer = useRef(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoggedIn = useSelector(selectIsLoggedIn);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   function handleEnter() {
-    clearTimeout(hideTimer.current);
+    if (hideTimer.current !== null) clearTimeout(hideTimer.current);
     setHover(true);
   }
 
@@ -74,7 +79,7 @@ export default function Icon() {
 /* Minimal inline SVG: a person silhouette + a small lock badge to signal
    that this is an auth / account entry. Exported so Login/Register pages
    can reuse the same glyph inside their own glass circles. */
-export function AuthGlyph({ loggedIn }) {
+export function AuthGlyph({ loggedIn }: AuthGlyphProps) {
   return (
     <svg viewBox="0 0 32 32" className="auth-glyph" aria-hidden>
       <circle cx="16" cy="12" r="5.2" fill="none" stroke="currentColor" strokeWidth="2.2" />

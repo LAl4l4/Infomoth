@@ -7,9 +7,10 @@ import {
   selectCurrencies,
   selectExchangeRates,
 } from '../../Variable/dataCache';
+import type { AppDispatch } from '../../customTypes';
 
 export default function ExchangeRateTab() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: currencies, loading: curLoading, error: curError } = useSelector(selectCurrencies);
   const { data: rates, loading: rateLoading, error: rateError } = useSelector(selectExchangeRates);
 

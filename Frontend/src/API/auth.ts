@@ -1,7 +1,9 @@
 import instance from './axios';
+import type { AxiosResponse } from 'axios';
+import type { AuthResponse } from '../customTypes';
 
-export async function checkLogin(email, password) {
-  const res = await instance.post(
+export async function checkLogin(email: string, password: string): Promise<AxiosResponse<AuthResponse>> {
+  const res = await instance.post<AuthResponse>(
     '/auth/login',   // 注意：没有 localhost
     //后端是RequestParam
     null, // body为空
@@ -19,8 +21,8 @@ export async function checkLogin(email, password) {
   return res;
 }
 
-export async function register(email, password, username) {
-  const res = await instance.post(
+export async function register(email: string, password: string, username: string): Promise<AxiosResponse<string>> {
+  const res = await instance.post<string>(
     '/auth/register',
     //后端是RequestParam
     null,
@@ -35,4 +37,3 @@ export async function register(email, password, username) {
 
   return res;
 }
-

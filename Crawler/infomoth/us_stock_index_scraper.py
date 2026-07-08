@@ -58,7 +58,7 @@ class USStockIndexScraper:
                     "name": _INDEX_SYMBOLS[symbol],
                     "price": round(latest_close, 4),
                     "change": round(change, 4),
-                    "change_percent": round(change_percent, 4),
+                    "changePercent": round(change_percent, 4),
                     "date": today,
                     "source": "Yahoo Finance",
                 }

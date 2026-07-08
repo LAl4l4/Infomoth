@@ -1,12 +1,18 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { RootState } from "../customTypes";
 
+interface PageState {
+  pagenum: number;
+}
+
+const initialState: PageState = { pagenum: 0 };
 
 // slice for page number (flip counter)
 export const pageSlice = createSlice({
   name: 'page',
-  initialState: { pagenum: 0 },
+  initialState,
   reducers: {
-    setPageNum(state, action) {
+    setPageNum(state, action: PayloadAction<number>) {
       state.pagenum = Number(action.payload) || 0;
     },
     nextPage(state) {
@@ -25,4 +31,4 @@ export const {
   setPageNum, nextPage, prevPage, resetPage
 } = pageSlice.actions;
 
-export const selectPageNum = (state) => state.page.pagenum;
+export const selectPageNum = (state: RootState) => state.page.pagenum;

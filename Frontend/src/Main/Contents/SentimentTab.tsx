@@ -2,9 +2,10 @@ import './IntroPage.css';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSentimentScore, selectSentimentScore } from '../../Variable/dataCache';
+import type { AppDispatch } from '../../customTypes';
 
 export default function SentimentTab() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { data: score, loading, error } = useSelector(selectSentimentScore);
 
   useEffect(() => {

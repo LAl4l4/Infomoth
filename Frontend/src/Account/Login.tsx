@@ -1,10 +1,11 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import './Login.css';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import { setPageNum } from '../Variable/pagenum';
 import { checkLoginThunk } from '../Variable/login';
 import { AuthGlyph } from '../Main/LoginIcon/LoginIcon';
+import type { AppDispatch } from '../customTypes';
 
 
 export default function Login() {
@@ -12,9 +13,9 @@ export default function Login() {
 	const [password, setPassword] = useState('');
 	const [localError, setLocalError] = useState('');
 	const navigate = useNavigate();
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 
-	async function handleSubmit(e) {
+	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setLocalError('');
 
@@ -27,7 +28,7 @@ export default function Login() {
 			dispatch(setPageNum(0));
 			navigate('/');
 		} else {
-			setLocalError(resultAction.payload);
+			setLocalError((resultAction.payload as string) ?? '登录失败');
 		}
 	}
 

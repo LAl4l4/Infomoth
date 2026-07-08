@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 import ReleaseBack.Back.DTO.aiSkillDTO;
+import ReleaseBack.Back.DTO.usStockIndexDTO;
 
 @RequiredArgsConstructor
 @RestController
@@ -41,5 +42,10 @@ public class DataController {
     @GetMapping("/sentiment")
     public ResponseEntity<Double> getSentimentScore() {
         return ResponseEntity.ok(dataService.getSentimentScore());
+    }
+
+    @GetMapping("/us-stock-indices")
+    public ResponseEntity<List<usStockIndexDTO>> getUsStockIndices() {
+        return ResponseEntity.ok(dataService.getUsStockIndices());
     }
 }
