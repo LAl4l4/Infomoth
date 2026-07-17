@@ -1,6 +1,8 @@
 import './PageShell.css';
+import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPageNum, setPageNum } from '../../Variable/pagenum';
+import { pullGeneralSettings } from '../../API/settings';
 import LoginIcon from '../LoginIcon/LoginIcon';
 //import { BgGlobe } from '../BackgroundGlobe/BackgroundGlobe';
 import Globe from '../BackgroundGlobe/Globe';
@@ -25,6 +27,23 @@ export default function PageShell() {
   const dispatch = useDispatch<AppDispatch>();
 
   const safeTab = Math.min(Math.max(pagenum, 0), 4);
+
+  useEffect(() => {
+    if (!window.localStorage.getItem('authToken')) return;
+
+    let active = true;
+    pullGeneralSettings()
+      .then(({ defaultPage }) => {
+        if (active) dispatch(setPageNum(defaultPage));
+      })
+      .catch(() => {
+        // Keep the overview tab when settings cannot be loaded.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [dispatch]);
 
   return (
     <div className="page-shell">

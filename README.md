@@ -27,3 +27,7 @@ InfoMoth is a multi-module project for collecting market/news data, analyzing se
 2. Run `Analyser` to enrich news with finance sentiment and persist averages.
 3. Run `Backend` to serve APIs backed by database + `Shared/` files.
 4. Run `Frontend` to interact with backend APIs in the browser.
+
+## update log
+- `2026/07/18`:
+  - Added per-user default home-page settings with backend database persistence.

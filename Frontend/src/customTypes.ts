@@ -47,6 +47,11 @@ export interface AuthResponse {
   token?: string;
 }
 
+/** General preferences persisted for the authenticated user. */
+export interface GeneralSettingsData {
+  defaultPage: number;
+}
+
 /** A single tab descriptor used by the top tab bar. */
 export interface TabItem {
   key: number;

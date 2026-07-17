@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.DTO.exchangeRateDTO;
+import ReleaseBack.Back.DTO.SettingsDTO;
 import ReleaseBack.Back.VO.TokenVO;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -51,6 +52,7 @@ class ApplicationSmokeTest {
     @BeforeEach
     void setUpSchema() {
         jdbcTemplate.execute("SET NON_KEYWORDS USER;");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS user_settings");
         jdbcTemplate.execute("DROP TABLE IF EXISTS profiles");
         jdbcTemplate.execute("DROP TABLE IF EXISTS user");
         jdbcTemplate.execute(
@@ -71,6 +73,14 @@ class ApplicationSmokeTest {
                     avatar_url VARCHAR(255),
                     birthday DATE,
                     gender VARCHAR(30)
+                )
+                """
+        );
+        jdbcTemplate.execute(
+                """
+                CREATE TABLE user_settings (
+                    user_id INT PRIMARY KEY,
+                    default_page TINYINT NOT NULL DEFAULT 0
                 )
                 """
         );
@@ -128,6 +138,59 @@ class ApplicationSmokeTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(sampleRate.getRate(), rate, 0.000001);
+    }
+
+    @Test
+    void smokeSettingsPersistence() {
+        String token = registerAndLogin("settings-user", "settings-pass");
+        HttpHeaders headers = new HttpHeaders();
+        if (token == null) {
+            System.out.println("Failed to obtain JWT token for test user");
+            throw new AssertionError("Failed to obtain JWT token for test user");
+        }
+        headers.setBearerAuth(token);
+
+        ResponseEntity<SettingsDTO> initialResponse = restTemplate.exchange(
+                "/settings/general",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                SettingsDTO.class);
+
+        assertEquals(HttpStatus.OK, initialResponse.getStatusCode());
+        SettingsDTO initialBody = initialResponse.getBody();
+        if (initialBody == null) {
+            System.out.println("Initial settings response body is null");
+            throw new AssertionError("Initial settings response body is null");
+        }
+        assertEquals(0, initialBody.getDefaultPage());
+
+        ResponseEntity<SettingsDTO> updateResponse = restTemplate.exchange(
+                "/settings/general",
+                HttpMethod.PUT,
+                new HttpEntity<>(new SettingsDTO(4), headers),
+                SettingsDTO.class);
+
+        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
+        SettingsDTO updatedBody = updateResponse.getBody();
+        if (updatedBody == null) {
+            System.out.println("Update settings response body is null");
+            throw new AssertionError("Update settings response body is null");
+        }
+        assertEquals(4, updatedBody.getDefaultPage());
+
+        ResponseEntity<SettingsDTO> persistedResponse = restTemplate.exchange(
+                "/settings/general",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                SettingsDTO.class);
+
+        assertEquals(HttpStatus.OK, persistedResponse.getStatusCode());
+        SettingsDTO persistedBody = persistedResponse.getBody();
+        if (persistedBody == null) {
+            System.out.println("Persisted settings response body is null");
+            throw new AssertionError("Persisted settings response body is null");
+        }
+        assertEquals(4, persistedBody.getDefaultPage());
     }
 
     private String registerAndLogin(String username, String password) {

@@ -125,8 +125,8 @@ class DataServiceTest {
                 "us_stock_indices.json",
                 """
                 [
-                  {"symbol":"^GSPC","name":"S&P 500","price":7483.23,"change":-16.13,"change_percent":-0.22,"date":"2026-07-02","source":"Yahoo Finance"},
-                  {"symbol":"^DJI","name":"Dow Jones","price":52305.24,"change":-13.96,"change_percent":-0.03,"date":"2026-07-02","source":"Yahoo Finance"}
+                  {"symbol":"^GSPC","name":"S&P 500","price":7483.23,"change":-16.13,"changePercent":-0.22,"date":"2026-07-02","source":"Yahoo Finance"},
+                  {"symbol":"^DJI","name":"Dow Jones","price":52305.24,"change":-13.96,"changePercent":-0.03,"date":"2026-07-02","source":"Yahoo Finance"}
                 ]
                 """
         );
