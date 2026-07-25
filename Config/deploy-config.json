@@ -1,0 +1,18 @@
+{
+  "analyser": {
+    "mysql": {
+      "host": "mysql",
+      "user": "root",
+      "password": "",
+      "database": "blog"
+    }
+  },
+  "frontend": {
+    "apiBaseUrl": ""
+  },
+  "backend": {
+    "corsAllowedOrigins": [
+      "https://149.118.67.207.nip.io"
+    ]
+  }
+}

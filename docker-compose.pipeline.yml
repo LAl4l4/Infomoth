@@ -1,0 +1,20 @@
+# 机器 B — 数据管道（Crawler + Analyser）
+# 用法:
+#   单次运行: docker compose -f docker-compose.pipeline.yml run --rm pipeline
+#   定时运行: docker compose -f docker-compose.pipeline.yml up -d (配合 host cron)
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    environment:
+      # 机器 A 的私有 IP，用于 rsync 同步 Shared/
+      - SYNC_TARGET=ubuntu@10.0.0.x:/app/Shared/
+    volumes:
+      - ./Shared:/app/Shared
+      - ./models:/root/.cache/huggingface
+      - ssh_key:/root/.ssh
+    restart: "no"
+
+volumes:
+  ssh_key:

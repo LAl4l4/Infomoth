@@ -182,12 +182,14 @@ The pipeline must run Crawler before Analyser. The Analyser mutates source JSON 
 Memory Anchor is initialized in this repository. Follow these rules to ensure it works effectively.
 
 ### File Roles
-- ./.memoryanchor/chart.md: Auto-generated log of file changes per session. Read this FIRST to recover recent context.
+- ./.memoryanchor/index.md: Auto-generated project chart index. Its entries point to directory-level architecture maps under ./.memoryanchor/chart/.
+- ./.memoryanchor/chart/.../chart.md: Directory-level architecture map. Read the root chart at the start of every task for project-wide context, then use index.md and Child Charts to find the chart closest to the task.
 - ./.memoryanchor/manifest.md: Current project state — Module Status (functionality/status/known_issues/notes) and Key Decisions (architectural choices and rationale).
 - ./.memoryanchor/ballast.md: Persistent repo-specific rules/guardrails, one per line.
 
 ### Workflow
-- Always read ./.memoryanchor/chart.md before accessing any repository files. Only open repository files when chart.md is insufficient.
+- At the start of every task, read ./.memoryanchor/chart/.../chart.md to establish a project-wide view before working on repository files.
+- If the agent has any uncertainty about the overall project structure, immediately read ./.memoryanchor/index.md again, then read the closest matching directory chart listed there.
 - Must follow all rules in ./.memoryanchor/ballast.md. After solving a bug, add a rule under "Ballast Specific Rules For This Repository" to prevent recurrence.
 - After any of features implemented, update Module Status (and Key Decisions, if applicable) in ./.memoryanchor/manifest.md.
 

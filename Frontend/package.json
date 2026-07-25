@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "homepage": ".",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.0",
     "@testing-library/dom": "^10.4.1",
@@ -53,6 +54,7 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "eslint-config-react-app": "^7.0.1",
     "gh-pages": "^6.3.0",
     "typescript": "^6.0.3"
   }
