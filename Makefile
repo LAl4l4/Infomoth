@@ -5,6 +5,8 @@ PYTHON ?= python3
 COMPOSE ?= docker compose
 
 APP_COMPOSE := docker-compose.app.yml
+APP_CONFIG := Config/deploy-config.json
+DATABASE_SCHEMA_DIR := Schema
 PIPELINE_COMPOSE := docker-compose.pipeline.yml
 
 .PHONY: help \
@@ -87,5 +89,9 @@ package-app: ## Package application images into a gzip archive
 		| gzip > infomoth-app-images.tar.gz
 
 submit-app: ## Upload the application archive and compose file
+	@ssh imapp 'mkdir -p ~/InfoMoth/Config'
 	@scp infomoth-app-images.tar.gz imapp:~/InfoMoth/
 	@scp $(APP_COMPOSE) imapp:~/InfoMoth/
+# Config and database schemas are runtime files and are uploaded separately.
+	@scp $(APP_CONFIG) imapp:~/InfoMoth/Config/ 
+	@scp -r $(DATABASE_SCHEMA_DIR) imapp:~/InfoMoth/

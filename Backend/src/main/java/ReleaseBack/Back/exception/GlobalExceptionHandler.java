@@ -12,6 +12,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<?> handleBaseException(BaseException e) {
+        e.printStackTrace();
         return ResponseEntity
                 .status(e.getCode())
                 .body(Map.of("error", e.getMessage()));
@@ -19,6 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleAll(Exception e) {
+        e.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));

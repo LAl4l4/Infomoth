@@ -2,10 +2,10 @@ from typing import Any
 from pathlib import Path
 import json
 
+from .runtime_config import load_shared_directory
 
 
-ROOT_DIR = Path(__file__).resolve().parent
-SHARED_DIR = ROOT_DIR.parent.parent / "Shared"
+SHARED_DIR = load_shared_directory()
 TECH_OUTPUT = SHARED_DIR / "tech_news.json"
 POLITICS_OUTPUT = SHARED_DIR / "politics_news.json"
 EXCHANGE_RATE_OUTPUT = SHARED_DIR / "exchangeRates.json"

@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r analyser-requirements.txt
 COPY Crawler/ /app/Crawler/
 COPY Analyser/ /app/Analyser/
 COPY Shared/ /app/Shared/
+COPY Config/app-config.json /app/Config/app-config.json
 
 COPY pipeline-entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

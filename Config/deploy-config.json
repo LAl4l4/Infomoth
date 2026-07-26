@@ -1,11 +1,16 @@
 {
-  "analyser": {
-    "mysql": {
-      "host": "mysql",
-      "user": "root",
-      "password": "",
-      "database": "blog"
-    }
+  "mysql": {
+    "host": "mysql",
+    "port": 3306,
+    "user": "root",
+    "password": "",
+    "database": "infomoth"
+  },
+  "shared": {
+    "directory": "/app/Shared"
+  },
+  "pipeline": {
+    "syncTarget": "ubuntu@10.0.0.x:/app/Shared/"
   },
   "frontend": {
     "apiBaseUrl": ""

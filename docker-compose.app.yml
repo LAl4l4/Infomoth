@@ -8,6 +8,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./Config/deploy-config.json:/Config/app-config.json:ro
     depends_on:
       - backend
     restart: unless-stopped
@@ -19,12 +21,10 @@ services:
         - linux/amd64
     environment:
       - JAVA_OPTS=-Xmx384m -Xms256m
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/blog?useSSL=false&allowPublicKeyRetrieval=true
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=
     volumes:
       - ./Shared:/app/Shared
       - ./Config/deploy-config.json:/Config/app-config.json:ro
+      - ./Schema:/Schema:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -35,10 +35,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-      - MYSQL_DATABASE=blog
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./Backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s

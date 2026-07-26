@@ -7,11 +7,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.pipeline
-    environment:
-      # 机器 A 的私有 IP，用于 rsync 同步 Shared/
-      - SYNC_TARGET=ubuntu@10.0.0.x:/app/Shared/
     volumes:
       - ./Shared:/app/Shared
+      - ./Config/deploy-config.json:/app/Config/app-config.json:ro
       - ./models:/root/.cache/huggingface
       - ssh_key:/root/.ssh
     restart: "no"

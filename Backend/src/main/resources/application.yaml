@@ -4,14 +4,16 @@ spring:
 
 
   datasource:
-    url: "jdbc:mysql://localhost:3306/blog?useSSL=false&serverTimezone=UTC"
-    username: "root"  
-    password: ""   
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   sql:
     init:
       mode: always
+      schema-locations:
+        - file:../Schema/01-user.sql
+        - file:../Schema/02-profiles.sql
+        - file:../Schema/03-user-settings.sql
+        - file:../Schema/04-sentiment-average.sql
   
   
 server:

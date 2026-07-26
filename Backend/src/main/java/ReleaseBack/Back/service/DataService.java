@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.exchangeRateDTO;
 import ReleaseBack.Back.DTO.usStockIndexDTO;
+import ReleaseBack.Back.config.AppConfigProvider;
 import ReleaseBack.Back.entity.SentimentAverage;
 import ReleaseBack.Back.exception.DataFileNotFoundException;
 import ReleaseBack.Back.exception.DataReadException;
@@ -32,9 +33,10 @@ public class DataService {
 
     private final Path sharedDir;
 
-    // default constructor for production use, assumes Shared directory is at ../Shared
-    public DataService() {
-        this(Path.of("../Shared"));
+    // production Shared directory comes from Config/app-config.json
+    @Autowired
+    public DataService(AppConfigProvider appConfigProvider) {
+        this(Path.of(appConfigProvider.getSharedDirectory()));
     }
 
     // only used for testing, allows injection of a custom Shared directory path

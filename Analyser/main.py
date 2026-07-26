@@ -5,28 +5,37 @@ import json
 
 
 ROOT_DIR = Path(__file__).resolve().parent
-SHARED_DIR = ROOT_DIR.parent / "Shared"
 CONFIG_PATH = ROOT_DIR.parent / "Config" / "app-config.json"
-POLITIC_PATH = SHARED_DIR / "politics_news.json"
-TECH_PATH = SHARED_DIR / "tech_news.json"
 
-def load_mysql_config():
+def load_config():
     with open(CONFIG_PATH, "r", encoding="utf-8") as file:
-        config = json.load(file)
+        return json.load(file)
 
+
+def resolve_shared_directory(config):
+    shared_directory = Path(config["shared"]["directory"])
+    return shared_directory if shared_directory.is_absolute() else ROOT_DIR / shared_directory
+
+
+def load_mysql_config(config):
     try:
-        return config["analyser"]["mysql"]
+        return config["mysql"]
     except KeyError as error:
-        raise KeyError(f"Missing analyser mysql config in {CONFIG_PATH}") from error
+        raise KeyError(f"Missing mysql config in {CONFIG_PATH}") from error
+
 
 def main():
     financeAnalyserPolitic = FinanceAnalyser()
     financeAnalyserTech = FinanceAnalyser()
-    mysql_config = load_mysql_config()
+    config = load_config()
+    mysql_config = load_mysql_config(config)
+    shared_directory = resolve_shared_directory(config)
+    politic_path = shared_directory / "politics_news.json"
+    tech_path = shared_directory / "tech_news.json"
     
     with ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(financeAnalyserPolitic.analyse, POLITIC_PATH)
-        executor.submit(financeAnalyserTech.analyse, TECH_PATH)
+        executor.submit(financeAnalyserPolitic.analyse, politic_path)
+        executor.submit(financeAnalyserTech.analyse, tech_path)
 
     print("Analyser executed")
 

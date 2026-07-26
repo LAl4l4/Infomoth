@@ -13,15 +13,7 @@ from infomoth import (
     AISkillsScraper,
     USStockIndexScraper,
 )
-
-
-ROOT_DIR = Path(__file__).resolve().parent
-SHARED_DIR = ROOT_DIR.parent / "Shared"
-TECH_OUTPUT = SHARED_DIR / "tech_news.json"
-POLITICS_OUTPUT = SHARED_DIR / "politics_news.json"
-EXCHANGE_RATE_OUTPUT = SHARED_DIR / "exchangeRates.json"
-AI_SKILLS_OUTPUT = SHARED_DIR / "ai_skills_today.json"
-US_STOCK_INDICES_OUTPUT = SHARED_DIR / "us_stock_indices.json"
+from infomoth.runtime_config import load_shared_directory
 
 
 def save_json(path: Path, payload: list[dict[str, Any]]) -> None:
@@ -32,6 +24,14 @@ def save_json(path: Path, payload: list[dict[str, Any]]) -> None:
 
 def run() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    shared_directory = load_shared_directory()
+    outputs = {
+        "tech": shared_directory / "tech_news.json",
+        "politics": shared_directory / "politics_news.json",
+        "exchange": shared_directory / "exchangeRates.json",
+        "ai_skills": shared_directory / "ai_skills_today.json",
+        "indices": shared_directory / "us_stock_indices.json",
+    }
 
     tech_scraper = TechNewsScraper()
     politics_scraper = PoliticsNewsScraper()
@@ -52,17 +52,17 @@ def run() -> None:
         ai_skills_results = ai_future.result()
         us_stock_indices_results = index_future.result()
 
-    save_json(TECH_OUTPUT, tech_results)
-    save_json(POLITICS_OUTPUT, politics_results)
-    save_json(EXCHANGE_RATE_OUTPUT, exchange_rate_results)
-    save_json(AI_SKILLS_OUTPUT, ai_skills_results)
-    save_json(US_STOCK_INDICES_OUTPUT, us_stock_indices_results)
+    save_json(outputs["tech"], tech_results)
+    save_json(outputs["politics"], politics_results)
+    save_json(outputs["exchange"], exchange_rate_results)
+    save_json(outputs["ai_skills"], ai_skills_results)
+    save_json(outputs["indices"], us_stock_indices_results)
 
-    logging.info("Saved %s technology stories to %s", len(tech_results), TECH_OUTPUT.name)
-    logging.info("Saved %s global politics stories to %s", len(politics_results), POLITICS_OUTPUT.name)
-    logging.info("Saved %s exchange rate pairs to %s", len(exchange_rate_results), EXCHANGE_RATE_OUTPUT.name)
-    logging.info("Saved %s AI skills to %s", len(ai_skills_results), AI_SKILLS_OUTPUT.name)
-    logging.info("Saved %s US stock indices to %s", len(us_stock_indices_results), US_STOCK_INDICES_OUTPUT.name)
+    logging.info("Saved %s technology stories to %s", len(tech_results), outputs["tech"].name)
+    logging.info("Saved %s global politics stories to %s", len(politics_results), outputs["politics"].name)
+    logging.info("Saved %s exchange rate pairs to %s", len(exchange_rate_results), outputs["exchange"].name)
+    logging.info("Saved %s AI skills to %s", len(ai_skills_results), outputs["ai_skills"].name)
+    logging.info("Saved %s US stock indices to %s", len(us_stock_indices_results), outputs["indices"].name)
 
 
 if __name__ == "__main__":

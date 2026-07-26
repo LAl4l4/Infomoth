@@ -35,7 +35,7 @@
 ## 4. Input/Output Contracts
 - **Execution Command**: `python main.py`
 - **Setup Command**: `pip install -r requirements.txt`
-- **Output Files** (`../Shared` directory):
+- **Output Files** (the `shared.directory` configured in `Config/app-config.json`):
   - `tech_news.json`
   - `politics_news.json`
   - `exchangeRates.json`
@@ -73,7 +73,7 @@
 ## 6. AI Agent Development Guidelines (Crawler)
 - **Source Expansion**: When adding news sources, only modify the source configuration and necessary parsing logic in the corresponding `*_scraper.py`. Do not break the `BaseNewsScraper` contract.
 - **Field Consistency**: New fields must be compatible with Backend parsing (especially field naming in `exchangeRates.json`).
-- **File Stability**: Maintain stable output filenames and write location (`../Shared`); otherwise, the file paths in the Backend `DataService` will become invalid.
+- **File Stability**: Maintain stable output filenames and write location (`shared.directory`); otherwise, the file paths in the Backend `DataService` will become invalid.
 - **Logic Abstraction**: When modifying scraping strategies, prioritize extending the common base class instead of duplicating logic across multiple modules.
 
 ## 7. Quick Start
@@ -81,7 +81,7 @@
    - `pip install -r requirements.txt`
 2. Run crawler:
    - `python main.py`
-3. Check generated files under `../Shared`:
+3. Check generated files under the configured `shared.directory`:
    - `tech_news.json`
    - `politics_news.json`
    - `exchangeRates.json`

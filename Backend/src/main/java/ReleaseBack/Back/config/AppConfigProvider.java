@@ -40,4 +40,36 @@ public class AppConfigProvider {
         }
         return origins.toArray(new String[0]);
     }
+
+    public String getDatabaseName() {
+        String databaseName = root.path("mysql").path("database").asText("").trim();
+        if (!databaseName.matches("[A-Za-z0-9_]+")) {
+            throw new IllegalStateException("mysql.database is missing or invalid in app config");
+        }
+        return databaseName;
+    }
+
+    public MysqlConnection getMysqlConnection() {
+        JsonNode mysqlNode = root.path("mysql");
+        String host = mysqlNode.path("host").asText("").trim();
+        int port = mysqlNode.path("port").asInt(0);
+        String user = mysqlNode.path("user").asText("").trim();
+        String password = mysqlNode.path("password").asText();
+
+        if (host.isEmpty() || port < 1 || port > 65535 || user.isEmpty()) {
+            throw new IllegalStateException("mysql is missing or invalid in app config");
+        }
+        return new MysqlConnection(host, port, user, password);
+    }
+
+    public String getSharedDirectory() {
+        String directory = root.path("shared").path("directory").asText("").trim();
+        if (directory.isEmpty()) {
+            throw new IllegalStateException("shared.directory is missing in app config");
+        }
+        return directory;
+    }
+
+    public record MysqlConnection(String host, int port, String user, String password) {
+    }
 }

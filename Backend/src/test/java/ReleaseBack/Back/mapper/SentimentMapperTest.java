@@ -23,6 +23,7 @@ import ReleaseBack.Back.entity.SentimentAverage;
         "spring.datasource.driverClassName=org.h2.Driver",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
+        "spring.sql.init.mode=never",
         "mybatis.mapper-locations=classpath*:mapper/*.xml"
 })
 class SentimentMapperTest {

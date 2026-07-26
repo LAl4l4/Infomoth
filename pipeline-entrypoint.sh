@@ -7,6 +7,7 @@ cd /app/Crawler && python main.py
 echo "[$(date)] Running Analyser..."
 cd /app/Analyser && python main.py
 
+SYNC_TARGET="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("/app/Config/app-config.json").read_text()).get("pipeline", {}).get("syncTarget", ""))')"
 if [ -n "$SYNC_TARGET" ]; then
     echo "[$(date)] Syncing Shared/ to $SYNC_TARGET..."
     rsync -az --delete /app/Shared/ "$SYNC_TARGET"

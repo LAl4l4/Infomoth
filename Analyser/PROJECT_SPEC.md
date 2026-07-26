@@ -3,7 +3,7 @@
 ## 1. Project Positioning
 - **Type**: Python Batch Analysis Task
 - **Responsibilities**:
-  - Read crawler-generated news data from `../Shared`.
+  - Read crawler-generated news data from `shared.directory` in `Config/app-config.json`.
   - Apply finance-oriented sentiment analysis to news titles.
   - Write enriched analysis results back to the same JSON files.
 
@@ -20,7 +20,7 @@
 ## 3. Module Structure
 - `main.py`:
   - Entry point for analysis tasks.
-  - Reads these files under `../Shared`:
+  - Reads these files under the configured shared directory:
     - `politics_news.json`
     - `tech_news.json`
   - Dispatches analysis jobs in parallel.
@@ -34,7 +34,7 @@
 
 ## 4. Input/Output Contracts
 - **Execution Command**: `python main.py`
-- **Input Files** (`../Shared`):
+- **Input Files** (`shared.directory`):
   - `politics_news.json`
   - `tech_news.json`
 - **Input Item Requirements**:
@@ -51,5 +51,5 @@
 
 ## 6. AI Agent Development Guidelines (Analyser)
 - Keep analysis output schema backward compatible by only appending fields unless explicitly requested.
-- Keep read/write paths aligned with `Shared` directory conventions used by Crawler and Backend.
+- Keep read/write paths aligned with `shared.directory` and use the shared root `mysql` configuration used by Backend.
 - Prefer updating `finance.py` for analysis logic changes; avoid hardcoding model behavior in `main.py`.

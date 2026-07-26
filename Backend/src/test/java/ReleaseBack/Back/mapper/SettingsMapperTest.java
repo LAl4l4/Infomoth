@@ -17,7 +17,8 @@ import org.springframework.test.context.TestPropertySource;
     "spring.datasource.url=jdbc:h2:mem:settings_mapper_db;MODE=MySQL;DB_CLOSE_DELAY=-1",
     "spring.datasource.driverClassName=org.h2.Driver",
     "spring.datasource.username=sa",
-    "spring.datasource.password="
+    "spring.datasource.password=",
+    "spring.sql.init.mode=never"
 })
 class SettingsMapperTest {
 

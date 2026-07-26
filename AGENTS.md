@@ -98,7 +98,7 @@ Detailed specification files:
 - Build jar: `cd Backend && ./mvnw package`
 - Run all tests: `cd Backend && ./mvnw test`
 - Run a single test class: `cd Backend && ./mvnw -Dtest=BackApplicationTests test`
-- Requires MySQL database `blog` on `localhost:3306`, user `root`, empty password (see `Backend/src/main/resources/application.yaml`).
+- Uses the shared `mysql` object in `Config/app-config.json` (locally: `localhost:3306`, `root`, empty password, database `blog`).
 
 ### Frontend (`Frontend/`)
 - Install deps: `cd Frontend && pnpm install` (lockfile present) 
@@ -142,7 +142,7 @@ Analyser/main.py  (runs AFTER Crawler)
 Backend (Spring Boot, port 8080)
   ├── Reads Shared/exchangeRates.json at request time (no caching)
   ├── Reads Shared/ai_skills_today.json (via aiSkillDTO)
-  ├── MySQL database "blog" (tables: user, profiles, + dynamic sentiment tables)
+  ├── MySQL connection from Config (`blog` local / `infomoth` deploy)
   └── JWT-protected REST API
 
 Frontend (React, port 3000)
@@ -155,13 +155,13 @@ The pipeline must run Crawler before Analyser. The Analyser mutates source JSON 
 ### Component details
 
 - **Crawler scraping strategy**: `base_scraper.py` implements a 3-tier fallback per source: RSS feed → static HTML parse → headless Selenium (only when JS rendering is required). UA rotation and dedup are built into the base class.
-- **Backend as API + file-backed data service**: `DataService` reads exchange rates from `../Shared/exchangeRates.json` at request time, so crawler output format/path is part of the runtime contract.
+- **Backend as API + file-backed data service**: `DataService` reads exchange rates from the `shared.directory` configured data directory at request time, so crawler output format/path is part of the runtime contract.
 - **Frontend as API-driven SPA**: `Frontend` calls backend APIs through `src/API/*` wrappers, with centralized Axios interceptors for JWT injection and 401 handling.
 - **Auth flow spans frontend + backend**:
   - Frontend stores JWT in `localStorage` key `authToken`.
   - Axios request interceptor sends `Authorization: Bearer <token>`.
   - Backend `WebConfig` + `JwtInterceptor` protect all routes except `/auth/login` and `/auth/register`.
-- **Config directory**: `Config/app-config.json` is a centralized config reference (MySQL, API base URL, CORS origins), but backend currently reads from its own `application.yaml`.
+- **Config directory**: `Config/app-config.json` is the centralized runtime configuration: shared MySQL connection, data directory, pipeline sync target, frontend API URL, and backend CORS origins. `deploy-config.json` is mounted as this file in containers.
 
 ## Key conventions in this codebase
 

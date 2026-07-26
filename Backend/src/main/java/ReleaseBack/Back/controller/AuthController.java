@@ -10,8 +10,6 @@ import ReleaseBack.Back.entity.Profile;
 import ReleaseBack.Back.DTO.ProfileDTO;
 import ReleaseBack.Back.VO.*;
 import ReleaseBack.Back.security.JwtUtil;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RequiredArgsConstructor
@@ -60,6 +58,7 @@ public class AuthController {
         try {
             userService.createUserWithProfile(username, pass, email);
         } catch (Exception e) {
+            e.printStackTrace();
             return "服务器发生异常";
         }
         
@@ -94,6 +93,7 @@ public class AuthController {
             profile.setGender(profileDTO.getGender());
             userService.updateProfile(profile);
         } catch (Exception e) {
+            e.printStackTrace();
             return "服务器发生异常";
         }
         return "保存成功";

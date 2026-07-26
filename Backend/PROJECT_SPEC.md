@@ -5,7 +5,7 @@
 - **Responsibilities**:
   - User authentication and profile management (`/auth/*`)
   - Exchange rate data retrieval (`/data/*`)
-- **External Dependencies**: Reads `../Shared/exchangeRates.json` as the data source for exchange rates.
+- **External Dependencies**: Reads `exchangeRates.json` from the `shared.directory` in `Config/app-config.json`.
 
 ## 2. Tech Stack & Frameworks
 - **Language/Runtime**: Java 25
@@ -40,9 +40,10 @@
 > **Note**: When adding new features, prioritize following the existing layering. Do not write SQL or File I/O directly in Controllers.
 
 ## 4. Configuration & Execution
-- **Configuration File**: `src/main/resources/application.yaml`
+- **Runtime Configuration**: `Config/app-config.json`
   - Default Port: `8080`
-  - Database URL: `jdbc:mysql://localhost:3306/blog`
+  - MySQL host, port, user, password, and database: read from the root `mysql` object (`blog` locally)
+  - Shared data directory: read from `shared.directory`
 - **Execution**:
   - Run: `./mvnw spring-boot:run`
 - **Common Commands**:
