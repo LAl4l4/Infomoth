@@ -1,32 +1,11 @@
 import axios from 'axios';
+import { loadApiBaseUrl } from './config';
 
 const instance = axios.create({
   timeout: 5000
 });
 
-const configClient = axios.create({ timeout: 5000 });
 let apiBaseUrlPromise: Promise<string> | null = null;
-
-async function loadApiBaseUrl(): Promise<string> {
-  const configEndpoints = [
-    '/config/baseurl',
-    'http://localhost:8080/config/baseurl'
-  ];
-
-  for (const endpoint of configEndpoints) {
-    try {
-      const response = await configClient.get(endpoint);
-      const apiBaseUrl = response?.data?.baseUrl;
-      if (apiBaseUrl) {
-        return apiBaseUrl as string;
-      }
-    } catch (error) {
-      // try next candidate url
-    }
-  }
-
-  throw new Error('Cannot load api base URL from /config/baseurl');
-}
 
 async function ensureBaseUrl(): Promise<string> {
   if (instance.defaults.baseURL) {

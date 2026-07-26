@@ -31,7 +31,7 @@
 - **Test**: `pnpm test`
 
 ## 5. Frontend-Backend Interaction Conventions
-- **Axios Base URL**: `http://localhost:8080`
+- **Axios Base URL**: runtime `frontend.apiBaseUrl` from `Config/app-config.json` (locally `http://localhost:8080`)
 - **Token Storage**:
   - localStorage key: `authToken`
   - Request interceptor automatically injects `Authorization: Bearer <token>`
