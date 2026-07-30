@@ -187,6 +187,13 @@ Memory Anchor is initialized in this repository. Follow these rules to ensure it
 - ./.memoryanchor/manifest.md: Current project state — Module Status (functionality/status/known_issues/notes) and Key Decisions (architectural choices and rationale).
 - ./.memoryanchor/ballast.md: Persistent repo-specific rules/guardrails, one per line.
 
+### Chart Relationship Notation
+- '+' marks an exported symbol; '-' marks the default/internal symbol. Function rows omit the words 'function'; '+' functions include only source-declared parameter/return types, while '-' functions omit signatures.
+- Every symbol includes an '[Lstart-end]' source range. Source comments are not included in charts.
+- '->' lists parseable repository files referenced by a file, including targets in full repository.
+- '<-' lists import-resolved cross-file callers (across charts in full builds), never same-file, member, or dynamic calls; it is attached only to symbols.
+- A missing '->' means no parseable repository target was resolved; package and other unresolved imports are omitted.
+
 ### Workflow
 - At the start of every task, read ./.memoryanchor/chart/.../chart.md to establish a project-wide view before working on repository files.
 - If the agent has any uncertainty about the overall project structure, immediately read ./.memoryanchor/index.md again, then read the closest matching directory chart listed there.
