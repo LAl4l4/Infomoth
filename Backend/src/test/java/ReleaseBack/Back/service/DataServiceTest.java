@@ -38,7 +38,7 @@ class DataServiceTest {
     void setUp() throws IOException {
         Path sharedDir = tempDir.resolve("Shared");
         Files.createDirectories(sharedDir);
-        dataService = new DataService(sharedDir);
+        dataService = new DataService(sharedDir, sentimentMapper);
         ReflectionTestUtils.setField(dataService, "sentimentMapper", sentimentMapper);
     }
 

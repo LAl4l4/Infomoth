@@ -1,6 +1,7 @@
 # 机器 A — 应用服务（Frontend + Backend + MySQL）
 services:
   frontend:
+    image: infomoth-frontend:latest
     build: 
       context: ./Frontend
       platforms:
@@ -15,6 +16,7 @@ services:
     restart: unless-stopped
 
   backend:
+    image: infomoth-backend:latest
     build: 
       context: ./Backend
       platforms:

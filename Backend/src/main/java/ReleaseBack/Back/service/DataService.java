@@ -28,19 +28,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DataService {
     private final ObjectMapper mapper = new ObjectMapper();
 
-    @Autowired
-    private SentimentMapper sentimentMapper;
+    private final SentimentMapper sentimentMapper;
 
     private final Path sharedDir;
 
     // production Shared directory comes from Config/app-config.json
     @Autowired
-    public DataService(AppConfigProvider appConfigProvider) {
-        this(Path.of(appConfigProvider.getSharedDirectory()));
+    public DataService(AppConfigProvider appConfigProvider, SentimentMapper sentimentMapper) {
+        this(Path.of(appConfigProvider.getSharedDirectory()), sentimentMapper);
     }
 
     // only used for testing, allows injection of a custom Shared directory path
-    public DataService(Path sharedDir) {
+    public DataService(Path sharedDir, SentimentMapper sentimentMapper) {
+        this.sentimentMapper = sentimentMapper;
         this.sharedDir = sharedDir;
     }
 

@@ -24,13 +24,13 @@ function OverviewSentimentRow() {
   let valueText;
   if (loading) valueText = '加载中…';
   else if (error) valueText = '暂无';
-  else if (score === null) valueText = '今日暂无';
+  else if (score == null) valueText = '今日暂无';
   else valueText = `${score > 0 ? '+' : ''}${score.toFixed(4)}`;
 
   return (
     <div className="snapshot-row">
       <span className="snapshot-label">市场情绪</span>
-      <span className={'snapshot-value' + (score === null && !loading && !error ? ' muted' : '')}>
+      <span className={'snapshot-value' + (score == null && !loading && !error ? ' muted' : '')}>
         {valueText}
       </span>
     </div>

@@ -43,6 +43,7 @@
   - Writes back to original input files in-place.
   - Keeps existing fields and appends:
     - `financeInfluence`: FinBERT sentiment output object.
+  - Does not connect to or write to MySQL; database persistence belongs to Backend.
 
 ## 5. Operational Notes
 - The analyser mutates source JSON files directly; downstream readers must tolerate the additional `financeInfluence` field.
@@ -51,5 +52,6 @@
 
 ## 6. AI Agent Development Guidelines (Analyser)
 - Keep analysis output schema backward compatible by only appending fields unless explicitly requested.
-- Keep read/write paths aligned with `shared.directory` and use the shared root `mysql` configuration used by Backend.
+- Keep read/write paths aligned with `shared.directory`.
+- Keep database persistence out of Analyser; Backend owns database writes.
 - Prefer updating `finance.py` for analysis logic changes; avoid hardcoding model behavior in `main.py`.

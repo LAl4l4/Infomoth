@@ -17,39 +17,23 @@ def resolve_shared_directory(config):
     return shared_directory if shared_directory.is_absolute() else ROOT_DIR / shared_directory
 
 
-def load_mysql_config(config):
-    try:
-        return config["mysql"]
-    except KeyError as error:
-        raise KeyError(f"Missing mysql config in {CONFIG_PATH}") from error
-
-
 def main():
     financeAnalyserPolitic = FinanceAnalyser()
     financeAnalyserTech = FinanceAnalyser()
     config = load_config()
-    mysql_config = load_mysql_config(config)
     shared_directory = resolve_shared_directory(config)
     politic_path = shared_directory / "politics_news.json"
     tech_path = shared_directory / "tech_news.json"
     
     with ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(financeAnalyserPolitic.analyse, politic_path)
-        executor.submit(financeAnalyserTech.analyse, tech_path)
+        futures = [
+            executor.submit(financeAnalyserPolitic.analyse, politic_path),
+            executor.submit(financeAnalyserTech.analyse, tech_path),
+        ]
+        for future in futures:
+            future.result()
 
     print("Analyser executed")
-
-    financeAnalyserPolitic.setupMysql(**mysql_config)
-    financeAnalyserPolitic.saveAverageToMysql("politics_average")
-    financeAnalyserTech.setupMysql(**mysql_config)
-    financeAnalyserTech.saveAverageToMysql("tech_average")
-    
-    print("Average saved to mysql")
-    
-    financeAnalyserPolitic.closeMysql()
-    financeAnalyserTech.closeMysql()
-    
-    print("MySQL connections closed successfully")
 
 if __name__ == "__main__":
     main()

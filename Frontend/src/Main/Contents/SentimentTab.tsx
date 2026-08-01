@@ -41,8 +41,8 @@ export default function SentimentTab() {
       <div className="sentiment-stage">
         {loading && <p className="state-text">加载中…</p>}
         {!loading && error && <p className="exchange-error">{error}</p>}
-        {!loading && !error && score === null && <p className="state-text">今天暂无可用数据。</p>}
-        {!loading && !error && score !== null && (
+        {!loading && !error && score == null && <p className="state-text">今天暂无可用数据。</p>}
+        {!loading && !error && score != null && (
           <>
             <div className="sentiment-score-xl" style={{ color }}>
               {score > 0 ? '+' : ''}{score.toFixed(4)}

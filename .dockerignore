@@ -1,0 +1,10 @@
+*
+!Crawler/
+!Crawler/**
+!Analyser/
+!Analyser/**
+!Dockerfile.pipeline
+!pipeline-entrypoint.sh
+**/__pycache__/
+**/.pytest_cache/
+**/*.pyc

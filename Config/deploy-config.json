@@ -10,7 +10,7 @@
     "directory": "/app/Shared"
   },
   "pipeline": {
-    "syncTarget": "ubuntu@10.0.0.x:/app/Shared/"
+    "syncTarget": "ubuntu@10.0.0.44:/home/ubuntu/InfoMoth/Shared/"
   },
   "frontend": {
     "apiBaseUrl": ""

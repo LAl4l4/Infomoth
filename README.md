@@ -67,14 +67,18 @@ docker compose -f docker-compose.app.yml up -d --build
 
 Then open [http://localhost](http://localhost).
 
-To run the data pipeline:
+On the Pipeline VM, start the hourly data pipeline service:
 
 ```bash
-docker compose -f docker-compose.pipeline.yml build
-docker compose -f docker-compose.pipeline.yml run --rm pipeline
+docker compose \
+  -f docker-compose.pipeline.yml \
+  -f docker-compose.pipeline.override.yml \
+  up -d --build
 ```
 
-For the complete Oracle Cloud deployment process, including the two-VM setup, SSH synchronization, scheduled runs, backups, and rollback, see [DEPLOYMENT.md](DEPLOYMENT.md).
+The container runs `Crawler → Analyser → rsync` immediately after startup and repeats the cycle every hour. It is a deployment service; local development does not start this scheduler.
+
+For the complete Oracle Cloud deployment process, including the two-VM setup, SSH synchronization, backups, and rollback, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Project status
 
@@ -85,4 +89,3 @@ InfoMoth is under active development. Product behavior, data sources, and deploy
 InfoMoth is licensed under the [Apache License 2.0](LICENSE).
 
 Third-party data sources and model artifacts may have their own terms and licenses. Users are responsible for complying with those terms when operating their own instance.
-
