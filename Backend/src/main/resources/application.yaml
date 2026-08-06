@@ -25,3 +25,9 @@ mybatis:
   type-aliases-package: ReleaseBack.Back.entity
   configuration:
     map-underscore-to-camel-case: true
+
+sentiment:
+  persistence:
+    enabled: ${SENTIMENT_PERSISTENCE_ENABLED:false}
+    initial-delay-ms: ${SENTIMENT_PERSISTENCE_INITIAL_DELAY_MS:30000}
+    fixed-delay-ms: ${SENTIMENT_PERSISTENCE_FIXED_DELAY_MS:900000}

@@ -23,6 +23,7 @@ services:
         - linux/amd64
     environment:
       - JAVA_OPTS=-Xmx384m -Xms256m
+      - SENTIMENT_PERSISTENCE_ENABLED=true
     volumes:
       - ./Shared:/app/Shared
       - ./Config/deploy-config.json:/Config/app-config.json:ro

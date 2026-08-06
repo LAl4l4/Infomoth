@@ -7,8 +7,30 @@
     <select id="findLatestByTable" resultType="ReleaseBack.Back.entity.SentimentAverage">
         SELECT ID as id, date, sentimentScore
         FROM ${table}
-        ORDER BY date DESC
+        ORDER BY date DESC, ID DESC
         LIMIT 1
     </select>
+
+    <insert id="insertPoliticsAverage">
+        INSERT INTO politics_average (date, sentimentScore)
+        VALUES (#{date}, #{sentimentScore})
+    </insert>
+
+    <update id="updatePoliticsAverage">
+        UPDATE politics_average
+        SET sentimentScore = #{sentimentScore}
+        WHERE date = #{date}
+    </update>
+
+    <insert id="insertTechAverage">
+        INSERT INTO tech_average (date, sentimentScore)
+        VALUES (#{date}, #{sentimentScore})
+    </insert>
+
+    <update id="updateTechAverage">
+        UPDATE tech_average
+        SET sentimentScore = #{sentimentScore}
+        WHERE date = #{date}
+    </update>
 
 </mapper>

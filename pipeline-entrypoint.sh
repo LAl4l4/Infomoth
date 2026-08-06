@@ -12,8 +12,7 @@ run_pipeline() {
 
     echo "[$(date)] Running Analyser..."
     if ! (cd /app/Analyser && python main.py); then
-        echo "[$(date)] Analyser failed; skipping sync." >&2
-        return 1
+        echo "[$(date)] Analyser failed; syncing crawler output without analysis." >&2
     fi
 
     sync_target="${SYNC_TARGET:-}"
@@ -27,7 +26,7 @@ run_pipeline() {
     fi
 
     echo "[$(date)] Syncing Shared/ to $sync_target..."
-    if ! rsync -az --delete /app/Shared/ "$sync_target"; then
+    if ! rsync -az --no-owner --no-group --delete /app/Shared/ "$sync_target"; then
         echo "[$(date)] rsync failed." >&2
         return 1
     fi

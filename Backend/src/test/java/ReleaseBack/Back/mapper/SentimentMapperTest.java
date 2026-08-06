@@ -81,4 +81,19 @@ class SentimentMapperTest {
         SentimentAverage latest = sentimentMapper.findLatestByTable("tech_average");
         assertNull(latest);
     }
+
+    @Test
+    void updatePoliticsAverageShouldUpdateOnlyTheMatchingDate() {
+        LocalDate today = LocalDate.of(2026, 8, 4);
+        jdbcTemplate.update(
+                "INSERT INTO politics_average(date, sentimentScore) VALUES (?, ?)",
+                today, 0.12
+        );
+
+        int updated = sentimentMapper.updatePoliticsAverage(today, 0.66);
+
+        assertEquals(1, updated);
+        assertEquals(0.66, jdbcTemplate.queryForObject(
+                "SELECT sentimentScore FROM politics_average WHERE date = ?", Double.class, today));
+    }
 }
