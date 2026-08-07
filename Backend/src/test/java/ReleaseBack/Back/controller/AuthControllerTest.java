@@ -3,8 +3,11 @@ package ReleaseBack.Back.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -15,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 
 import ReleaseBack.Back.DTO.ProfileDTO;
 import ReleaseBack.Back.VO.ProfileVO;
@@ -24,6 +28,7 @@ import ReleaseBack.Back.entity.User;
 import ReleaseBack.Back.security.JwtUtil;
 import ReleaseBack.Back.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -37,21 +42,29 @@ class AuthControllerTest {
     @Mock
     private HttpServletRequest request;
 
+    @Mock
+    private HttpServletResponse response;
+
     @InjectMocks
     private AuthController authController;
 
     @Test
-    void loginShouldReturnTokenWhenCredentialsCorrect() {
+    void loginShouldSetCookieWhenCredentialsCorrect() {
         User user = new User();
         user.setId(7);
         user.setPassword("pw");
         when(userService.findByNameEmail("alice")).thenReturn(user);
         when(jwtUtil.generateToken(7)).thenReturn("jwt-token");
 
-        TokenVO result = authController.login("alice", "pw");
+        TokenVO result = authController.login("alice", "pw", response);
 
         assertEquals("登录成功", result.getResult());
-        assertEquals("jwt-token", result.getToken());
+        ArgumentCaptor<String> cookieCaptor = ArgumentCaptor.forClass(String.class);
+        verify(response).addHeader(eq(HttpHeaders.SET_COOKIE), cookieCaptor.capture());
+        assertTrue(cookieCaptor.getValue().contains("authToken=jwt-token"));
+        assertTrue(cookieCaptor.getValue().contains("Max-Age=172800"));
+        assertTrue(cookieCaptor.getValue().contains("HttpOnly"));
+        assertTrue(cookieCaptor.getValue().contains("SameSite=Lax"));
     }
 
     @Test
@@ -61,10 +74,29 @@ class AuthControllerTest {
         user.setPassword("correct");
         when(userService.findByNameEmail("alice")).thenReturn(user);
 
-        TokenVO result = authController.login("alice", "wrong");
+        TokenVO result = authController.login("alice", "wrong", response);
 
         assertEquals("用户名/邮箱或密码错误", result.getResult());
-        assertNull(result.getToken());
+        verifyNoInteractions(response);
+    }
+
+    @Test
+    void sessionShouldRecognizeValidCookie() {
+        when(jwtUtil.parseId("jwt-token")).thenReturn(7);
+
+        TokenVO result = authController.session("jwt-token");
+
+        assertEquals("登录有效", result.getResult());
+    }
+
+    @Test
+    void logoutShouldExpireCookie() {
+        authController.logout(response);
+
+        ArgumentCaptor<String> cookieCaptor = ArgumentCaptor.forClass(String.class);
+        verify(response).addHeader(eq(HttpHeaders.SET_COOKIE), cookieCaptor.capture());
+        assertTrue(cookieCaptor.getValue().contains("authToken="));
+        assertTrue(cookieCaptor.getValue().contains("Max-Age=0"));
     }
 
     @Test

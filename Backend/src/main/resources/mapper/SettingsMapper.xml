@@ -10,6 +10,18 @@
         WHERE user_id = #{userId}
     </select>
 
+    <select id="findDefaultBaseCurrencyByUserId" resultType="java.lang.String">
+        SELECT default_base_currency
+        FROM user_settings
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findDefaultQuoteCurrencyByUserId" resultType="java.lang.String">
+        SELECT default_quote_currency
+        FROM user_settings
+        WHERE user_id = #{userId}
+    </select>
+
     <insert id="insertDefaultPage">
         INSERT INTO user_settings (user_id, default_page)
         VALUES (#{userId}, #{defaultPage})
@@ -18,6 +30,27 @@
     <update id="updateDefaultPage">
         UPDATE user_settings
         SET default_page = #{defaultPage}
+        WHERE user_id = #{userId}
+    </update>
+
+    <insert id="insertSettings">
+        INSERT INTO user_settings (
+            user_id, default_page, default_base_currency, default_quote_currency
+        )
+        VALUES (
+            #{userId}, #{defaultPage}, #{defaultBaseCurrency}, #{defaultQuoteCurrency}
+        )
+    </insert>
+
+    <update id="updateDefaultBaseCurrency">
+        UPDATE user_settings
+        SET default_base_currency = #{defaultBaseCurrency}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateDefaultQuoteCurrency">
+        UPDATE user_settings
+        SET default_quote_currency = #{defaultQuoteCurrency}
         WHERE user_id = #{userId}
     </update>
 </mapper>

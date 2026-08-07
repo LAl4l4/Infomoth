@@ -3,6 +3,7 @@ package ReleaseBack.Back.security;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
+
+    private static final String AUTH_COOKIE_NAME = "authToken";
     
     private final JwtUtil jwtUtil;
     
@@ -26,18 +29,19 @@ public class JwtInterceptor implements HandlerInterceptor {
         // 公开端点不需要验证
         if (uri.contains("/auth/login") || 
             uri.contains("/auth/register") ||
+            uri.contains("/auth/session") ||
+            uri.contains("/auth/logout") ||
             uri.contains("/Config/**")) {
             return true;
         }
         
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token = getAuthCookie(request);
+        if (token == null || token.isBlank()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Missing or invalid Authorization header");
+            response.getWriter().write("Missing or invalid auth cookie");
             return false;
         }
         
-        String token = authHeader.substring(7);
         try {
             Integer userId = jwtUtil.parseId(token);
             request.setAttribute("userId", userId);
@@ -47,5 +51,18 @@ public class JwtInterceptor implements HandlerInterceptor {
             response.getWriter().write("Invalid or expired token");
             return false;
         }
+    }
+
+    private String getAuthCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (AUTH_COOKIE_NAME.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

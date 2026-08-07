@@ -14,6 +14,8 @@ spring:
         - file:../Schema/02-profiles.sql
         - file:../Schema/03-user-settings.sql
         - file:../Schema/04-sentiment-average.sql
+        - file:../Schema/05-us-stock-indices.sql
+        - file:../Schema/06-user-settings-currency.sql
   
   
 server:

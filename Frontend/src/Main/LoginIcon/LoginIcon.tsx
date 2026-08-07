@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsLoggedIn, logOut } from '../../Variable/login';
+import { logout as logoutRequest } from '../../API/auth';
 import type { AppDispatch } from '../../customTypes';
 
 interface AuthGlyphProps {
@@ -27,7 +28,8 @@ export default function Icon() {
     }, 200);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    await logoutRequest().catch(() => undefined);
     dispatch(logOut());
     navigate('/');
   }

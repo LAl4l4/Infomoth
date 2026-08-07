@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ReleaseBack.Back.mapper.UsStockIndexMapper">
+    <select id="findSince" resultType="ReleaseBack.Back.entity.UsStockIndexRecord">
+        SELECT
+            ID as id,
+            symbol,
+            name,
+            price,
+            change_value as changeValue,
+            change_percent as changePercent,
+            date,
+            source
+        FROM us_stock_indices
+        WHERE date &gt;= #{fromDate}
+        ORDER BY date ASC, symbol ASC
+    </select>
+
+    <update id="updateSnapshot">
+        UPDATE us_stock_indices
+        SET name = #{snapshot.name},
+            price = #{snapshot.price},
+            change_value = #{snapshot.changeValue},
+            change_percent = #{snapshot.changePercent},
+            source = #{snapshot.source}
+        WHERE symbol = #{snapshot.symbol}
+          AND date = #{snapshot.date}
+    </update>
+
+    <insert id="insertSnapshot">
+        INSERT INTO us_stock_indices (
+            symbol, name, price, change_value, change_percent, date, source
+        )
+        VALUES (
+            #{snapshot.symbol},
+            #{snapshot.name},
+            #{snapshot.price},
+            #{snapshot.changeValue},
+            #{snapshot.changePercent},
+            #{snapshot.date},
+            #{snapshot.source}
+        )
+    </insert>
+</mapper>

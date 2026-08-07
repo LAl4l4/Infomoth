@@ -2,7 +2,8 @@ import axios from 'axios';
 import { loadApiBaseUrl } from './config';
 
 const instance = axios.create({
-  timeout: 5000
+  timeout: 5000,
+  withCredentials: true,
 });
 
 let apiBaseUrlPromise: Promise<string> | null = null;
@@ -21,14 +22,10 @@ async function ensureBaseUrl(): Promise<string> {
   return apiBaseUrl;
 }
 
-// 请求拦截器：自动添加 Authorization header
+// 请求拦截器：确保运行时 API 地址已加载；认证 Cookie 由浏览器自动携带
 instance.interceptors.request.use(
   async (config) => {
     await ensureBaseUrl();
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -39,8 +36,7 @@ instance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token 过期或无效，清除本地存储并重定向到登录
-      localStorage.removeItem('authToken');
+      // Cookie 由服务端管理，过期或无效时回到登录页
       window.location.href = '/login';
     }
     // 将后端返回的错误信息提取到 error.message 中，

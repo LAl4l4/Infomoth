@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import type { AppDispatch } from '../customTypes';
+import { pullCurrencies } from '../API/data';
 import { pullGeneralSettings, updateGeneralSettings } from '../API/settings';
 import { setPageNum } from '../Variable/pagenum';
 import './Settings.css';
@@ -29,6 +30,7 @@ const HOME_PAGE_OPTIONS = [
   { value: 2, label: 'AI 技能' },
   { value: 3, label: '汇率' },
   { value: 4, label: '美股' },
+  { value: 5, label: '市场走势' },
 ];
 
 export default function Settings() {
@@ -84,6 +86,9 @@ function LeftSection({ tab, setTab }: LeftSectionProps) {
 
 function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
   const [defaultPage, setDefaultPage] = useState(0);
+  const [defaultBaseCurrency, setDefaultBaseCurrency] = useState('USD');
+  const [defaultQuoteCurrency, setDefaultQuoteCurrency] = useState('CNY');
+  const [currencies, setCurrencies] = useState<string[]>(['USD', 'CNY']);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState('正在读取账户设置…');
@@ -96,6 +101,15 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
         const settings = await pullGeneralSettings();
         if (!active) return;
         setDefaultPage(settings.defaultPage);
+        const baseCurrency = settings.defaultBaseCurrency || 'USD';
+        const quoteCurrency = settings.defaultQuoteCurrency || 'CNY';
+        setDefaultBaseCurrency(baseCurrency);
+        setDefaultQuoteCurrency(quoteCurrency);
+        setCurrencies((current) => Array.from(new Set([
+          ...current,
+          baseCurrency,
+          quoteCurrency,
+        ])).sort());
         setStatus('设置已同步');
       } catch (error: unknown) {
         if (!active) return;
@@ -112,15 +126,38 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
     };
   }, []);
 
-  const saveDefaultPage = async (page: number, returnHome = false) => {
+  useEffect(() => {
+    let active = true;
+    pullCurrencies()
+      .then((result) => {
+        if (active) setCurrencies(Array.from(new Set(result)).sort());
+      })
+      .catch(() => {
+        // Keep the built-in USD/CNY options when the currency list is unavailable.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const saveSettings = async (
+    page: number,
+    baseCurrency: string,
+    quoteCurrency: string,
+    returnHome = false
+  ) => {
     setIsSaving(true);
     setStatus('正在保存…');
 
     try {
-      const settings = await updateGeneralSettings(page);
-      setDefaultPage(settings.defaultPage);
+      const settings = await updateGeneralSettings(page, baseCurrency, quoteCurrency);
+      const savedPage = settings.defaultPage ?? page;
+      setDefaultPage(savedPage);
+      setDefaultBaseCurrency(settings.defaultBaseCurrency || baseCurrency);
+      setDefaultQuoteCurrency(settings.defaultQuoteCurrency || quoteCurrency);
       setStatus('已保存到你的账户');
-      if (returnHome) onOpenHome(settings.defaultPage);
+      if (returnHome) onOpenHome(savedPage);
     } catch (error: unknown) {
       setStatus(error instanceof Error ? error.message : '保存设置失败');
     } finally {
@@ -153,6 +190,48 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
           </select>
         </div>
 
+        <div className="setting-group">
+          <div className="setting-copy">
+            <label className="setting-label" htmlFor="default-base-currency">默认基础货币</label>
+            <p className="setting-description">汇率查询左侧的基础货币。</p>
+          </div>
+          <select
+            id="default-base-currency"
+            className="setting-select"
+            value={defaultBaseCurrency}
+            disabled={isLoading || isSaving}
+            onChange={(event) => {
+              setDefaultBaseCurrency(event.target.value);
+              setStatus('有未保存的更改');
+            }}
+          >
+            {currencies.map((currency) => (
+              <option key={`base-${currency}`} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="setting-group">
+          <div className="setting-copy">
+            <label className="setting-label" htmlFor="default-quote-currency">默认目标货币</label>
+            <p className="setting-description">汇率查询右侧的目标货币。</p>
+          </div>
+          <select
+            id="default-quote-currency"
+            className="setting-select"
+            value={defaultQuoteCurrency}
+            disabled={isLoading || isSaving}
+            onChange={(event) => {
+              setDefaultQuoteCurrency(event.target.value);
+              setStatus('有未保存的更改');
+            }}
+          >
+            {currencies.map((currency) => (
+              <option key={`quote-${currency}`} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="settings-actions">
           <span className="settings-save-hint" role="status">{status}</span>
           <div className="settings-action-buttons">
@@ -160,7 +239,7 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
               className="settings-button secondary"
               type="button"
               disabled={isLoading || isSaving}
-              onClick={() => saveDefaultPage(0)}
+              onClick={() => saveSettings(0, 'USD', 'CNY')}
             >
               恢复默认
             </button>
@@ -168,7 +247,12 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
               className="settings-button primary"
               type="button"
               disabled={isLoading || isSaving}
-              onClick={() => saveDefaultPage(defaultPage, true)}
+              onClick={() => saveSettings(
+                defaultPage,
+                defaultBaseCurrency,
+                defaultQuoteCurrency,
+                true
+              )}
             >
               保存并返回首页
             </button>

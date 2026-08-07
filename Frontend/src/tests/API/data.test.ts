@@ -5,6 +5,7 @@ import {
   pullPopularAISkills,
   pullSentimentScore,
   pullUsStockIndices,
+  pullMarketTrends,
 } from '../../API/data';
 
 jest.mock('../../API/axios', () => ({
@@ -78,5 +79,19 @@ describe('data API', () => {
   it('pullUsStockIndices rejects on non-array response', async () => {
     mockGet.mockResolvedValue({ data: 'oops' });
     await expect(pullUsStockIndices()).rejects.toThrow('Invalid US stock indices response');
+  });
+
+  it('pullMarketTrends returns points and correlations', async () => {
+    const trend = { points: [], correlations: [] };
+    mockGet.mockResolvedValue({ data: trend });
+
+    await expect(pullMarketTrends()).resolves.toEqual(trend);
+    expect(mockGet).toHaveBeenCalledWith('/data/market-trends');
+  });
+
+  it('pullMarketTrends rejects an invalid response', async () => {
+    mockGet.mockResolvedValue({ data: { points: [] } });
+
+    await expect(pullMarketTrends()).rejects.toThrow('Invalid market trends response');
   });
 });

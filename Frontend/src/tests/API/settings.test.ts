@@ -15,14 +15,28 @@ beforeEach(() => {
 
 describe('settings API', () => {
   it('pullGeneralSettings gets /settings/general', async () => {
-    mockGet.mockResolvedValue({ data: { defaultPage: 3 } });
-    await expect(pullGeneralSettings()).resolves.toEqual({ defaultPage: 3 });
+    const settings = {
+      defaultPage: 3,
+      defaultBaseCurrency: 'USD',
+      defaultQuoteCurrency: 'CNY',
+    };
+    mockGet.mockResolvedValue({ data: settings });
+    await expect(pullGeneralSettings()).resolves.toEqual(settings);
     expect(mockGet).toHaveBeenCalledWith('/settings/general');
   });
 
   it('updateGeneralSettings puts the default page', async () => {
-    mockPut.mockResolvedValue({ data: { defaultPage: 2 } });
-    await expect(updateGeneralSettings(2)).resolves.toEqual({ defaultPage: 2 });
-    expect(mockPut).toHaveBeenCalledWith('/settings/general', { defaultPage: 2 });
+    const settings = {
+      defaultPage: 2,
+      defaultBaseCurrency: 'EUR',
+      defaultQuoteCurrency: 'AUD',
+    };
+    mockPut.mockResolvedValue({ data: settings });
+    await expect(updateGeneralSettings(2, 'EUR', 'AUD')).resolves.toEqual(settings);
+    expect(mockPut).toHaveBeenCalledWith('/settings/general', {
+      defaultPage: 2,
+      defaultBaseCurrency: 'EUR',
+      defaultQuoteCurrency: 'AUD',
+    });
   });
 });

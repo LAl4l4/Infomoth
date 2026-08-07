@@ -30,7 +30,7 @@ beforeEach(() => {
 
 describe('Login page', () => {
   it('logs in successfully and navigates home', async () => {
-    mockCheckLogin.mockResolvedValue({ data: { result: '登录成功', token: 'tok' } });
+    mockCheckLogin.mockResolvedValue({ data: { result: '登录成功' } });
     const { store } = renderLogin();
 
     fireEvent.change(screen.getByPlaceholderText('yours@example.com/username'), {
@@ -44,7 +44,6 @@ describe('Login page', () => {
     expect(await screen.findByText('首页')).toBeInTheDocument();
     expect(mockCheckLogin).toHaveBeenCalledWith('a@b.com', 'secret');
     expect(store.getState().login.isLoggedIn).toBe(true);
-    expect(store.getState().login.token).toBe('tok');
   });
 
   it('shows the backend error message on failed login', async () => {

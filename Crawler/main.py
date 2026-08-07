@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor
@@ -20,6 +21,28 @@ def save_json(path: Path, payload: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file:
         json.dump(payload, file, ensure_ascii=False, indent=2)
+
+
+def save_us_stock_indices(path: Path, payload: list[dict[str, Any]]) -> None:
+    if not payload and path.exists():
+        try:
+            existing_payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_payload = None
+
+        today = datetime.now(timezone.utc).date().isoformat()
+        if (
+            isinstance(existing_payload, list)
+            and existing_payload
+            and all(
+                isinstance(item, dict) and item.get("date") == today
+                for item in existing_payload
+            )
+        ):
+            logging.info("No US stock indices fetched; keeping same-day data in %s", path.name)
+            return
+
+    save_json(path, payload)
 
 
 def run() -> None:
@@ -56,7 +79,7 @@ def run() -> None:
     save_json(outputs["politics"], politics_results)
     save_json(outputs["exchange"], exchange_rate_results)
     save_json(outputs["ai_skills"], ai_skills_results)
-    save_json(outputs["indices"], us_stock_indices_results)
+    save_us_stock_indices(outputs["indices"], us_stock_indices_results)
 
     logging.info("Saved %s technology stories to %s", len(tech_results), outputs["tech"].name)
     logging.info("Saved %s global politics stories to %s", len(politics_results), outputs["politics"].name)

@@ -71,20 +71,20 @@ describe('request interceptor', () => {
     expect(mockLoadApiBaseUrl).not.toHaveBeenCalled();
   });
 
-  it('attaches the Authorization header when a token exists', async () => {
+  it('does not attach an Authorization header from local storage', async () => {
     localStorage.setItem('authToken', 'tok');
     const config = await reqFulfilled({ headers: {} });
-    expect(config.headers.Authorization).toBe('Bearer tok');
+    expect(config.headers.Authorization).toBeUndefined();
   });
 });
 
 describe('response interceptor', () => {
-  it('clears the stored token on 401', async () => {
+  it('leaves token storage untouched on 401', async () => {
     localStorage.setItem('authToken', 'tok');
     await expect(
       respRejected({ response: { status: 401, data: '未授权' } })
     ).rejects.toBeTruthy();
-    expect(localStorage.getItem('authToken')).toBeNull();
+    expect(localStorage.getItem('authToken')).toBe('tok');
   });
 
   it('copies a string error body into error.message', async () => {

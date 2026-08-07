@@ -1,5 +1,10 @@
 import instance from "./axios";
-import type { AISkill, UsStockIndex, CurrencyCode } from "../customTypes";
+import type {
+  AISkill,
+  UsStockIndex,
+  CurrencyCode,
+  MarketTrendData,
+} from "../customTypes";
 
 export async function pullCurrencies(): Promise<CurrencyCode[]> {
   const res = await instance.get("/data/currencies");
@@ -42,4 +47,12 @@ export async function pullUsStockIndices(): Promise<UsStockIndex[]> {
     throw new Error("Invalid US stock indices response");
   }
   return res.data as UsStockIndex[];
+}
+
+export async function pullMarketTrends(): Promise<MarketTrendData> {
+  const res = await instance.get("/data/market-trends");
+  if (!res.data || !Array.isArray(res.data.points) || !Array.isArray(res.data.correlations)) {
+    throw new Error("Invalid market trends response");
+  }
+  return res.data as MarketTrendData;
 }

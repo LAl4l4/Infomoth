@@ -2,6 +2,7 @@ import { screen, fireEvent } from '@testing-library/react';
 import ExchangeRateTab from '../../Main/Contents/ExchangeRateTab';
 import { renderWithProviders } from '../testUtils';
 import { pullCurrencies, pullExchangeRate } from '../../API/data';
+import { pullGeneralSettings } from '../../API/settings';
 
 jest.mock('../../API/data', () => ({
   pullCurrencies: jest.fn(),
@@ -11,12 +12,22 @@ jest.mock('../../API/data', () => ({
   pullUsStockIndices: jest.fn(),
 }));
 
+jest.mock('../../API/settings', () => ({
+  pullGeneralSettings: jest.fn(),
+}));
+
 const mockCurrencies = pullCurrencies as jest.Mock;
 const mockRate = pullExchangeRate as jest.Mock;
+const mockSettings = pullGeneralSettings as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockCurrencies.mockResolvedValue(['CNY', 'EUR', 'USD']);
+  mockSettings.mockResolvedValue({
+    defaultPage: 3,
+    defaultBaseCurrency: 'USD',
+    defaultQuoteCurrency: 'CNY',
+  });
   mockRate.mockImplementation((base: string, quote: string) => {
     if (base === 'USD' && quote === 'CNY') return Promise.resolve(7.2);
     if (base === 'CNY' && quote === 'USD') return Promise.resolve(0.14);
@@ -69,5 +80,21 @@ describe('ExchangeRateTab', () => {
     renderWithProviders(<ExchangeRateTab />);
 
     expect(await screen.findByText('加载失败')).toBeInTheDocument();
+  });
+
+  it('applies both saved default currency sides', async () => {
+    mockSettings.mockResolvedValue({
+      defaultPage: 3,
+      defaultBaseCurrency: 'CNY',
+      defaultQuoteCurrency: 'EUR',
+    });
+    mockRate.mockImplementation((base: string, quote: string) => (
+      base === 'CNY' && quote === 'EUR' ? Promise.resolve(0.13) : Promise.resolve(1)
+    ));
+
+    renderWithProviders(<ExchangeRateTab />);
+
+    expect(await screen.findByText(/1 CNY = 0.13 EUR/)).toBeInTheDocument();
+    expect(mockRate).toHaveBeenCalledWith('CNY', 'EUR');
   });
 });

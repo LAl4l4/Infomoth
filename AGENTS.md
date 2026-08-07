@@ -62,17 +62,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-# Tools for token-efficiency
-
-## Project Context (OpenWolf)
-This project uses OpenWolf for context management.
-- At the start of every session, read `.wolf/anatomy.md` to understand the project structure.
-- Before generating or modifying code, check `.wolf/cerebrum.md` for project conventions and preferences.
-- If you are unsure about file organization, refer to `.wolf/anatomy.md` first instead of scanning many files.
-
-### For Claude Code
-- Claude Code already integrates OpenWolf natively via project-level hooks. It automatically reads `.wolf/anatomy.md` and `.wolf/cerebrum.md` according to its own lifecycle. **Do not manually re-read these files or add extra OpenWolf steps.**
-
 ## Token-Efficient Commands (RTK)
 This project uses RTK (Rust Token Killer) to reduce token consumption from command output.
 - **Golden Rule:** Always prefix shell commands with `rtk`.  
@@ -142,6 +131,7 @@ Analyser/main.py  (runs AFTER Crawler)
 Backend (Spring Boot, port 8080)
   ├── Reads Shared/exchangeRates.json at request time (no caching)
   ├── Reads Shared/ai_skills_today.json (via aiSkillDTO)
+  ├── Persists daily sentiment and US stock snapshots for seven-day trend data
   ├── MySQL connection from Config (`blog` local / `infomoth` deploy)
   └── JWT-protected REST API
 
@@ -155,12 +145,12 @@ The pipeline must run Crawler before Analyser. The Analyser mutates source JSON 
 ### Component details
 
 - **Crawler scraping strategy**: `base_scraper.py` implements a 3-tier fallback per source: RSS feed → static HTML parse → headless Selenium (only when JS rendering is required). UA rotation and dedup are built into the base class.
-- **Backend as API + file-backed data service**: `DataService` reads exchange rates from the `shared.directory` configured data directory at request time, so crawler output format/path is part of the runtime contract.
-- **Frontend as API-driven SPA**: `Frontend` calls backend APIs through `src/API/*` wrappers, with centralized Axios interceptors for JWT injection and 401 handling.
+- **Backend as API + file-backed data service**: `DataService` reads exchange rates and current US stock data from the `shared.directory` configured data directory at request time. The persistence services copy daily sentiment and US stock snapshots into MySQL for `/data/market-trends`.
+- **Frontend as API-driven SPA**: `Frontend` calls backend APIs through `src/API/*` wrappers, with centralized Axios interceptors for credentialed Cookie transport and 401 handling.
 - **Auth flow spans frontend + backend**:
-  - Frontend stores JWT in `localStorage` key `authToken`.
-  - Axios request interceptor sends `Authorization: Bearer <token>`.
-  - Backend `WebConfig` + `JwtInterceptor` protect all routes except `/auth/login` and `/auth/register`.
+  - Spring Boot sets a 48-hour `HttpOnly` `authToken` Cookie on successful login; the frontend and Redux state never store the JWT.
+  - Axios uses `withCredentials: true` so the browser sends the Cookie automatically.
+  - Backend `WebConfig` + `JwtInterceptor` read the Cookie and protect all routes except `/auth/login`, `/auth/register`, `/auth/session`, and `/auth/logout`.
 - **Config directory**: `Config/app-config.json` is the centralized runtime configuration: shared MySQL connection, data directory, pipeline sync target, frontend API URL, and backend CORS origins. `deploy-config.json` is mounted as this file in containers.
 
 ## Key conventions in this codebase
@@ -171,6 +161,7 @@ The pipeline must run Crawler before Analyser. The Analyser mutates source JSON 
 - **Backend API layering is strict**: controller -> service -> mapper; DTO/VO classes are used for request/response shaping (`DTO/`, `VO/`).
 - **Auth endpoints expect query params, not JSON body** for login/register (`@RequestParam` in `AuthController`), and frontend API helpers follow that contract.
 - **Exchange-rate JSON schema is compatibility-sensitive**: backend `exchangeRateDTO` supports aliases (`base_currency`/`base`, `quote_currency`/`quote`). Keep scraper output backward-compatible when changing fields.
+- **Market trend contract**: `/data/market-trends` returns seven calendar days, daily sentiment, each available US stock price, and one Pearson `corr` per stock. The chart may normalize display values, but correlation uses the stored raw daily values.
 - **Frontend state flow**: API calls are wrapped in `src/API/`, then consumed by Redux Toolkit thunks/slices under `src/Variable/`; components generally interact with state/actions, not raw Axios.
 - **CORS and local dev assumptions are explicit**:
   - Backend controllers are currently configured for `http://localhost:3000`.

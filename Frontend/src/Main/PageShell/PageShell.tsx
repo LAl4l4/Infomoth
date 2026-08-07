@@ -2,6 +2,7 @@ import './PageShell.css';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPageNum, setPageNum } from '../../Variable/pagenum';
+import { restoreSessionThunk, selectIsLoggedIn } from '../../Variable/login';
 import { pullGeneralSettings } from '../../API/settings';
 import LoginIcon from '../LoginIcon/LoginIcon';
 //import { BgGlobe } from '../BackgroundGlobe/BackgroundGlobe';
@@ -12,6 +13,7 @@ import SentimentTab from '../Contents/SentimentTab';
 import AISkillsTab from '../Contents/AISkillsTab';
 import ExchangeRateTab from '../Contents/ExchangeRateTab';
 import UsStockTab from '../Contents/UsStockTab';
+import MarketTrendTab from '../Contents/MarketTrendTab';
 import type { AppDispatch, TabItem } from '../../customTypes';
 
 const TABS: TabItem[] = [
@@ -20,16 +22,22 @@ const TABS: TabItem[] = [
   { key: 2, label: 'AI技能' },
   { key: 3, label: '汇率' },
   { key: 4, label: '美股' },
+  { key: 5, label: '市场走势' },
 ];
 
 export default function PageShell() {
   const pagenum = useSelector(selectPageNum);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
   const dispatch = useDispatch<AppDispatch>();
 
-  const safeTab = Math.min(Math.max(pagenum, 0), 4);
+  const safeTab = Math.min(Math.max(pagenum, 0), 5);
 
   useEffect(() => {
-    if (!window.localStorage.getItem('authToken')) return;
+    dispatch(restoreSessionThunk());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
 
     let active = true;
     pullGeneralSettings()
@@ -43,7 +51,7 @@ export default function PageShell() {
     return () => {
       active = false;
     };
-  }, [dispatch]);
+  }, [dispatch, isLoggedIn]);
 
   return (
     <div className="page-shell">
@@ -61,6 +69,7 @@ export default function PageShell() {
           {safeTab === 2 && <AISkillsTab />}
           {safeTab === 3 && <ExchangeRateTab />}
           {safeTab === 4 && <UsStockTab />}
+          {safeTab === 5 && <MarketTrendTab />}
         </div>
       </div>
     </div>

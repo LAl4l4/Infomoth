@@ -11,6 +11,13 @@
         LIMIT 1
     </select>
 
+    <select id="findSince" resultType="ReleaseBack.Back.entity.SentimentAverage">
+        SELECT ID as id, date, sentimentScore
+        FROM ${table}
+        WHERE date &gt;= #{fromDate}
+        ORDER BY date ASC, ID ASC
+    </select>
+
     <insert id="insertPoliticsAverage">
         INSERT INTO politics_average (date, sentimentScore)
         VALUES (#{date}, #{sentimentScore})

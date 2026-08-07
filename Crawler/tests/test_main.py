@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest
 
-from main import save_json
+from main import save_json, save_us_stock_indices
 
 
 class TestSaveJson:
@@ -33,6 +34,25 @@ class TestSaveJson:
         save_json(target, [{"title": "中文标题"}])
         content = target.read_text(encoding="utf-8")
         assert "中文标题" in content
+
+
+class TestSaveUsStockIndices:
+    def test_keeps_same_day_data_when_new_payload_is_empty(self, tmp_path):
+        target = tmp_path / "us_stock_indices.json"
+        existing = [{"symbol": "^GSPC", "date": datetime.now(timezone.utc).date().isoformat()}]
+        target.write_text(json.dumps(existing), encoding="utf-8")
+
+        save_us_stock_indices(target, [])
+
+        assert json.loads(target.read_text(encoding="utf-8")) == existing
+
+    def test_overwrites_previous_day_data_when_new_payload_is_empty(self, tmp_path):
+        target = tmp_path / "us_stock_indices.json"
+        target.write_text(json.dumps([{"symbol": "^GSPC", "date": "2020-01-01"}]), encoding="utf-8")
+
+        save_us_stock_indices(target, [])
+
+        assert json.loads(target.read_text(encoding="utf-8")) == []
 
 
 class TestRun:

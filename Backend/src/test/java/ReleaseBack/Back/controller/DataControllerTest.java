@@ -14,14 +14,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
+import ReleaseBack.Back.DTO.MarketTrendDTO;
 import ReleaseBack.Back.DTO.usStockIndexDTO;
 import ReleaseBack.Back.service.DataService;
+import ReleaseBack.Back.service.MarketTrendService;
 
 @ExtendWith(MockitoExtension.class)
 class DataControllerTest {
 
     @Mock
     private DataService dataService;
+
+    @Mock
+    private MarketTrendService marketTrendService;
 
     @InjectMocks
     private DataController dataController;
@@ -84,6 +89,17 @@ class DataControllerTest {
         when(dataService.getUsStockIndices()).thenReturn(expected);
 
         ResponseEntity<List<usStockIndexDTO>> response = dataController.getUsStockIndices();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    void getMarketTrendsShouldReturnServiceValue() {
+        MarketTrendDTO expected = new MarketTrendDTO(List.of(), List.of());
+        when(marketTrendService.getLastSevenDays()).thenReturn(expected);
+
+        ResponseEntity<MarketTrendDTO> response = dataController.getMarketTrends();
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals(expected, response.getBody());

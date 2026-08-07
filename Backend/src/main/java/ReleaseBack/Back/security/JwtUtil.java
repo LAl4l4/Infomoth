@@ -6,13 +6,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 import java.util.Date;
+import java.time.Duration;
 
 import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtil {
     private final String SECRET = "my_secret_key_which_should_be_long_enough";
-    private final long EXPIRE = 1000 * 60 * 60; // 1 hour
+    private final long EXPIRE = Duration.ofHours(48).toMillis();
 
 
     public String generateToken(Integer userId) {

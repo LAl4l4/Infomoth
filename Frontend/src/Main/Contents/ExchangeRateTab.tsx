@@ -7,6 +7,7 @@ import {
   selectCurrencies,
   selectExchangeRates,
 } from '../../Variable/dataCache';
+import { pullGeneralSettings } from '../../API/settings';
 import type { AppDispatch } from '../../customTypes';
 
 export default function ExchangeRateTab() {
@@ -16,18 +17,38 @@ export default function ExchangeRateTab() {
 
   const [base, setBase] = useState('USD');
   const [quote, setQuote] = useState('CNY');
+  const [preferredPair, setPreferredPair] = useState({ base: 'USD', quote: 'CNY' });
 
   useEffect(() => {
     dispatch(fetchCurrencies());
   }, [dispatch]);
 
   useEffect(() => {
+    pullGeneralSettings()
+      .then((settings) => {
+        setPreferredPair({
+          base: settings.defaultBaseCurrency || 'USD',
+          quote: settings.defaultQuoteCurrency || 'CNY',
+        });
+      })
+      .catch(() => {
+        // Keep USD/CNY when account settings are unavailable.
+      });
+  }, []);
+
+  useEffect(() => {
     if (currencies && currencies.length > 0) {
       const sorted = [...currencies].sort();
-      setBase((p) => (sorted.includes(p) ? p : (sorted[0] || '')));
-      setQuote((p) => (sorted.includes(p) ? p : (sorted[1] || sorted[0] || '')));
+      const nextBase = sorted.includes(preferredPair.base)
+        ? preferredPair.base
+        : (sorted[0] || '');
+      const nextQuote = sorted.includes(preferredPair.quote) && preferredPair.quote !== nextBase
+        ? preferredPair.quote
+        : (sorted.find((currency) => currency !== nextBase) || sorted[0] || '');
+      setBase(nextBase);
+      setQuote(nextQuote);
     }
-  }, [currencies]);
+  }, [currencies, preferredPair]);
 
   const canQuery = useMemo(
     () => Boolean(base) && Boolean(quote) && base !== quote,

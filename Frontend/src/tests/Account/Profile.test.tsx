@@ -9,6 +9,10 @@ jest.mock('../../API/prof', () => ({
   updateProfile: jest.fn(),
 }));
 
+jest.mock('../../API/auth', () => ({
+  logout: jest.fn(() => Promise.resolve()),
+}));
+
 const mockPull = pullProfiles as jest.Mock;
 const mockUpdate = updateProfile as jest.Mock;
 
@@ -31,7 +35,6 @@ function renderProfile() {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  localStorage.clear();
   window.alert = jest.fn();
   mockPull.mockResolvedValue(PROFILE);
 });
@@ -92,7 +95,6 @@ describe('Profile page', () => {
   });
 
   it('logs out from the account section and navigates home', async () => {
-    localStorage.setItem('authToken', 'tok');
     const { store } = renderProfile();
     store.dispatch({ type: 'login/logIn' });
 
@@ -102,7 +104,6 @@ describe('Profile page', () => {
 
     expect(await screen.findByText('首页')).toBeInTheDocument();
     expect(store.getState().login.isLoggedIn).toBe(false);
-    expect(localStorage.getItem('authToken')).toBeNull();
   });
 
   it('alerts when the profile fails to load', async () => {

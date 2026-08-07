@@ -7,6 +7,7 @@
   - Login and Registration workflows.
   - Profile retrieval and updates.
   - Exchange rate data visualization (via Backend API).
+  - Seven-day market trend visualization and sentiment/US stock correlation display.
 
 ## 2. Tech Stack & Frameworks
 - **Language**: JavaScript (Non-TypeScript)
@@ -33,16 +34,20 @@
 ## 5. Frontend-Backend Interaction Conventions
 - **Axios Base URL**: runtime `frontend.apiBaseUrl` from `Config/app-config.json` (locally `http://localhost:8080`)
 - **Token Storage**:
-  - localStorage key: `authToken`
-  - Request interceptor automatically injects `Authorization: Bearer <token>`
-  - Response interceptor automatically clears token and redirects to `/login` on `401` errors.
+  - The backend sets a 48-hour `HttpOnly` `authToken` Cookie; the frontend and Redux state never store the JWT.
+  - Axios uses `withCredentials: true` so the browser sends the Cookie automatically.
+  - The response interceptor redirects to `/login` on `401` errors; `/auth/logout` asks the backend to expire the Cookie.
 - **Current API Contracts**:
   - `POST /auth/login` (Query params: `username`, `pass`)
   - `POST /auth/register` (Query params: `username`, `pass`, `email`)
+  - `GET /auth/session`: Check whether the server-managed session Cookie is valid
+  - `POST /auth/logout`: Expire the server-managed session Cookie
   - `GET /auth/pullProfiles`: Retrieve profile
   - `POST /auth/pushProfile`: Update profile (JSON body)
   - `GET /data/currencies`: List currencies
   - `GET /data/exchangerate?base=&quote=`: Fetch specific rate
+  - `GET /data/market-trends`: Fetch seven calendar days of sentiment, stock prices, and `corr` values
+  - `GET /settings/general` / `PUT /settings/general`: Read and save the default tab plus both exchange-rate selector currencies
 
 ## 6. State Management Conventions
 - **Store Composition**: Composed of slices: `login`, `page`, `isOpen`, `profile`.
@@ -54,6 +59,6 @@
 - **Contract Mapping**: Do not assume backend response field names will never change. If the backend changes, perform compatibility mapping within the API layer.
 - **Routing**: New pages must be explicitly registered in `App.js` routes.
 - **Authentication**: Any changes related to authentication must verify:
-  - localStorage token persistence/removal.
+  - Cookie credentials and server-side Cookie expiry/removal.
   - Axios request/response interceptor logic.
-  - Redux login state consistency.
+  - Redux login state consistency without storing the JWT.

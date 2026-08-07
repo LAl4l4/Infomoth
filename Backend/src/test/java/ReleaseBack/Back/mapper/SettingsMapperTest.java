@@ -34,7 +34,9 @@ class SettingsMapperTest {
                 """
                 CREATE TABLE IF NOT EXISTS user_settings (
                     user_id INT PRIMARY KEY,
-                    default_page TINYINT NOT NULL DEFAULT 0
+                    default_page TINYINT NOT NULL DEFAULT 0,
+                    default_base_currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+                    default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY'
                 )
                 """
         );
@@ -50,5 +52,19 @@ class SettingsMapperTest {
 
         settingsMapper.updateDefaultPage(9, 4);
         assertEquals(4, settingsMapper.findDefaultPageByUserId(9));
+    }
+
+    @Test
+    void currencyDefaultsShouldInsertAndUpdateByUserId() {
+        settingsMapper.insertSettings(9, 1, "EUR", "AUD");
+
+        assertEquals("EUR", settingsMapper.findDefaultBaseCurrencyByUserId(9));
+        assertEquals("AUD", settingsMapper.findDefaultQuoteCurrencyByUserId(9));
+
+        settingsMapper.updateDefaultBaseCurrency(9, "USD");
+        settingsMapper.updateDefaultQuoteCurrency(9, "CNY");
+
+        assertEquals("USD", settingsMapper.findDefaultBaseCurrencyByUserId(9));
+        assertEquals("CNY", settingsMapper.findDefaultQuoteCurrencyByUserId(9));
     }
 }

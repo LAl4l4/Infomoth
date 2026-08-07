@@ -53,7 +53,34 @@ class SettingsServiceTest {
     void updateDefaultPageShouldRejectOutOfRangePage() {
         BaseException exception = assertThrows(
                 BaseException.class,
-                () -> settingsService.updateDefaultPage(7, 5));
+                () -> settingsService.updateDefaultPage(7, 6));
+
+        assertEquals(400, exception.getCode());
+        verifyNoInteractions(settingsMapper);
+    }
+
+    @Test
+    void getDefaultCurrenciesShouldUseUsdAndCnyWhenNoSettingExists() {
+        when(settingsMapper.findDefaultBaseCurrencyByUserId(7)).thenReturn(null);
+        when(settingsMapper.findDefaultQuoteCurrencyByUserId(7)).thenReturn(null);
+
+        assertEquals("USD", settingsService.getDefaultBaseCurrency(7));
+        assertEquals("CNY", settingsService.getDefaultQuoteCurrency(7));
+    }
+
+    @Test
+    void updateSettingsShouldPersistBothCurrencies() {
+        when(settingsMapper.findDefaultPageByUserId(7)).thenReturn(null);
+
+        assertEquals("USD", settingsService.updateSettings(7, 5, "usd", "cny").getDefaultBaseCurrency());
+        verify(settingsMapper).insertSettings(7, 5, "USD", "CNY");
+    }
+
+    @Test
+    void updateSettingsShouldRejectInvalidCurrency() {
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> settingsService.updateSettings(7, 0, "US", "CNY"));
 
         assertEquals(400, exception.getCode());
         verifyNoInteractions(settingsMapper);

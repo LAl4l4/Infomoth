@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './Profile.css';
 import { useSelector, useDispatch } from 'react-redux';
 import { logOut } from '../Variable/login';
+import { logout as logoutRequest } from '../API/auth';
 import { useNavigate, type NavigateFunction } from 'react-router-dom';
 import { getUserProfile } from '../Variable/profile';
 import { useForm, type UseFormRegister, type UseFormHandleSubmit, type SubmitHandler } from 'react-hook-form';
@@ -110,7 +111,8 @@ export default function Profile() {
 
   const [tab, setTab] = useState('info');
 
-  function handleLogout() {
+  async function handleLogout() {
+    await logoutRequest().catch(() => undefined);
     dispatch(logOut());
     navigate('/');
   }

@@ -2,6 +2,7 @@ import { screen, fireEvent } from '@testing-library/react';
 import PageShell from '../../Main/PageShell/PageShell';
 import { renderWithProviders } from '../testUtils';
 import { pullGeneralSettings } from '../../API/settings';
+import { checkSession } from '../../API/auth';
 
 jest.mock('../../Main/BackgroundGlobe/Globe', () => ({
   __esModule: true,
@@ -14,6 +15,7 @@ jest.mock('../../API/data', () => ({
   pullPopularAISkills: jest.fn(() => Promise.resolve([])),
   pullSentimentScore: jest.fn(() => Promise.resolve(0.1)),
   pullUsStockIndices: jest.fn(() => Promise.resolve([])),
+  pullMarketTrends: jest.fn(() => Promise.resolve({ points: [], correlations: [] })),
 }));
 
 jest.mock('../../API/settings', () => ({
@@ -21,11 +23,23 @@ jest.mock('../../API/settings', () => ({
   updateGeneralSettings: jest.fn(),
 }));
 
+jest.mock('../../API/auth', () => ({
+  checkLogin: jest.fn(),
+  checkSession: jest.fn(),
+  logout: jest.fn(),
+}));
+
 const mockPullSettings = pullGeneralSettings as jest.Mock;
+const mockCheckSession = checkSession as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  localStorage.clear();
+  mockCheckSession.mockResolvedValue({ data: { result: '未登录' } });
+  mockPullSettings.mockResolvedValue({
+    defaultPage: 0,
+    defaultBaseCurrency: 'USD',
+    defaultQuoteCurrency: 'CNY',
+  });
 });
 
 describe('PageShell', () => {
@@ -48,11 +62,18 @@ describe('PageShell', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: '美股' }));
     expect(screen.getByText('美股主要指数')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: '市场走势' }));
+    expect(await screen.findByText('7日市场走势')).toBeInTheDocument();
   });
 
-  it('loads the account default page when a token exists', async () => {
-    localStorage.setItem('authToken', 'tok');
-    mockPullSettings.mockResolvedValue({ defaultPage: 2 });
+  it('loads the account default page when the session cookie is valid', async () => {
+    mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
+    mockPullSettings.mockResolvedValue({
+      defaultPage: 2,
+      defaultBaseCurrency: 'USD',
+      defaultQuoteCurrency: 'CNY',
+    });
 
     const { store } = renderWithProviders(<PageShell />);
 
@@ -61,7 +82,7 @@ describe('PageShell', () => {
   });
 
   it('keeps the overview tab when settings fail to load', async () => {
-    localStorage.setItem('authToken', 'tok');
+    mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
     mockPullSettings.mockRejectedValue(new Error('未登录'));
 
     renderWithProviders(<PageShell />);

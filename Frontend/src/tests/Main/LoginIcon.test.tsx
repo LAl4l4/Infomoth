@@ -1,11 +1,15 @@
-import { screen, fireEvent, act } from '@testing-library/react';
+import { screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import LoginIcon from '../../Main/LoginIcon/LoginIcon';
 import { renderWithProviders } from '../testUtils';
 
+jest.mock('../../API/auth', () => ({
+  logout: jest.fn(() => Promise.resolve()),
+}));
+
 describe('LoginIcon', () => {
   beforeEach(() => {
-    localStorage.clear();
+    jest.clearAllMocks();
   });
 
   it('shows Login/Register menu when logged out', () => {
@@ -40,15 +44,13 @@ describe('LoginIcon', () => {
     jest.useRealTimers();
   });
 
-  it('logout clears login state and the stored token', () => {
-    localStorage.setItem('authToken', 'tok');
+  it('logout clears login state through the server session', async () => {
     const { store } = renderWithProviders(<LoginIcon />);
     act(() => { store.dispatch({ type: 'login/logIn' }); });
 
     fireEvent.click(screen.getByRole('button', { name: 'Logout' }));
 
-    expect(store.getState().login.isLoggedIn).toBe(false);
-    expect(localStorage.getItem('authToken')).toBeNull();
+    await waitFor(() => expect(store.getState().login.isLoggedIn).toBe(false));
   });
 
   it('navigates to /login when Login is clicked', () => {

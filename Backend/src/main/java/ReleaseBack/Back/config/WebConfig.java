@@ -26,6 +26,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns( // except public endpoints
                         "/auth/login",
                         "/auth/register",
+                        "/auth/session",
+                        "/auth/logout",
                         "/config/baseurl"
                 );
 
@@ -40,7 +42,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(allowedOrigins)
                 .allowedMethods("*")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 
     @Override

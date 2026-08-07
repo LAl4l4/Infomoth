@@ -44,12 +44,41 @@ export interface ProfileData {
 /** Auth endpoint response contract. */
 export interface AuthResponse {
   result: string;
-  token?: string;
 }
 
 /** General preferences persisted for the authenticated user. */
 export interface GeneralSettingsData {
   defaultPage: number;
+  defaultBaseCurrency: CurrencyCode;
+  defaultQuoteCurrency: CurrencyCode;
+}
+
+/** One stock price represented on a market-trend date. */
+export interface MarketTrendStockPoint {
+  symbol: string;
+  name: string;
+  price: number;
+}
+
+/** Daily market sentiment and US stock observations. */
+export interface MarketTrendPoint {
+  date: string;
+  sentiment: number | null;
+  stocks: MarketTrendStockPoint[];
+}
+
+/** Pearson correlation between sentiment and one stock's daily price. */
+export interface MarketCorrelation {
+  symbol: string;
+  name: string;
+  corr: number | null;
+  sampleSize: number;
+}
+
+/** Seven calendar days of trend data and the derived correlations. */
+export interface MarketTrendData {
+  points: MarketTrendPoint[];
+  correlations: MarketCorrelation[];
 }
 
 /** A single tab descriptor used by the top tab bar. */

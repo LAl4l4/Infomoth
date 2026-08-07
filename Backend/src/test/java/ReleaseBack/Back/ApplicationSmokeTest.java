@@ -80,7 +80,9 @@ class ApplicationSmokeTest {
                 """
                 CREATE TABLE user_settings (
                     user_id INT PRIMARY KEY,
-                    default_page TINYINT NOT NULL DEFAULT 0
+                    default_page TINYINT NOT NULL DEFAULT 0,
+                    default_base_currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+                    default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY'
                 )
                 """
         );
@@ -108,15 +110,15 @@ class ApplicationSmokeTest {
     @Test
     void smokeDataExchangeRate() throws IOException {
         exchangeRateDTO sampleRate = loadSampleRate();
-        String token = registerAndLogin("rate-user", "rate-pass");
+        String authCookie = registerAndLogin("rate-user", "rate-pass");
 
-        if (token == null) {
-            System.out.println("Failed to obtain JWT token for test user");
-            throw new AssertionError("Failed to obtain JWT token for test user");
+        if (authCookie == null) {
+            System.out.println("Failed to obtain auth cookie for test user");
+            throw new AssertionError("Failed to obtain auth cookie for test user");
         }
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        headers.add(HttpHeaders.COOKIE, authCookie);
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
         ResponseEntity<Double> response = restTemplate.exchange(
@@ -142,13 +144,13 @@ class ApplicationSmokeTest {
 
     @Test
     void smokeSettingsPersistence() {
-        String token = registerAndLogin("settings-user", "settings-pass");
+        String authCookie = registerAndLogin("settings-user", "settings-pass");
         HttpHeaders headers = new HttpHeaders();
-        if (token == null) {
-            System.out.println("Failed to obtain JWT token for test user");
-            throw new AssertionError("Failed to obtain JWT token for test user");
+        if (authCookie == null) {
+            System.out.println("Failed to obtain auth cookie for test user");
+            throw new AssertionError("Failed to obtain auth cookie for test user");
         }
-        headers.setBearerAuth(token);
+        headers.add(HttpHeaders.COOKIE, authCookie);
 
         ResponseEntity<SettingsDTO> initialResponse = restTemplate.exchange(
                 "/settings/general",
@@ -220,8 +222,9 @@ class ApplicationSmokeTest {
         assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
         assertNotNull(loginResponse.getBody());
         assertEquals("登录成功", tokenVO.getResult());
-        assertNotNull(tokenVO.getToken());
-        return tokenVO.getToken();
+        String setCookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        assertNotNull(setCookie);
+        return setCookie.substring(0, setCookie.indexOf(';'));
     }
 
     private exchangeRateDTO loadSampleRate() throws IOException {

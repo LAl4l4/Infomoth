@@ -21,7 +21,10 @@ public class SettingsController {
     @GetMapping("/general")
     public SettingsDTO getGeneralSettings(HttpServletRequest request) {
         Integer userId = (Integer) request.getAttribute("userId");
-        return new SettingsDTO(settingsService.getDefaultPage(userId));
+        return new SettingsDTO(
+                settingsService.getDefaultPage(userId),
+                settingsService.getDefaultBaseCurrency(userId),
+                settingsService.getDefaultQuoteCurrency(userId));
     }
 
     @PutMapping("/general")
@@ -29,9 +32,20 @@ public class SettingsController {
             @RequestBody SettingsDTO settingsDTO,
             HttpServletRequest request) {
         Integer userId = (Integer) request.getAttribute("userId");
-        int defaultPage = settingsService.updateDefaultPage(
+        if (settingsDTO.getDefaultBaseCurrency() == null
+                && settingsDTO.getDefaultQuoteCurrency() == null) {
+            int defaultPage = settingsService.updateDefaultPage(
+                    userId,
+                    settingsDTO.getDefaultPage());
+            return new SettingsDTO(
+                    defaultPage,
+                    settingsService.getDefaultBaseCurrency(userId),
+                    settingsService.getDefaultQuoteCurrency(userId));
+        }
+        return settingsService.updateSettings(
                 userId,
-                settingsDTO.getDefaultPage());
-        return new SettingsDTO(defaultPage);
+                settingsDTO.getDefaultPage(),
+                settingsDTO.getDefaultBaseCurrency(),
+                settingsDTO.getDefaultQuoteCurrency());
     }
 }

@@ -1,21 +1,31 @@
 package ReleaseBack.Back.controller;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
 import ReleaseBack.Back.entity.User;
 import ReleaseBack.Back.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import ReleaseBack.Back.entity.Profile;
 import ReleaseBack.Back.DTO.ProfileDTO;
 import ReleaseBack.Back.VO.*;
 import ReleaseBack.Back.security.JwtUtil;
+import io.jsonwebtoken.JwtException;
+
+import java.time.Duration;
 
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
+    private static final String AUTH_COOKIE_NAME = "authToken";
+    private static final Duration AUTH_COOKIE_MAX_AGE = Duration.ofHours(48);
 
     private final UserService userService;
     
@@ -26,19 +36,40 @@ public class AuthController {
     @PostMapping("/login")
     public TokenVO login(
         @RequestParam String username, //可能是email或username
-        @RequestParam String pass
+        @RequestParam String pass,
+        HttpServletResponse response
     ) {
         User foundUser = userService.findByNameEmail(username);
         TokenVO tokenVO = new TokenVO();
         if (foundUser != null && foundUser.getPassword().equals(pass)) {
             String token = jwtUtil.generateToken(foundUser.getId());
+            response.addHeader(HttpHeaders.SET_COOKIE, buildAuthCookie(token, AUTH_COOKIE_MAX_AGE).toString());
             tokenVO.setResult("登录成功");
-            tokenVO.setToken(token);
             return tokenVO;
         }
         tokenVO.setResult("用户名/邮箱或密码错误");
-        tokenVO.setToken(null);
         return tokenVO;
+    }
+
+    @GetMapping("/session")
+    public TokenVO session(@CookieValue(name = AUTH_COOKIE_NAME, required = false) String token) {
+        TokenVO response = new TokenVO();
+        if (token != null && !token.isBlank()) {
+            try {
+                jwtUtil.parseId(token);
+                response.setResult("登录有效");
+                return response;
+            } catch (JwtException | IllegalArgumentException ignored) {
+                // Treat an invalid or expired cookie as an unauthenticated session.
+            }
+        }
+        response.setResult("未登录");
+        return response;
+    }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletResponse response) {
+        response.addHeader(HttpHeaders.SET_COOKIE, buildAuthCookie("", Duration.ZERO).toString());
     }
 
 
@@ -97,6 +128,15 @@ public class AuthController {
             return "服务器发生异常";
         }
         return "保存成功";
+    }
+
+    private ResponseCookie buildAuthCookie(String token, @NonNull Duration maxAge) {
+        return ResponseCookie.from(AUTH_COOKIE_NAME, token)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
     }
     
 }

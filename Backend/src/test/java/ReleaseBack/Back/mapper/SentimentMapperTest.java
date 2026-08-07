@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,5 +96,23 @@ class SentimentMapperTest {
         assertEquals(1, updated);
         assertEquals(0.66, jdbcTemplate.queryForObject(
                 "SELECT sentimentScore FROM politics_average WHERE date = ?", Double.class, today));
+    }
+
+    @Test
+    void findSinceShouldReturnRecordsInAscendingDateOrder() {
+        jdbcTemplate.update(
+                "INSERT INTO tech_average(date, sentimentScore) VALUES (?, ?)",
+                LocalDate.of(2026, 5, 24), 0.12
+        );
+        jdbcTemplate.update(
+                "INSERT INTO tech_average(date, sentimentScore) VALUES (?, ?)",
+                LocalDate.of(2026, 5, 26), 0.66
+        );
+
+        List<SentimentAverage> results = sentimentMapper.findSince(
+                "tech_average", LocalDate.of(2026, 5, 25));
+
+        assertEquals(1, results.size());
+        assertEquals(LocalDate.of(2026, 5, 26), results.get(0).getDate());
     }
 }

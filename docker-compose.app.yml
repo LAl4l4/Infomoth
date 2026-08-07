@@ -7,8 +7,7 @@ services:
       platforms:
         - linux/amd64
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:8081:80"
     volumes:
       - ./Config/deploy-config.json:/Config/app-config.json:ro
     depends_on:

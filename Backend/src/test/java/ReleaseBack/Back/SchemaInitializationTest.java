@@ -27,5 +27,6 @@ class SchemaInitializationTest {
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM user_settings", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM politics_average", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM tech_average", Integer.class));
+        assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM us_stock_indices", Integer.class));
     }
 }

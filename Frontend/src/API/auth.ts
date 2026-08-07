@@ -3,7 +3,7 @@ import type { AxiosResponse } from 'axios';
 import type { AuthResponse } from '../customTypes';
 
 export async function checkLogin(email: string, password: string): Promise<AxiosResponse<AuthResponse>> {
-  const res = await instance.post<AuthResponse>(
+  return instance.post<AuthResponse>(
     '/auth/login',   // 注意：没有 localhost
     //后端是RequestParam
     null, // body为空
@@ -14,11 +14,14 @@ export async function checkLogin(email: string, password: string): Promise<Axios
       }
     }
   );
-  // 登录成功时保存 token
-  if (res.data.result === '登录成功' && res.data.token) {
-    localStorage.setItem('authToken', res.data.token);
-  }
-  return res;
+}
+
+export async function checkSession(): Promise<AxiosResponse<AuthResponse>> {
+  return instance.get<AuthResponse>('/auth/session');
+}
+
+export async function logout(): Promise<AxiosResponse<void>> {
+  return instance.post<void>('/auth/logout');
 }
 
 export async function register(email: string, password: string, username: string): Promise<AxiosResponse<string>> {

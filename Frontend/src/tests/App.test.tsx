@@ -15,11 +15,23 @@ jest.mock('../API/data', () => ({
   pullPopularAISkills: jest.fn(() => Promise.resolve([{ rank: 1, skill: 'RAG', mentions: 1 }])),
   pullSentimentScore: jest.fn(() => Promise.resolve(0.1)),
   pullUsStockIndices: jest.fn(() => Promise.resolve([])),
+  pullMarketTrends: jest.fn(() => Promise.resolve({ points: [], correlations: [] })),
 }));
 
 jest.mock('../API/settings', () => ({
-  pullGeneralSettings: jest.fn(() => Promise.resolve({ defaultPage: 0 })),
+  pullGeneralSettings: jest.fn(() => Promise.resolve({
+    defaultPage: 0,
+    defaultBaseCurrency: 'USD',
+    defaultQuoteCurrency: 'CNY',
+  })),
   updateGeneralSettings: jest.fn(),
+}));
+
+jest.mock('../API/auth', () => ({
+  checkLogin: jest.fn(),
+  checkSession: jest.fn(() => Promise.resolve({ data: { result: '未登录' } })),
+  logout: jest.fn(),
+  register: jest.fn(),
 }));
 
 function renderApp() {
@@ -36,7 +48,7 @@ function renderApp() {
 
 describe('App', () => {
   beforeEach(() => {
-    localStorage.clear();
+    jest.clearAllMocks();
   });
 
   it('renders the home shell with the tab bar and overview', async () => {
@@ -56,6 +68,14 @@ describe('App', () => {
     expect(store.getState().page.pagenum).toBe(4);
     expect(await screen.findByText('美股主要指数')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '美股' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('switches to the seven-day market trend tab', async () => {
+    renderApp();
+
+    fireEvent.click(screen.getByRole('tab', { name: '市场走势' }));
+
+    expect(await screen.findByText('7日市场走势')).toBeInTheDocument();
   });
 
   it('renders the login page at /login', () => {

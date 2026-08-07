@@ -8,10 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import ReleaseBack.Back.service.DataService;
+import ReleaseBack.Back.service.MarketTrendService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 import ReleaseBack.Back.DTO.aiSkillDTO;
+import ReleaseBack.Back.DTO.MarketTrendDTO;
 import ReleaseBack.Back.DTO.usStockIndexDTO;
 
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ import ReleaseBack.Back.DTO.usStockIndexDTO;
 public class DataController {
     
     private final DataService dataService;
+    private final MarketTrendService marketTrendService;
 
     @GetMapping("/exchangerate")
     public ResponseEntity<Double> getExchangeRate(
@@ -47,5 +50,10 @@ public class DataController {
     @GetMapping("/us-stock-indices")
     public ResponseEntity<List<usStockIndexDTO>> getUsStockIndices() {
         return ResponseEntity.ok(dataService.getUsStockIndices());
+    }
+
+    @GetMapping("/market-trends")
+    public ResponseEntity<MarketTrendDTO> getMarketTrends() {
+        return ResponseEntity.ok(marketTrendService.getLastSevenDays());
     }
 }

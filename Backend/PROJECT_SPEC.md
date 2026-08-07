@@ -5,6 +5,7 @@
 - **Responsibilities**:
   - User authentication and profile management (`/auth/*`)
   - Exchange rate data retrieval (`/data/*`)
+  - Seven-day sentiment/US stock trend data and correlation calculation
 - **External Dependencies**: Reads `exchangeRates.json` from the `shared.directory` in `Config/app-config.json`.
 
 ## 2. Tech Stack & Frameworks
@@ -54,19 +55,26 @@
 - **Public Endpoints** (No JWT required):
   - `POST /auth/login`
   - `POST /auth/register`
+  - `GET /auth/session`
+  - `POST /auth/logout`
 - **Protected Endpoints**: All other endpoints are protected by default.
 - **JWT Transmission**:
-  - Header: `Authorization: Bearer <token>`
-  - Success Response: Returns `TokenVO { result, token }`
+  - `HttpOnly` Cookie: `authToken`, `Path=/`, `SameSite=Lax`, `Max-Age=172800` seconds
+  - Success Response: Sets the Cookie and returns `TokenVO { result }`; the JWT is not returned in the body
 - **Key Endpoints**:
   - `GET /auth/pullProfiles`: Retrieve user profile
   - `POST /auth/pushProfile`: Update user profile (JSON Body: `ProfileDTO`)
   - `GET /data/currencies`: List available currencies
   - `GET /data/exchangerate?base=USD&quote=CNY`: Fetch specific exchange rate
+  - `GET /data/market-trends`: Return seven calendar days of sentiment, persisted US stock prices, and per-index `corr`
+  - `GET /settings/general`: Return `defaultPage`, `defaultBaseCurrency`, and `defaultQuoteCurrency`
+  - `PUT /settings/general`: Persist the home tab plus both exchange-rate selector sides
 
 ## 6. Data & Contract Conventions
 - User queries support both username and email (`findByNameEmail`).
 - Profile and User entities are linked via `user_id`.
+- `user_settings` stores both exchange-rate sides (`default_base_currency` and `default_quote_currency`) alongside `default_page`; missing values default to USD/CNY.
+- `us_stock_indices` stores one snapshot per `(symbol, date)`. The scheduled Backend persistence job updates today's rows from `Shared/us_stock_indices.json`.
 - Exchange rate JSON parsing uses `exchangeRateDTO` with field compatibility:
   - `base_currency` / `base`
   - `quote_currency` / `quote`
