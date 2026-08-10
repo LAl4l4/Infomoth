@@ -53,11 +53,12 @@ export interface GeneralSettingsData {
   defaultQuoteCurrency: CurrencyCode;
 }
 
-/** One stock price represented on a market-trend date. */
+/** One stock index's captured price and percentage change on a trading date. */
 export interface MarketTrendStockPoint {
   symbol: string;
   name: string;
   price: number;
+  changePercent: number;
 }
 
 /** Daily market sentiment and US stock observations. */
@@ -67,7 +68,7 @@ export interface MarketTrendPoint {
   stocks: MarketTrendStockPoint[];
 }
 
-/** Pearson correlation between sentiment and one stock's daily price. */
+/** Pearson correlation between sentiment and one stock index's captured daily change. */
 export interface MarketCorrelation {
   symbol: string;
   name: string;

@@ -31,7 +31,8 @@ CURRENCY_NAMES: Dict[str, str] = {
 }
 
 _TIMEOUT = 15
-_API_BASE = "https://api.frankfurter.app"
+_MAX_CONCURRENT_REQUESTS = 3
+_API_BASE = "https://api.frankfurter.dev/v1"
 _HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; InfoMoth/1.0)",
     "Accept": "application/json",
@@ -45,7 +46,7 @@ class ExchangeRateScraper:
         results: List[Dict[str, str]] = []
         seen: set[str] = set()
 
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=_MAX_CONCURRENT_REQUESTS) as executor:
             futures = [executor.submit(self._fetch_base_rates, base) for base in BASE_CURRENCIES]
             for future in as_completed(futures):
                 base, data = future.result()
@@ -77,9 +78,14 @@ class ExchangeRateScraper:
 
     def _fetch_base_rates(self, base: str) -> Tuple[str, Optional[Dict[str, object]]]:
         targets = [c for c in MAJOR_CURRENCIES if c != base]
-        url = f"{_API_BASE}/latest?from={base}&to={','.join(targets)}"
+        url = f"{_API_BASE}/latest"
         try:
-            response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
+            response = requests.get(
+                url,
+                params={"base": base, "symbols": ",".join(targets)},
+                headers=_HEADERS,
+                timeout=_TIMEOUT,
+            )
             response.raise_for_status()
             data = response.json()
         except Timeout:

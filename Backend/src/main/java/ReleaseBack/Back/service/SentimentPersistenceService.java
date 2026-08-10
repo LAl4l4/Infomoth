@@ -27,7 +27,7 @@ public class SentimentPersistenceService {
 
     @Autowired
     public SentimentPersistenceService(AppConfigProvider appConfigProvider, SentimentMapper sentimentMapper) {
-        this(Path.of(appConfigProvider.getSharedDirectory()), sentimentMapper);
+        this(appConfigProvider.getSharedDirectory(), sentimentMapper);
     }
 
     SentimentPersistenceService(Path sharedDir, SentimentMapper sentimentMapper) {

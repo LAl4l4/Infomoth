@@ -27,6 +27,12 @@ function normalizeStockPrices(points: MarketTrendPoint[], symbol: string): Array
   return prices.map((price) => (price === null ? null : ((price / firstPrice) - 1) * 100));
 }
 
+function isWeekend(date: string): boolean {
+  const [year, month, day] = date.split('-').map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return weekday === 0 || weekday === 6;
+}
+
 function buildSegments(
   values: Array<number | null>,
   min: number,
@@ -34,14 +40,11 @@ function buildSegments(
   width: number,
   height: number
 ): string[][] {
-  const segments: string[][] = [];
-  let segment: string[] = [];
+  const segment: string[] = [];
   const xStep = values.length > 1 ? width / (values.length - 1) : width;
 
   values.forEach((value, index) => {
     if (value === null || !Number.isFinite(value)) {
-      if (segment.length > 1) segments.push(segment);
-      segment = [];
       return;
     }
     const x = PLOT_LEFT + index * xStep;
@@ -49,8 +52,7 @@ function buildSegments(
     segment.push(`${x.toFixed(2)},${y.toFixed(2)}`);
   });
 
-  if (segment.length > 1) segments.push(segment);
-  return segments;
+  return segment.length > 1 ? [segment] : [];
 }
 
 function TrendChart({ points, series }: { points: MarketTrendPoint[]; series: ChartSeries[] }) {
@@ -106,10 +108,12 @@ function TrendChart({ points, series }: { points: MarketTrendPoint[]; series: Ch
               className="trend-axis-label"
               key={point.date}
               x={x}
-              y={CHART_HEIGHT - 12}
               textAnchor="middle"
             >
-              {point.date.slice(5)}
+              <tspan x={x} y={CHART_HEIGHT - 16}>{point.date.slice(5)}</tspan>
+              {isWeekend(point.date) && (
+                <tspan className="trend-weekend-label" x={x} y={CHART_HEIGHT - 4}>Weekend</tspan>
+              )}
             </text>
           );
         })}
@@ -175,9 +179,9 @@ export default function MarketTrendTab() {
     return [
       {
         key: 'sentiment',
-        label: '市场情绪 × 100',
+        label: '市场情绪 × 10',
         color: '#FFFFFF',
-        values: data.points.map((point) => point.sentiment === null ? null : point.sentiment * 100),
+        values: data.points.map((point) => point.sentiment === null ? null : point.sentiment * 10),
       },
       ...stockSeries,
     ];
@@ -188,7 +192,7 @@ export default function MarketTrendTab() {
       <p className="eyebrow">Market Trend</p>
       <h2 className="panel-title">7日市场走势</h2>
       <p className="panel-lead">
-        对比近 7 个自然日的市场情绪与美股价格变化，相关系数 corr 使用原始日值计算。
+        对比近 7 个自然日的市场情绪与美股价格走势；corr 直接使用 Crawler 抓取并持久化的交易日涨跌幅。周末不生成行情点，曲线连接前后交易日。
       </p>
 
       {loading && <p className="state-text">加载中…</p>}
@@ -206,7 +210,7 @@ export default function MarketTrendTab() {
               <div className="trend-correlation-card" key={item.symbol}>
                 <div>
                   <strong>{item.name || item.symbol}</strong>
-                  <span>{item.symbol} · {item.sampleSize} 个重合日</span>
+                  <span>{item.symbol} · {item.sampleSize} 个交易日样本</span>
                 </div>
                 <b>corr = {item.corr === null ? '暂无' : item.corr.toFixed(4)}</b>
               </div>

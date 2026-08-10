@@ -14,7 +14,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class AppConfigProvider {
-    private static final Path CONFIG_PATH = Paths.get("..", "Config", "app-config.json");
+    private static final Path CONFIG_PATH = Paths.get("..", "Config", "app-config.json")
+            .toAbsolutePath()
+            .normalize();
 
     private final JsonNode root;
 
@@ -62,12 +64,15 @@ public class AppConfigProvider {
         return new MysqlConnection(host, port, user, password);
     }
 
-    public String getSharedDirectory() {
+    public Path getSharedDirectory() {
         String directory = root.path("shared").path("directory").asText("").trim();
         if (directory.isEmpty()) {
             throw new IllegalStateException("shared.directory is missing in app config");
         }
-        return directory;
+        Path sharedDirectory = Path.of(directory);
+        return sharedDirectory.isAbsolute()
+                ? sharedDirectory
+                : CONFIG_PATH.getParent().resolve(sharedDirectory).normalize();
     }
 
     public record MysqlConnection(String host, int port, String user, String password) {

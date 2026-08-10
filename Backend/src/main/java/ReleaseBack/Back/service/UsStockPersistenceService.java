@@ -2,9 +2,12 @@ package ReleaseBack.Back.service;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +34,7 @@ public class UsStockPersistenceService {
     public UsStockPersistenceService(
             AppConfigProvider appConfigProvider,
             UsStockIndexMapper stockIndexMapper) {
-        this(Path.of(appConfigProvider.getSharedDirectory()), stockIndexMapper);
+        this(appConfigProvider.getSharedDirectory(), stockIndexMapper);
     }
 
     UsStockPersistenceService(Path sharedDir, UsStockIndexMapper stockIndexMapper) {
@@ -40,44 +43,44 @@ public class UsStockPersistenceService {
         this.sharedDir = sharedDir;
     }
 
-    public void persistTodaySnapshots() {
-        LocalDate today = LocalDate.now();
+    public void persistTradingDayChanges() {
         try {
             List<usStockIndexDTO> snapshots = objectMapper.readValue(
                     sharedDir.resolve(STOCK_FILE).toFile(),
                     new TypeReference<List<usStockIndexDTO>>() {});
 
+            Map<LocalDate, UsStockIndexRecord> changesByDate = new LinkedHashMap<>();
             for (usStockIndexDTO snapshot : snapshots) {
-                UsStockIndexRecord record = toRecord(snapshot, today);
-                if (record == null) {
+                addSnapshot(changesByDate, snapshot);
+            }
+            for (UsStockIndexRecord record : changesByDate.values()) {
+                if (!isComplete(record)) {
+                    log.warn("Skipping incomplete US stock changes for trading date {}", record.getDate());
                     continue;
                 }
-
-                if (stockIndexMapper.updateSnapshot(record) == 0) {
-                    stockIndexMapper.insertSnapshot(record);
+                if (stockIndexMapper.updateDailyChange(record) == 0) {
+                    stockIndexMapper.insertDailyChange(record);
                 }
+                log.info("Persisted US stock changes for trading date {}", record.getDate());
             }
-            log.info("Persisted US stock snapshots for {}", today);
         } catch (IOException e) {
             log.warn("Cannot read {}; it will be retried on the next run", STOCK_FILE, e);
         }
     }
 
-    private UsStockIndexRecord toRecord(usStockIndexDTO snapshot, LocalDate today) {
+    private void addSnapshot(
+            Map<LocalDate, UsStockIndexRecord> changesByDate,
+            usStockIndexDTO snapshot) {
         if (snapshot == null
                 || snapshot.getSymbol() == null
                 || snapshot.getSymbol().isBlank()
-                || snapshot.getName() == null
-                || snapshot.getName().isBlank()
                 || snapshot.getPrice() == null
-                || snapshot.getChange() == null
                 || snapshot.getChangePercent() == null
                 || !Double.isFinite(snapshot.getPrice())
-                || !Double.isFinite(snapshot.getChange())
                 || !Double.isFinite(snapshot.getChangePercent())
                 || snapshot.getDate() == null) {
             log.warn("Skipping invalid US stock snapshot");
-            return null;
+            return;
         }
 
         final LocalDate date;
@@ -85,22 +88,48 @@ public class UsStockPersistenceService {
             date = LocalDate.parse(snapshot.getDate());
         } catch (DateTimeParseException e) {
             log.warn("Skipping US stock snapshot with invalid date: {}", snapshot.getDate());
-            return null;
+            return;
+        }
+        if (date.getDayOfWeek() == DayOfWeek.SATURDAY
+                || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            log.warn("Skipping US stock snapshot with non-trading weekend date: {}", date);
+            return;
         }
 
-        if (!today.equals(date)) {
-            log.warn("Skipping stale US stock snapshot dated {}", date);
-            return null;
+        UsStockIndexRecord record = changesByDate.computeIfAbsent(date, ignored -> {
+            UsStockIndexRecord value = new UsStockIndexRecord();
+            value.setDate(date);
+            return value;
+        });
+        switch (snapshot.getSymbol().trim()) {
+            case "^GSPC" -> {
+                record.setSp500Price(snapshot.getPrice());
+                record.setSp500ChangePercent(snapshot.getChangePercent());
+            }
+            case "^DJI" -> {
+                record.setDowJonesPrice(snapshot.getPrice());
+                record.setDowJonesChangePercent(snapshot.getChangePercent());
+            }
+            case "^IXIC" -> {
+                record.setNasdaqPrice(snapshot.getPrice());
+                record.setNasdaqChangePercent(snapshot.getChangePercent());
+            }
+            case "^RUT" -> {
+                record.setRussell2000Price(snapshot.getPrice());
+                record.setRussell2000ChangePercent(snapshot.getChangePercent());
+            }
+            default -> log.warn("Skipping unsupported US stock symbol: {}", snapshot.getSymbol());
         }
+    }
 
-        UsStockIndexRecord record = new UsStockIndexRecord();
-        record.setSymbol(snapshot.getSymbol().trim());
-        record.setName(snapshot.getName().trim());
-        record.setPrice(snapshot.getPrice());
-        record.setChangeValue(snapshot.getChange());
-        record.setChangePercent(snapshot.getChangePercent());
-        record.setDate(date);
-        record.setSource(snapshot.getSource());
-        return record;
+    private boolean isComplete(UsStockIndexRecord record) {
+        return record.getSp500Price() != null
+                && record.getSp500ChangePercent() != null
+                && record.getDowJonesPrice() != null
+                && record.getDowJonesChangePercent() != null
+                && record.getNasdaqPrice() != null
+                && record.getNasdaqChangePercent() != null
+                && record.getRussell2000Price() != null
+                && record.getRussell2000ChangePercent() != null;
     }
 }

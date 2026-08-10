@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest
 
-from main import save_json, save_us_stock_indices
+from main import save_exchange_rates, save_json, save_us_stock_indices
 
 
 class TestSaveJson:
@@ -37,32 +36,64 @@ class TestSaveJson:
 
 
 class TestSaveUsStockIndices:
-    def test_keeps_same_day_data_when_new_payload_is_empty(self, tmp_path):
+    def test_keeps_latest_trading_day_data_when_new_payload_is_empty(self, tmp_path):
         target = tmp_path / "us_stock_indices.json"
-        existing = [{"symbol": "^GSPC", "date": datetime.now(timezone.utc).date().isoformat()}]
+        existing = [{"symbol": "^GSPC", "date": "2026-08-07"}]
         target.write_text(json.dumps(existing), encoding="utf-8")
 
         save_us_stock_indices(target, [])
 
         assert json.loads(target.read_text(encoding="utf-8")) == existing
 
-    def test_overwrites_previous_day_data_when_new_payload_is_empty(self, tmp_path):
+    def test_writes_empty_payload_when_existing_data_is_invalid(self, tmp_path):
         target = tmp_path / "us_stock_indices.json"
-        target.write_text(json.dumps([{"symbol": "^GSPC", "date": "2020-01-01"}]), encoding="utf-8")
+        target.write_text("not json", encoding="utf-8")
 
         save_us_stock_indices(target, [])
 
         assert json.loads(target.read_text(encoding="utf-8")) == []
 
 
+class TestSaveExchangeRates:
+    def test_keeps_more_complete_existing_payload(self, tmp_path):
+        target = tmp_path / "exchangeRates.json"
+        existing = [{"base_currency": "USD"}, {"base_currency": "CNY"}]
+        target.write_text(json.dumps(existing), encoding="utf-8")
+
+        save_exchange_rates(target, [{"base_currency": "USD"}])
+
+        assert json.loads(target.read_text(encoding="utf-8")) == existing
+
+    def test_replaces_existing_payload_when_current_payload_is_more_complete(self, tmp_path):
+        target = tmp_path / "exchangeRates.json"
+        target.write_text(json.dumps([{"base_currency": "USD"}]), encoding="utf-8")
+        current = [{"base_currency": "USD"}, {"base_currency": "CNY"}]
+
+        save_exchange_rates(target, current)
+
+        assert json.loads(target.read_text(encoding="utf-8")) == current
+
+
 class TestRun:
+    @patch("main.load_shared_directory")
     @patch("main.save_json")
     @patch("main.USStockIndexScraper")
     @patch("main.AISkillsScraper")
     @patch("main.ExchangeRateScraper")
     @patch("main.PoliticsNewsScraper")
     @patch("main.TechNewsScraper")
-    def test_run_saves_all_outputs(self, mock_tech_cls, mock_pol_cls, mock_ex_cls, mock_ai_cls, mock_stock_cls, mock_save):
+    def test_run_saves_all_outputs(
+        self,
+        mock_tech_cls,
+        mock_pol_cls,
+        mock_ex_cls,
+        mock_ai_cls,
+        mock_stock_cls,
+        mock_save,
+        mock_shared_directory,
+        tmp_path,
+    ):
+        mock_shared_directory.return_value = tmp_path
         for cls_mock in (mock_tech_cls, mock_pol_cls, mock_ex_cls, mock_ai_cls, mock_stock_cls):
             instance = cls_mock.return_value
             instance.scrape.return_value = [{"data": "test"}]

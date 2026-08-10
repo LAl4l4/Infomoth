@@ -18,8 +18,8 @@ def test_load_config_reads_json_from_config_path(monkeypatch, tmp_path):
 
 
 def test_resolve_shared_directory_supports_relative_and_absolute_paths(tmp_path):
-    assert analyser_main.resolve_shared_directory({"shared": {"directory": "Shared"}}) == (
-        analyser_main.ROOT_DIR / "Shared"
+    assert analyser_main.resolve_shared_directory({"shared": {"directory": "../Shared"}}) == (
+        analyser_main.CONFIG_PATH.parent.parent / "Shared"
     )
     assert analyser_main.resolve_shared_directory({"shared": {"directory": str(tmp_path)}}) == tmp_path
 

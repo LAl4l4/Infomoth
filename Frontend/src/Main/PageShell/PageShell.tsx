@@ -1,8 +1,9 @@
 import './PageShell.css';
 import { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPageNum, setPageNum } from '../../Variable/pagenum';
-import { restoreSessionThunk, selectIsLoggedIn } from '../../Variable/login';
+import { restoreSessionThunk, selectIsLoggedIn, selectSessionChecked } from '../../Variable/login';
 import { pullGeneralSettings } from '../../API/settings';
 import LoginIcon from '../LoginIcon/LoginIcon';
 //import { BgGlobe } from '../BackgroundGlobe/BackgroundGlobe';
@@ -28,6 +29,7 @@ const TABS: TabItem[] = [
 export default function PageShell() {
   const pagenum = useSelector(selectPageNum);
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  const sessionChecked = useSelector(selectSessionChecked);
   const dispatch = useDispatch<AppDispatch>();
 
   const safeTab = Math.min(Math.max(pagenum, 0), 5);
@@ -52,6 +54,9 @@ export default function PageShell() {
       active = false;
     };
   }, [dispatch, isLoggedIn]);
+
+  if (!sessionChecked) return null;
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
 
   return (
     <div className="page-shell">

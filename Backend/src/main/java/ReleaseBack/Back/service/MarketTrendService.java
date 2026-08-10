@@ -36,10 +36,10 @@ public class MarketTrendService {
         addSentiments(sentimentByDate, sentimentMapper.findSince(POLITICS_TABLE, fromDate));
         addSentiments(sentimentByDate, sentimentMapper.findSince(TECH_TABLE, fromDate));
 
-        Map<LocalDate, List<UsStockIndexRecord>> stocksByDate = new LinkedHashMap<>();
+        Map<LocalDate, UsStockIndexRecord> stocksByDate = new LinkedHashMap<>();
         for (UsStockIndexRecord stock : safeList(stockIndexMapper.findSince(fromDate))) {
             if (stock != null && stock.getDate() != null) {
-                stocksByDate.computeIfAbsent(stock.getDate(), ignored -> new ArrayList<>()).add(stock);
+                stocksByDate.put(stock.getDate(), stock);
             }
         }
 
@@ -48,14 +48,7 @@ public class MarketTrendService {
         while (!date.isAfter(today)) {
             List<Double> sentiments = sentimentByDate.getOrDefault(date, Collections.emptyList());
             Double sentiment = sentiments.isEmpty() ? null : average(sentiments);
-            List<MarketTrendStockPointDTO> stocks = new ArrayList<>();
-            for (UsStockIndexRecord stock : stocksByDate.getOrDefault(date, Collections.emptyList())) {
-                if (stock.getSymbol() != null && stock.getPrice() != null
-                        && Double.isFinite(stock.getPrice())) {
-                    stocks.add(new MarketTrendStockPointDTO(
-                            stock.getSymbol(), stock.getName(), stock.getPrice()));
-                }
-            }
+            List<MarketTrendStockPointDTO> stocks = toStockPoints(stocksByDate.get(date));
             points.add(new MarketTrendPointDTO(date, sentiment, stocks));
             date = date.plusDays(1);
         }
@@ -85,13 +78,13 @@ public class MarketTrendService {
                 continue;
             }
             for (MarketTrendStockPointDTO stock : point.getStocks()) {
-                if (stock.getSymbol() == null || stock.getPrice() == null
-                        || !Double.isFinite(stock.getPrice())) {
+                if (stock.getSymbol() == null || stock.getChangePercent() == null
+                        || !Double.isFinite(stock.getChangePercent())) {
                     continue;
                 }
                 observationsBySymbol
                         .computeIfAbsent(stock.getSymbol(), ignored -> new ArrayList<>())
-                        .add(new Observation(point.getSentiment(), stock.getPrice()));
+                        .add(new Observation(point.getSentiment(), stock.getChangePercent()));
                 namesBySymbol.putIfAbsent(stock.getSymbol(), stock.getName());
             }
         }
@@ -108,17 +101,52 @@ public class MarketTrendService {
         return correlations;
     }
 
+    private List<MarketTrendStockPointDTO> toStockPoints(UsStockIndexRecord record) {
+        if (record == null) {
+            return Collections.emptyList();
+        }
+
+        List<MarketTrendStockPointDTO> stocks = new ArrayList<>();
+        addStock(stocks, "^GSPC", "S&P 500", record.getSp500Price(), record.getSp500ChangePercent());
+        addStock(
+                stocks,
+                "^DJI",
+                "Dow Jones Industrial Average",
+                record.getDowJonesPrice(),
+                record.getDowJonesChangePercent());
+        addStock(stocks, "^IXIC", "NASDAQ Composite", record.getNasdaqPrice(), record.getNasdaqChangePercent());
+        addStock(
+                stocks,
+                "^RUT",
+                "Russell 2000",
+                record.getRussell2000Price(),
+                record.getRussell2000ChangePercent());
+        return stocks;
+    }
+
+    private void addStock(
+            List<MarketTrendStockPointDTO> stocks,
+            String symbol,
+            String name,
+            Double price,
+            Double changePercent) {
+        if (price != null && Double.isFinite(price)
+                && changePercent != null && Double.isFinite(changePercent)) {
+            stocks.add(new MarketTrendStockPointDTO(symbol, name, price, changePercent));
+        }
+    }
+
     private Double correlation(List<Observation> observations) {
         if (observations.size() < 2) {
             return null;
         }
 
         double sentimentMean = observations.stream()
-                .mapToDouble(Observation::sentiment)
+                .mapToDouble(observation -> observation.sentiment())
                 .average()
                 .orElse(Double.NaN);
         double stockMean = observations.stream()
-                .mapToDouble(Observation::stockPrice)
+                .mapToDouble(observation -> observation.stockReturn())
                 .average()
                 .orElse(Double.NaN);
 
@@ -127,7 +155,7 @@ public class MarketTrendService {
         double stockVariance = 0;
         for (Observation observation : observations) {
             double sentimentDifference = observation.sentiment() - sentimentMean;
-            double stockDifference = observation.stockPrice() - stockMean;
+            double stockDifference = observation.stockReturn() - stockMean;
             covariance += sentimentDifference * stockDifference;
             sentimentVariance += sentimentDifference * sentimentDifference;
             stockVariance += stockDifference * stockDifference;
@@ -149,13 +177,13 @@ public class MarketTrendService {
     }
 
     private double average(List<Double> values) {
-        return values.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        return values.stream().mapToDouble(value -> value.doubleValue()).average().orElse(0.0);
     }
 
     private <T> List<T> safeList(List<T> values) {
         return values == null ? Collections.emptyList() : values;
     }
 
-    private record Observation(double sentiment, double stockPrice) {
+    private record Observation(double sentiment, double stockReturn) {
     }
 }

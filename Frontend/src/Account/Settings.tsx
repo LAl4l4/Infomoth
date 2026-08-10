@@ -190,46 +190,48 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
           </select>
         </div>
 
-        <div className="setting-group">
+        <div className="setting-group currency-setting-group">
           <div className="setting-copy">
-            <label className="setting-label" htmlFor="default-base-currency">默认基础货币</label>
-            <p className="setting-description">汇率查询左侧的基础货币。</p>
+            <div className="setting-label">默认货币组合</div>
+            <p className="setting-description">汇率查询左右两侧默认显示的货币。</p>
           </div>
-          <select
-            id="default-base-currency"
-            className="setting-select"
-            value={defaultBaseCurrency}
-            disabled={isLoading || isSaving}
-            onChange={(event) => {
-              setDefaultBaseCurrency(event.target.value);
-              setStatus('有未保存的更改');
-            }}
-          >
-            {currencies.map((currency) => (
-              <option key={`base-${currency}`} value={currency}>{currency}</option>
-            ))}
-          </select>
-        </div>
+          <div className="currency-selectors">
+            <label className="currency-selector" htmlFor="default-base-currency">
+              <span>默认基础货币</span>
+              <select
+                id="default-base-currency"
+                className="setting-select"
+                value={defaultBaseCurrency}
+                disabled={isLoading || isSaving}
+                onChange={(event) => {
+                  setDefaultBaseCurrency(event.target.value);
+                  setStatus('有未保存的更改');
+                }}
+              >
+                {currencies.map((currency) => (
+                  <option key={`base-${currency}`} value={currency}>{currency}</option>
+                ))}
+              </select>
+            </label>
 
-        <div className="setting-group">
-          <div className="setting-copy">
-            <label className="setting-label" htmlFor="default-quote-currency">默认目标货币</label>
-            <p className="setting-description">汇率查询右侧的目标货币。</p>
+            <label className="currency-selector" htmlFor="default-quote-currency">
+              <span>默认目标货币</span>
+              <select
+                id="default-quote-currency"
+                className="setting-select"
+                value={defaultQuoteCurrency}
+                disabled={isLoading || isSaving}
+                onChange={(event) => {
+                  setDefaultQuoteCurrency(event.target.value);
+                  setStatus('有未保存的更改');
+                }}
+              >
+                {currencies.map((currency) => (
+                  <option key={`quote-${currency}`} value={currency}>{currency}</option>
+                ))}
+              </select>
+            </label>
           </div>
-          <select
-            id="default-quote-currency"
-            className="setting-select"
-            value={defaultQuoteCurrency}
-            disabled={isLoading || isSaving}
-            onChange={(event) => {
-              setDefaultQuoteCurrency(event.target.value);
-              setStatus('有未保存的更改');
-            }}
-          >
-            {currencies.map((currency) => (
-              <option key={`quote-${currency}`} value={currency}>{currency}</option>
-            ))}
-          </select>
         </div>
 
         <div className="settings-actions">

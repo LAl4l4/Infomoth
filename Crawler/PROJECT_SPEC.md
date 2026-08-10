@@ -49,8 +49,8 @@
   - `rate`, `date`, `source`
 - **US Stock Index Item Fields**:
   - `symbol`, `name`
-  - `price`, `change`, `change_percent`
-  - `date`, `source`
+  - `price`, `change`, `changePercent`
+  - `date` (the Yahoo close series' actual trading date), `source`
 
 ## 5. Scraping Strategy Standards
 - Prioritize RSS; if it fails, fallback to HTML parsing or Selenium based on the source type.
@@ -74,6 +74,7 @@
 - **Source Expansion**: When adding news sources, only modify the source configuration and necessary parsing logic in the corresponding `*_scraper.py`. Do not break the `BaseNewsScraper` contract.
 - **Field Consistency**: New fields must be compatible with Backend parsing (especially field naming in `exchangeRates.json`).
 - **File Stability**: Maintain stable output filenames and write location (`shared.directory`); otherwise, the file paths in the Backend `DataService` will become invalid.
+- **Trading Dates**: Stamp US stock snapshots with the latest close series' trading date, never the crawler's current calendar date. If a scrape is empty, retain the last valid trading-day payload.
 - **Logic Abstraction**: When modifying scraping strategies, prioritize extending the common base class instead of duplicating logic across multiple modules.
 
 ## 7. Quick Start

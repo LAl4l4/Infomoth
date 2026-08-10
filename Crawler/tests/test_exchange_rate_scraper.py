@@ -21,6 +21,10 @@ class TestFetchBaseRates:
         base, data = scraper._fetch_base_rates("USD")
         assert base == "USD"
         assert data["rates"]["CNY"] == 7.2
+        assert mock_get.call_args.kwargs["params"] == {
+            "base": "USD",
+            "symbols": ",".join(currency for currency in MAJOR_CURRENCIES if currency != "USD"),
+        }
 
     @patch("infomoth.exchange_rate_scraper.requests.get")
     def test_returns_none_on_timeout(self, mock_get, scraper):

@@ -4,6 +4,7 @@ import type { RootState } from '../customTypes';
 
 interface LoginState {
   isLoggedIn: boolean;
+  sessionChecked: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -15,6 +16,7 @@ interface Credentials {
 
 const initialState: LoginState = {
   isLoggedIn: false,
+  sessionChecked: false,
   loading: false,
   error: null,
 };
@@ -73,10 +75,12 @@ export const loginSlice = createSlice({
       .addCase(restoreSessionThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.isLoggedIn = action.payload;
+        state.sessionChecked = true;
       })
       .addCase(restoreSessionThunk.rejected, (state) => {
         state.loading = false;
         state.isLoggedIn = false;
+        state.sessionChecked = true;
       });
   },
   reducers: {
@@ -92,3 +96,4 @@ export const loginSlice = createSlice({
 export const { logIn, logOut } = loginSlice.actions;
 
 export const selectIsLoggedIn = (state: RootState) => state.login.isLoggedIn;
+export const selectSessionChecked = (state: RootState) => state.login.sessionChecked;

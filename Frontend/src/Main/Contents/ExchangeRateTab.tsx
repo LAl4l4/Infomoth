@@ -7,11 +7,13 @@ import {
   selectCurrencies,
   selectExchangeRates,
 } from '../../Variable/dataCache';
+import { selectIsLoggedIn } from '../../Variable/login';
 import { pullGeneralSettings } from '../../API/settings';
 import type { AppDispatch } from '../../customTypes';
 
 export default function ExchangeRateTab() {
   const dispatch = useDispatch<AppDispatch>();
+  const isLoggedIn = useSelector(selectIsLoggedIn);
   const { data: currencies, loading: curLoading, error: curError } = useSelector(selectCurrencies);
   const { data: rates, loading: rateLoading, error: rateError } = useSelector(selectExchangeRates);
 
@@ -24,6 +26,11 @@ export default function ExchangeRateTab() {
   }, [dispatch]);
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      setPreferredPair({ base: 'USD', quote: 'CNY' });
+      return;
+    }
+
     pullGeneralSettings()
       .then((settings) => {
         setPreferredPair({
@@ -34,7 +41,7 @@ export default function ExchangeRateTab() {
       .catch(() => {
         // Keep USD/CNY when account settings are unavailable.
       });
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (currencies && currencies.length > 0) {

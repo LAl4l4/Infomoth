@@ -42,9 +42,9 @@ class MarketTrendServiceTest {
                 sentiment(today, 3.0)));
         when(sentimentMapper.findSince("tech_average", fromDate)).thenReturn(List.of());
         when(stockIndexMapper.findSince(fromDate)).thenReturn(List.of(
-                stock(fromDate.plusDays(4), 10.0),
-                stock(fromDate.plusDays(5), 20.0),
-                stock(today, 30.0)));
+                stock(fromDate.plusDays(4), 1.0),
+                stock(fromDate.plusDays(5), 2.0),
+                stock(today, 3.0)));
 
         MarketTrendDTO result = marketTrendService.getLastSevenDays();
 
@@ -55,6 +55,36 @@ class MarketTrendServiceTest {
         assertEquals("^GSPC", correlation.getSymbol());
         assertEquals(1.0, correlation.getCorr(), 0.000001);
         assertEquals(3, correlation.getSampleSize());
+        assertEquals(104.0, result.getPoints().get(4).getStocks().get(0).getPrice());
+        assertEquals(1.0, result.getPoints().get(4).getStocks().get(0).getChangePercent());
+    }
+
+    @Test
+    void calculatesCorrelationFromAllAvailableNonConsecutiveDays() {
+        LocalDate today = LocalDate.now();
+        LocalDate fromDate = today.minusDays(6);
+        when(sentimentMapper.findSince("politics_average", fromDate)).thenReturn(List.of(
+                sentiment(fromDate, 0.0),
+                sentiment(fromDate.plusDays(1), 1.0),
+                sentiment(fromDate.plusDays(2), 2.0),
+                sentiment(fromDate.plusDays(4), 3.0),
+                sentiment(fromDate.plusDays(5), 4.0),
+                sentiment(fromDate.plusDays(6), 5.0)));
+        when(sentimentMapper.findSince("tech_average", fromDate)).thenReturn(List.of());
+        when(stockIndexMapper.findSince(fromDate)).thenReturn(List.of(
+                stock(fromDate, 0.0),
+                stock(fromDate.plusDays(1), 1.0),
+                stock(fromDate.plusDays(2), 2.0),
+                stock(fromDate.plusDays(4), 3.0),
+                stock(fromDate.plusDays(5), 4.0),
+                stock(fromDate.plusDays(6), 5.0)));
+
+        MarketCorrelationDTO correlation = marketTrendService.getLastSevenDays()
+                .getCorrelations()
+                .get(0);
+
+        assertEquals(6, correlation.getSampleSize());
+        assertEquals(1.0, correlation.getCorr(), 0.000001);
     }
 
     private SentimentAverage sentiment(LocalDate date, double score) {
@@ -64,12 +94,17 @@ class MarketTrendServiceTest {
         return average;
     }
 
-    private UsStockIndexRecord stock(LocalDate date, double price) {
+    private UsStockIndexRecord stock(LocalDate date, double changePercent) {
         UsStockIndexRecord stock = new UsStockIndexRecord();
-        stock.setSymbol("^GSPC");
-        stock.setName("S&P 500");
-        stock.setPrice(price);
         stock.setDate(date);
+        stock.setSp500Price(100.0 + changePercent * 4);
+        stock.setSp500ChangePercent(changePercent);
+        stock.setDowJonesPrice(200.0 + changePercent * 4);
+        stock.setDowJonesChangePercent(changePercent);
+        stock.setNasdaqPrice(300.0 + changePercent * 4);
+        stock.setNasdaqChangePercent(changePercent);
+        stock.setRussell2000Price(400.0 + changePercent * 4);
+        stock.setRussell2000ChangePercent(changePercent);
         return stock;
     }
 }

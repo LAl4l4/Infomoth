@@ -410,6 +410,12 @@
   font-size: 11px;
 }
 
+.trend-weekend-label {
+  fill: rgba(251, 191, 36, 0.72);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
 .trend-line {
   fill: none;
   stroke-width: 3;

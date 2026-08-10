@@ -18,6 +18,6 @@ public class SentimentPersistenceScheduler {
             fixedDelayString = "${sentiment.persistence.fixed-delay-ms}")
     public void persistSentimentAverages() {
         sentimentPersistenceService.persistTodayAverages();
-        usStockPersistenceService.persistTodaySnapshots();
+        usStockPersistenceService.persistTradingDayChanges();
     }
 }

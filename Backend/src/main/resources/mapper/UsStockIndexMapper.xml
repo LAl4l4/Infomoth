@@ -7,41 +7,55 @@
     <select id="findSince" resultType="ReleaseBack.Back.entity.UsStockIndexRecord">
         SELECT
             ID as id,
-            symbol,
-            name,
-            price,
-            change_value as changeValue,
-            change_percent as changePercent,
             date,
-            source
+            sp500_price as sp500Price,
+            sp500_change_percent as sp500ChangePercent,
+            dow_jones_price as dowJonesPrice,
+            dow_jones_change_percent as dowJonesChangePercent,
+            nasdaq_price as nasdaqPrice,
+            nasdaq_change_percent as nasdaqChangePercent,
+            russell_2000_price as russell2000Price,
+            russell_2000_change_percent as russell2000ChangePercent
         FROM us_stock_indices
         WHERE date &gt;= #{fromDate}
-        ORDER BY date ASC, symbol ASC
+        ORDER BY date ASC
     </select>
 
-    <update id="updateSnapshot">
+    <update id="updateDailyChange">
         UPDATE us_stock_indices
-        SET name = #{snapshot.name},
-            price = #{snapshot.price},
-            change_value = #{snapshot.changeValue},
-            change_percent = #{snapshot.changePercent},
-            source = #{snapshot.source}
-        WHERE symbol = #{snapshot.symbol}
-          AND date = #{snapshot.date}
+        SET sp500_price = #{snapshot.sp500Price},
+            sp500_change_percent = #{snapshot.sp500ChangePercent},
+            dow_jones_price = #{snapshot.dowJonesPrice},
+            dow_jones_change_percent = #{snapshot.dowJonesChangePercent},
+            nasdaq_price = #{snapshot.nasdaqPrice},
+            nasdaq_change_percent = #{snapshot.nasdaqChangePercent},
+            russell_2000_price = #{snapshot.russell2000Price},
+            russell_2000_change_percent = #{snapshot.russell2000ChangePercent}
+        WHERE date = #{snapshot.date}
     </update>
 
-    <insert id="insertSnapshot">
+    <insert id="insertDailyChange">
         INSERT INTO us_stock_indices (
-            symbol, name, price, change_value, change_percent, date, source
+            date,
+            sp500_price,
+            sp500_change_percent,
+            dow_jones_price,
+            dow_jones_change_percent,
+            nasdaq_price,
+            nasdaq_change_percent,
+            russell_2000_price,
+            russell_2000_change_percent
         )
         VALUES (
-            #{snapshot.symbol},
-            #{snapshot.name},
-            #{snapshot.price},
-            #{snapshot.changeValue},
-            #{snapshot.changePercent},
             #{snapshot.date},
-            #{snapshot.source}
+            #{snapshot.sp500Price},
+            #{snapshot.sp500ChangePercent},
+            #{snapshot.dowJonesPrice},
+            #{snapshot.dowJonesChangePercent},
+            #{snapshot.nasdaqPrice},
+            #{snapshot.nasdaqChangePercent},
+            #{snapshot.russell2000Price},
+            #{snapshot.russell2000ChangePercent}
         )
     </insert>
 </mapper>

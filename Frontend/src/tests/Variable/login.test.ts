@@ -23,6 +23,7 @@ describe('login slice reducers', () => {
   it('returns initial state', () => {
     expect(reducer(undefined, { type: 'unknown' })).toEqual({
       isLoggedIn: false,
+      sessionChecked: false,
       loading: false,
       error: null,
     });
@@ -35,7 +36,7 @@ describe('login slice reducers', () => {
 
   it('logOut clears login state', () => {
     const state = reducer(
-      { isLoggedIn: true, loading: false, error: null },
+      { isLoggedIn: true, sessionChecked: true, loading: false, error: null },
       logOut()
     );
     expect(state.isLoggedIn).toBe(false);
@@ -43,7 +44,7 @@ describe('login slice reducers', () => {
 
   it('selectors read from state', () => {
     const state = {
-      login: { isLoggedIn: true, loading: false, error: null },
+      login: { isLoggedIn: true, sessionChecked: true, loading: false, error: null },
     } as RootState;
     expect(selectIsLoggedIn(state)).toBe(true);
   });
@@ -102,5 +103,6 @@ describe('checkLoginThunk', () => {
     await store.dispatch(restoreSessionThunk());
 
     expect(store.getState().login.isLoggedIn).toBe(true);
+    expect(store.getState().login.sessionChecked).toBe(true);
   });
 });

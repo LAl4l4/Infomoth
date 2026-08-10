@@ -112,6 +112,16 @@ describe('Settings page', () => {
     await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith(3, 'EUR', 'AUD'));
   });
 
+  it('keeps both currency selectors in one setting group', async () => {
+    renderSettings();
+    await screen.findByText('设置已同步');
+
+    const baseSelect = screen.getByLabelText('默认基础货币');
+    const quoteSelect = screen.getByLabelText('默认目标货币');
+
+    expect(baseSelect.closest('.setting-group')).toBe(quoteSelect.closest('.setting-group'));
+  });
+
   it('switches between settings tabs', async () => {
     renderSettings();
     await screen.findByText('设置已同步');

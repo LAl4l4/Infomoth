@@ -14,7 +14,7 @@ def load_config():
 
 def resolve_shared_directory(config):
     shared_directory = Path(config["shared"]["directory"])
-    return shared_directory if shared_directory.is_absolute() else ROOT_DIR / shared_directory
+    return shared_directory if shared_directory.is_absolute() else (CONFIG_PATH.parent / shared_directory).resolve()
 
 
 def main():

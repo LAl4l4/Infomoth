@@ -66,7 +66,7 @@
   - `POST /auth/pushProfile`: Update user profile (JSON Body: `ProfileDTO`)
   - `GET /data/currencies`: List available currencies
   - `GET /data/exchangerate?base=USD&quote=CNY`: Fetch specific exchange rate
-  - `GET /data/market-trends`: Return seven calendar days of sentiment, persisted US stock prices, and per-index `corr`
+  - `GET /data/market-trends`: Return seven calendar days of sentiment, persisted US stock prices and captured daily percentage changes, plus per-index `corr`
   - `GET /settings/general`: Return `defaultPage`, `defaultBaseCurrency`, and `defaultQuoteCurrency`
   - `PUT /settings/general`: Persist the home tab plus both exchange-rate selector sides
 
@@ -74,7 +74,8 @@
 - User queries support both username and email (`findByNameEmail`).
 - Profile and User entities are linked via `user_id`.
 - `user_settings` stores both exchange-rate sides (`default_base_currency` and `default_quote_currency`) alongside `default_page`; missing values default to USD/CNY.
-- `us_stock_indices` stores one snapshot per `(symbol, date)`. The scheduled Backend persistence job updates today's rows from `Shared/us_stock_indices.json`.
+- `us_stock_indices` stores one row per trading date. Each row contains the price and captured daily percentage change for S&P 500, Dow Jones, NASDAQ, and Russell 2000. The scheduled Backend persistence job groups the four snapshots in `Shared/us_stock_indices.json` by their source trading date and upserts that daily row.
+- Market-trend `corr` uses each persisted `change_percent` value directly; it does not derive another return from adjacent stored prices.
 - Exchange rate JSON parsing uses `exchangeRateDTO` with field compatibility:
   - `base_currency` / `base`
   - `quote_currency` / `quote`

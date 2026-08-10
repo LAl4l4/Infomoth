@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from .unitTestHelper import save_json, US_STOCK_INDICES_OUTPUT
 
@@ -39,7 +38,6 @@ class USStockIndexScraper:
             LOGGER.warning("Yahoo Finance returned empty US stock index data")
             return []
 
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         results: List[Dict[str, object]] = []
         for symbol in symbols:
             closes = self._extract_close_series(data, symbol)
@@ -51,6 +49,11 @@ class USStockIndexScraper:
             previous_close = float(closes.iloc[-2])
             change = latest_close - previous_close
             change_percent = (change / previous_close * 100.0) if previous_close else 0.0
+            latest_index = closes.index[-1]
+            trading_day = latest_index.date() if hasattr(latest_index, "date") else latest_index
+            if not hasattr(trading_day, "isoformat"):
+                LOGGER.warning("Invalid trading date for index %s", symbol)
+                continue
 
             results.append(
                 {
@@ -59,7 +62,7 @@ class USStockIndexScraper:
                     "price": round(latest_close, 4),
                     "change": round(change, 4),
                     "changePercent": round(change_percent, 4),
-                    "date": today,
+                    "date": trading_day.isoformat(),
                     "source": "Yahoo Finance",
                 }
             )

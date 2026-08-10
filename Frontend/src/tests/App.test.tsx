@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import App from '../App';
 import { createTestStore } from './testUtils';
+import { checkSession } from '../API/auth';
 
 // cobe needs WebGL which jsdom lacks; replace the globe with a stub.
 jest.mock('../Main/BackgroundGlobe/Globe', () => ({
@@ -29,10 +30,12 @@ jest.mock('../API/settings', () => ({
 
 jest.mock('../API/auth', () => ({
   checkLogin: jest.fn(),
-  checkSession: jest.fn(() => Promise.resolve({ data: { result: '未登录' } })),
+  checkSession: jest.fn(),
   logout: jest.fn(),
   register: jest.fn(),
 }));
+
+const mockCheckSession = checkSession as jest.Mock;
 
 function renderApp() {
   const store = createTestStore();
@@ -49,12 +52,13 @@ function renderApp() {
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
   });
 
   it('renders the home shell with the tab bar and overview', async () => {
     renderApp();
 
-    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(await screen.findByRole('tablist')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '概览' })).toHaveAttribute('aria-selected', 'true');
     expect(await screen.findByText('今日资讯概览')).toBeInTheDocument();
   });
@@ -73,6 +77,8 @@ describe('App', () => {
   it('switches to the seven-day market trend tab', async () => {
     renderApp();
 
+    await screen.findByText('今日资讯概览');
+
     fireEvent.click(screen.getByRole('tab', { name: '市场走势' }));
 
     expect(await screen.findByText('7日市场走势')).toBeInTheDocument();
@@ -84,5 +90,12 @@ describe('App', () => {
 
     expect(screen.getByRole('heading', { name: '欢迎回来' })).toBeInTheDocument();
     window.history.pushState({}, '', '/');
+  });
+
+  it('redirects an unauthenticated home visit to login', async () => {
+    mockCheckSession.mockResolvedValue({ data: { result: '未登录' } });
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: '欢迎回来' })).toBeInTheDocument();
   });
 });

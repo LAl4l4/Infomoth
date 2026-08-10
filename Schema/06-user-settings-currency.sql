@@ -1,5 +1,3 @@
-ALTER TABLE user_settings
-    ADD COLUMN IF NOT EXISTS default_base_currency VARCHAR(10) NOT NULL DEFAULT 'USD';
-
-ALTER TABLE user_settings
-    ADD COLUMN IF NOT EXISTS default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY';
+-- New installations receive both currency columns from 03-user-settings.sql.
+-- Existing installations are migrated by UserSettingsSchemaMigration, which
+-- checks JDBC metadata before issuing each database-portable ALTER TABLE.

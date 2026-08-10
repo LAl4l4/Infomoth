@@ -39,14 +39,16 @@ class UsStockIndexMapperTest {
                 """
                 CREATE TABLE IF NOT EXISTS us_stock_indices (
                     ID INT AUTO_INCREMENT PRIMARY KEY,
-                    symbol VARCHAR(32) NOT NULL,
-                    name VARCHAR(128) NOT NULL,
-                    price DOUBLE NOT NULL,
-                    change_value DOUBLE NOT NULL,
-                    change_percent DOUBLE NOT NULL,
                     date DATE NOT NULL,
-                    source VARCHAR(128),
-                    UNIQUE (symbol, date)
+                    sp500_price DOUBLE NOT NULL,
+                    sp500_change_percent DOUBLE NOT NULL,
+                    dow_jones_price DOUBLE NOT NULL,
+                    dow_jones_change_percent DOUBLE NOT NULL,
+                    nasdaq_price DOUBLE NOT NULL,
+                    nasdaq_change_percent DOUBLE NOT NULL,
+                    russell_2000_price DOUBLE NOT NULL,
+                    russell_2000_change_percent DOUBLE NOT NULL,
+                    UNIQUE (date)
                 )
                 """
         );
@@ -56,30 +58,33 @@ class UsStockIndexMapperTest {
     @Test
     void shouldInsertUpdateAndFindDailySnapshot() {
         LocalDate date = LocalDate.of(2026, 8, 8);
-        UsStockIndexRecord record = record(date, 100.0);
+        UsStockIndexRecord record = record(date, 0.1);
 
-        assertEquals(0, stockIndexMapper.updateSnapshot(record));
-        assertEquals(1, stockIndexMapper.insertSnapshot(record));
+        assertEquals(0, stockIndexMapper.updateDailyChange(record));
+        assertEquals(1, stockIndexMapper.insertDailyChange(record));
 
-        record.setPrice(101.5);
-        record.setChangeValue(1.5);
-        assertEquals(1, stockIndexMapper.updateSnapshot(record));
+        record.setSp500Price(5100.0);
+        record.setSp500ChangePercent(0.2);
+        assertEquals(1, stockIndexMapper.updateDailyChange(record));
 
         List<UsStockIndexRecord> results = stockIndexMapper.findSince(date);
         assertEquals(1, results.size());
-        assertEquals(101.5, results.get(0).getPrice());
-        assertEquals(1.5, results.get(0).getChangeValue());
+        assertEquals(5100.0, results.get(0).getSp500Price());
+        assertEquals(0.2, results.get(0).getSp500ChangePercent());
+        assertEquals(-0.1, results.get(0).getRussell2000ChangePercent());
     }
 
-    private UsStockIndexRecord record(LocalDate date, double price) {
+    private UsStockIndexRecord record(LocalDate date, double sp500ChangePercent) {
         UsStockIndexRecord record = new UsStockIndexRecord();
-        record.setSymbol("^GSPC");
-        record.setName("S&P 500");
-        record.setPrice(price);
-        record.setChangeValue(1.0);
-        record.setChangePercent(0.1);
         record.setDate(date);
-        record.setSource("test");
+        record.setSp500Price(5000.0);
+        record.setSp500ChangePercent(sp500ChangePercent);
+        record.setDowJonesPrice(40000.0);
+        record.setDowJonesChangePercent(0.05);
+        record.setNasdaqPrice(16000.0);
+        record.setNasdaqChangePercent(0.3);
+        record.setRussell2000Price(2000.0);
+        record.setRussell2000ChangePercent(-0.1);
         return record;
     }
 }

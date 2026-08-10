@@ -1,5 +1,5 @@
 import './IntroPage.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   fetchSentimentScore,
@@ -11,6 +11,8 @@ import {
   selectExchangeRates,
   selectUsStockIndices,
 } from '../../Variable/dataCache';
+import { selectIsLoggedIn } from '../../Variable/login';
+import { pullGeneralSettings } from '../../API/settings';
 import type { AppDispatch } from '../../customTypes';
 
 function OverviewSentimentRow() {
@@ -62,23 +64,51 @@ function OverviewAISkillRow() {
 
 function OverviewRateRow() {
   const dispatch = useDispatch<AppDispatch>();
+  const isLoggedIn = useSelector(selectIsLoggedIn);
   const { data: rates, loading } = useSelector(selectExchangeRates);
+  const [pair, setPair] = useState<{ base: string; quote: string } | null>(null);
 
   useEffect(() => {
-    dispatch(fetchExchangeRate({ base: 'USD', quote: 'CNY' }));
-  }, [dispatch]);
+    if (!isLoggedIn) {
+      setPair({ base: 'USD', quote: 'CNY' });
+      return;
+    }
 
-  const rate = rates['USD-CNY'];
+    let active = true;
+
+    pullGeneralSettings()
+      .then((settings) => {
+        if (active) {
+          setPair({
+            base: settings.defaultBaseCurrency || 'USD',
+            quote: settings.defaultQuoteCurrency || 'CNY',
+          });
+        }
+      })
+      .catch(() => {
+        if (active) setPair({ base: 'USD', quote: 'CNY' });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (pair) dispatch(fetchExchangeRate(pair));
+  }, [dispatch, pair]);
+
+  const rate = pair ? rates[`${pair.base}-${pair.quote}`] : undefined;
 
   let valueText;
-  if (loading) valueText = '加载中…';
+  if (!pair || loading) valueText = '加载中…';
   else if (rate === undefined || rate === null) valueText = '今日暂无';
-  else valueText = `1 USD = ${rate} CNY`;
+  else valueText = `1 ${pair.base} = ${rate} ${pair.quote}`;
 
   return (
     <div className="snapshot-row">
-      <span className="snapshot-label">汇率速查 (USD/CNY)</span>
-      <span className={'snapshot-value' + (rate === undefined || rate === null ? ' muted' : '')}>{valueText}</span>
+      <span className="snapshot-label">汇率速查{pair ? ` (${pair.base}/${pair.quote})` : ''}</span>
+      <span className={'snapshot-value' + (!pair || rate === undefined || rate === null ? ' muted' : '')}>{valueText}</span>
     </div>
   );
 }

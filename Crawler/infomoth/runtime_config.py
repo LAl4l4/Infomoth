@@ -13,4 +13,4 @@ def load_shared_directory() -> Path:
         config = json.load(file)
 
     directory = Path(config["shared"]["directory"])
-    return directory if directory.is_absolute() else ROOT_DIR / directory
+    return directory if directory.is_absolute() else (CONFIG_PATH.parent / directory).resolve()

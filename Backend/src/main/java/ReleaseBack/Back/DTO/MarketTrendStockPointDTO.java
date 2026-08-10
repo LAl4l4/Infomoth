@@ -11,4 +11,5 @@ public class MarketTrendStockPointDTO {
     private String symbol;
     private String name;
     private Double price;
+    private Double changePercent;
 }

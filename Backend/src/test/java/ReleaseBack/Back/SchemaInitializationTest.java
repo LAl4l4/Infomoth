@@ -28,5 +28,21 @@ class SchemaInitializationTest {
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM politics_average", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM tech_average", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM us_stock_indices", Integer.class));
+        assertEquals(8, jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'US_STOCK_INDICES'
+                  AND COLUMN_NAME IN (
+                    'SP500_CHANGE_PERCENT',
+                    'SP500_PRICE',
+                    'DOW_JONES_CHANGE_PERCENT',
+                    'DOW_JONES_PRICE',
+                    'NASDAQ_CHANGE_PERCENT',
+                    'NASDAQ_PRICE',
+                    'RUSSELL_2000_CHANGE_PERCENT',
+                    'RUSSELL_2000_PRICE'
+                  )
+                """,
+                Integer.class));
     }
 }

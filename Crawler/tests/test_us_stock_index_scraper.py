@@ -13,14 +13,18 @@ def scraper():
     return USStockIndexScraper()
 
 
-def _make_multi_index_data(closes: dict[str, list[float]]) -> pd.DataFrame:
+def _make_multi_index_data(
+    closes: dict[str, list[float]],
+    start_date: str = "2026-08-06",
+) -> pd.DataFrame:
     max_len = max(len(v) for v in closes.values())
     arrays = {}
     for symbol, values in closes.items():
         padded = values + [float("nan")] * (max_len - len(values))
         arrays[(symbol, "Close")] = padded
     columns = pd.MultiIndex.from_tuples(arrays.keys())
-    return pd.DataFrame(arrays, columns=columns)
+    index = pd.date_range(start_date, periods=max_len, freq="D")
+    return pd.DataFrame(arrays, columns=columns, index=index)
 
 
 class TestExtractCloseSeries:
@@ -58,6 +62,7 @@ class TestScrape:
         assert sp500["price"] == 5100.0
         assert sp500["change"] == 100.0
         assert abs(sp500["changePercent"] - 2.0) < 0.001
+        assert sp500["date"] == "2026-08-07"
         assert sp500["name"] == "S&P 500"
 
     @patch("infomoth.us_stock_index_scraper.yf.download")

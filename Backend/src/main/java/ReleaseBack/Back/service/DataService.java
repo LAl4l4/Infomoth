@@ -35,7 +35,7 @@ public class DataService {
     // production Shared directory comes from Config/app-config.json
     @Autowired
     public DataService(AppConfigProvider appConfigProvider, SentimentMapper sentimentMapper) {
-        this(Path.of(appConfigProvider.getSharedDirectory()), sentimentMapper);
+        this(appConfigProvider.getSharedDirectory(), sentimentMapper);
     }
 
     // only used for testing, allows injection of a custom Shared directory path

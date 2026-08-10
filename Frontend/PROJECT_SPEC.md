@@ -22,7 +22,7 @@
 - `src/API/`: Backend interface wrappers (`auth.js`, `data.js`, `prof.js`)
 - `src/Variable/`: Redux slices and store configuration
 - `src/Main/`: Homepage and content area components
-- `src/Account/`: Login, Registration, and Profile pages
+- `src/Account/`: Login, Registration, Profile, and Settings pages
 - `src/App.js`: Routing entry point
 
 ## 4. Execution & Build
@@ -46,7 +46,7 @@
   - `POST /auth/pushProfile`: Update profile (JSON body)
   - `GET /data/currencies`: List currencies
   - `GET /data/exchangerate?base=&quote=`: Fetch specific rate
-  - `GET /data/market-trends`: Fetch seven calendar days of sentiment, stock prices, and `corr` values
+  - `GET /data/market-trends`: Fetch seven calendar days of sentiment, persisted stock prices, captured daily percentage changes, and `corr` values. Price lines bridge missing weekend points while the axis labels those dates as `Weekend`; correlation uses only actual trading-day observations.
   - `GET /settings/general` / `PUT /settings/general`: Read and save the default tab plus both exchange-rate selector currencies
 
 ## 6. State Management Conventions

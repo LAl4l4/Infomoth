@@ -1,6 +1,6 @@
 import { screen, fireEvent } from '@testing-library/react';
 import ExchangeRateTab from '../../Main/Contents/ExchangeRateTab';
-import { renderWithProviders } from '../testUtils';
+import { createTestStore, renderWithProviders } from '../testUtils';
 import { pullCurrencies, pullExchangeRate } from '../../API/data';
 import { pullGeneralSettings } from '../../API/settings';
 
@@ -41,6 +41,7 @@ describe('ExchangeRateTab', () => {
 
     expect(await screen.findByText(/1 USD = 7.2 CNY/)).toBeInTheDocument();
     expect(mockRate).toHaveBeenCalledWith('USD', 'CNY');
+    expect(mockSettings).not.toHaveBeenCalled();
   });
 
   it('fetches a new rate when the quote currency changes', async () => {
@@ -92,7 +93,11 @@ describe('ExchangeRateTab', () => {
       base === 'CNY' && quote === 'EUR' ? Promise.resolve(0.13) : Promise.resolve(1)
     ));
 
-    renderWithProviders(<ExchangeRateTab />);
+    renderWithProviders(<ExchangeRateTab />, {
+      store: createTestStore({
+        login: { isLoggedIn: true, sessionChecked: true, loading: false, error: null },
+      }),
+    });
 
     expect(await screen.findByText(/1 CNY = 0.13 EUR/)).toBeInTheDocument();
     expect(mockRate).toHaveBeenCalledWith('CNY', 'EUR');

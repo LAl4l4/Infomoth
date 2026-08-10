@@ -7,11 +7,13 @@ import lombok.Data;
 @Data
 public class UsStockIndexRecord {
     private Integer id;
-    private String symbol;
-    private String name;
-    private Double price;
-    private Double changeValue;
-    private Double changePercent;
     private LocalDate date;
-    private String source;
+    private Double sp500Price;
+    private Double sp500ChangePercent;
+    private Double dowJonesPrice;
+    private Double dowJonesChangePercent;
+    private Double nasdaqPrice;
+    private Double nasdaqChangePercent;
+    private Double russell2000Price;
+    private Double russell2000ChangePercent;
 }

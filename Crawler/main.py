@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor
@@ -30,16 +29,27 @@ def save_us_stock_indices(path: Path, payload: list[dict[str, Any]]) -> None:
         except (OSError, json.JSONDecodeError):
             existing_payload = None
 
-        today = datetime.now(timezone.utc).date().isoformat()
-        if (
-            isinstance(existing_payload, list)
-            and existing_payload
-            and all(
-                isinstance(item, dict) and item.get("date") == today
-                for item in existing_payload
+        if isinstance(existing_payload, list) and existing_payload:
+            logging.info("No US stock indices fetched; keeping latest trading-day data in %s", path.name)
+            return
+
+    save_json(path, payload)
+
+
+def save_exchange_rates(path: Path, payload: list[dict[str, Any]]) -> None:
+    if path.exists():
+        try:
+            existing_payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_payload = None
+
+        if isinstance(existing_payload, list) and existing_payload and len(payload) < len(existing_payload):
+            logging.warning(
+                "Fetched %s exchange rate pairs; keeping the more complete %s-pair payload in %s",
+                len(payload),
+                len(existing_payload),
+                path.name,
             )
-        ):
-            logging.info("No US stock indices fetched; keeping same-day data in %s", path.name)
             return
 
     save_json(path, payload)
@@ -77,7 +87,7 @@ def run() -> None:
 
     save_json(outputs["tech"], tech_results)
     save_json(outputs["politics"], politics_results)
-    save_json(outputs["exchange"], exchange_rate_results)
+    save_exchange_rates(outputs["exchange"], exchange_rate_results)
     save_json(outputs["ai_skills"], ai_skills_results)
     save_us_stock_indices(outputs["indices"], us_stock_indices_results)
 

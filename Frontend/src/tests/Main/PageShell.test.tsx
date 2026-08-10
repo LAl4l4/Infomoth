@@ -1,4 +1,5 @@
 import { screen, fireEvent } from '@testing-library/react';
+import { Routes, Route } from 'react-router-dom';
 import PageShell from '../../Main/PageShell/PageShell';
 import { renderWithProviders } from '../testUtils';
 import { pullGeneralSettings } from '../../API/settings';
@@ -34,7 +35,7 @@ const mockCheckSession = checkSession as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockCheckSession.mockResolvedValue({ data: { result: '未登录' } });
+  mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
   mockPullSettings.mockResolvedValue({
     defaultPage: 0,
     defaultBaseCurrency: 'USD',
@@ -43,14 +44,15 @@ beforeEach(() => {
 });
 
 describe('PageShell', () => {
-  it('defaults to the overview tab', () => {
+  it('defaults to the overview tab', async () => {
     renderWithProviders(<PageShell />);
-    expect(screen.getByRole('tab', { name: '概览' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByRole('tab', { name: '概览' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('renders each tab panel when selected', async () => {
     renderWithProviders(<PageShell />);
 
+    await screen.findByRole('tab', { name: '概览' });
     fireEvent.click(screen.getByRole('tab', { name: '市场情绪' }));
     expect(await screen.findByText('市场情绪指数')).toBeInTheDocument();
 
@@ -87,11 +89,20 @@ describe('PageShell', () => {
 
     renderWithProviders(<PageShell />);
 
-    expect(screen.getByRole('tab', { name: '概览' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByRole('tab', { name: '概览' })).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('does not load settings when logged out', () => {
-    renderWithProviders(<PageShell />);
+  it('redirects to login without loading settings when the session is invalid', async () => {
+    mockCheckSession.mockResolvedValue({ data: { result: '未登录' } });
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={<PageShell />} />
+        <Route path="/login" element={<div>登录页</div>} />
+      </Routes>
+    );
+
+    expect(await screen.findByText('登录页')).toBeInTheDocument();
     expect(mockPullSettings).not.toHaveBeenCalled();
   });
 });
