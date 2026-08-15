@@ -52,14 +52,15 @@ describe('dataCache thunks', () => {
   });
 
   it('fetchSentimentScore stores the score and does not refetch', async () => {
-    mockSentiment.mockResolvedValue(0.25);
+    const sentiment = { instant: 0.25, dailyAverage: 0.2 };
+    mockSentiment.mockResolvedValue(sentiment);
     const store = createTestStore();
 
     await store.dispatch(fetchSentimentScore());
     await store.dispatch(fetchSentimentScore());
 
     expect(mockSentiment).toHaveBeenCalledTimes(1);
-    expect(selectSentimentScore(store.getState() as RootState).data).toBe(0.25);
+    expect(selectSentimentScore(store.getState() as RootState).data).toEqual(sentiment);
   });
 
   it('fetchCurrencies caches the list', async () => {
@@ -115,10 +116,10 @@ describe('dataCache thunks', () => {
 
 describe('clearDataCache', () => {
   it('resets all cached entries', async () => {
-    mockSentiment.mockResolvedValue(0.5);
+    mockSentiment.mockResolvedValue({ instant: 0.5, dailyAverage: 0.4 });
     const store = createTestStore();
     await store.dispatch(fetchSentimentScore());
-    expect(selectSentimentScore(store.getState() as RootState).data).toBe(0.5);
+    expect(selectSentimentScore(store.getState() as RootState).data?.instant).toBe(0.5);
 
     store.dispatch(clearDataCache());
 

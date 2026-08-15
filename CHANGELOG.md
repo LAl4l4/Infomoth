@@ -1,5 +1,12 @@
 # Changelog
 
+- `08/15/2026`:
+    - Split `/data/sentiment` into the current news `instant` score and the current day's persisted `dailyAverage`, with null-safe handling when either source is unavailable.
+    - Changed daily sentiment persistence to a same-day, sample-count-weighted rolling average; added the additive `sampleCount` schema migration and regression coverage for date rollover and legacy tables.
+    - Updated the sentiment UI to show both metrics, using the instantaneous score for the Overview snapshot and the daily average for the main reading.
+    - Added left/right arrow-key and horizontal trackpad-swipe tab navigation, with swipe-only slide transitions and regression coverage for boundaries, pauses, and vertical scrolling.
+    - Refreshed today's data: 61 technology stories, 100 politics stories, and 110 exchange-rate pairs were analysed; no AI skills matched, and Yahoo Finance rate limiting left the latest valid stock snapshot at `2026-08-07`.
+
 - `08/10/2026`:
     - Reshaped `us_stock_indices` to one row per trading date, with persisted price and captured percentage-change columns for all four tracked indices; added a startup migration that preserves both values from complete legacy weekday rows and discards legacy weekend rows.
     - Changed market-trend `corr` to use the crawler-captured percentage change directly, so each stored trading day contributes one sample; price lines bridge weekend gaps and label those calendar dates as `Weekend` without creating weekend market observations.

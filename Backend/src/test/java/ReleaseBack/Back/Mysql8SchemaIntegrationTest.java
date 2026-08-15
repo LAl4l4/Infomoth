@@ -23,6 +23,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import ReleaseBack.Back.config.UserSettingsSchemaMigration;
 import ReleaseBack.Back.config.UsStockIndexSchemaMigration;
+import ReleaseBack.Back.config.SentimentSchemaMigration;
 
 @Testcontainers(disabledWithoutDocker = true)
 class Mysql8SchemaIntegrationTest {
@@ -55,6 +56,7 @@ class Mysql8SchemaIntegrationTest {
         assertEquals(0, rowCount(jdbcTemplate, "tech_average"));
         assertEquals(0, rowCount(jdbcTemplate, "us_stock_indices"));
         assertEquals(2, currencyColumnCount(jdbcTemplate));
+        assertEquals(2, sentimentSampleColumnCount(jdbcTemplate));
         assertEquals(8, dailyMarketColumnCount(jdbcTemplate));
 
         try (Connection connection = dataSource.getConnection()) {
@@ -75,6 +77,35 @@ class Mysql8SchemaIntegrationTest {
         migration.migrate();
 
         assertEquals(2, currencyColumnCount(jdbcTemplate));
+    }
+
+    @Test
+    void migrationAddsSampleCountsToExistingSentimentTablesInMysql8() throws Exception {
+        DataSource dataSource = testDataSource();
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.execute("DROP TABLE IF EXISTS politics_average");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS tech_average");
+        jdbcTemplate.execute(
+                "CREATE TABLE politics_average (ID INT PRIMARY KEY, date DATE, sentimentScore DOUBLE)");
+        jdbcTemplate.execute(
+                "CREATE TABLE tech_average (ID INT PRIMARY KEY, date DATE, sentimentScore DOUBLE)");
+        jdbcTemplate.update(
+                "INSERT INTO politics_average VALUES (1, '2026-08-11', 0.25)");
+
+        try {
+            SentimentSchemaMigration migration = new SentimentSchemaMigration(dataSource);
+            migration.migrate();
+            migration.migrate();
+
+            assertEquals(2, sentimentSampleColumnCount(jdbcTemplate));
+            assertEquals(1, jdbcTemplate.queryForObject(
+                    "SELECT sampleCount FROM politics_average WHERE ID = 1",
+                    Integer.class));
+        } finally {
+            jdbcTemplate.execute("DROP TABLE IF EXISTS politics_average");
+            jdbcTemplate.execute("DROP TABLE IF EXISTS tech_average");
+            executeProductionSchema(dataSource);
+        }
     }
 
     @Test
@@ -152,6 +183,17 @@ class Mysql8SchemaIntegrationTest {
                 WHERE table_schema = DATABASE()
                     AND table_name = 'user_settings'
                     AND column_name IN ('default_base_currency', 'default_quote_currency')
+                """,
+                Integer.class));
+    }
+
+    private int sentimentSampleColumnCount(JdbcTemplate jdbcTemplate) {
+        return requiredInteger(jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_schema = DATABASE()
+                    AND table_name IN ('politics_average', 'tech_average')
+                    AND column_name = 'sampleCount'
                 """,
                 Integer.class));
     }

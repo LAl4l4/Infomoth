@@ -44,8 +44,8 @@ class SentimentPersistenceServiceTest {
         write("tech_news.json", """
                 [{"financeInfluence":{"sentiment_score":0.4}}, {"financeInfluence":{"sentiment_score":0.2}}]
                 """);
-        when(sentimentMapper.updatePoliticsAverage(any(), any(Double.class))).thenReturn(0);
-        when(sentimentMapper.updateTechAverage(any(), any(Double.class))).thenReturn(0);
+        when(sentimentMapper.accumulatePoliticsAverage(any(), any(Double.class))).thenReturn(0);
+        when(sentimentMapper.accumulateTechAverage(any(), any(Double.class))).thenReturn(0);
 
         service.persistTodayAverages();
 
@@ -59,13 +59,13 @@ class SentimentPersistenceServiceTest {
                 [{"financeInfluence":{"sentiment_score":0.5}}, {"title":"not analysed"}, {"financeInfluence":{"sentiment_score":"bad"}}]
                 """);
         write("tech_news.json", "[]");
-        when(sentimentMapper.updatePoliticsAverage(any(), any(Double.class))).thenReturn(1);
+        when(sentimentMapper.accumulatePoliticsAverage(any(), any(Double.class))).thenReturn(1);
 
         service.persistTodayAverages();
 
-        verify(sentimentMapper).updatePoliticsAverage(any(), eq(0.5));
+        verify(sentimentMapper).accumulatePoliticsAverage(any(), eq(0.5));
         verify(sentimentMapper, never()).insertPoliticsAverage(any(), any(Double.class));
-        verify(sentimentMapper, never()).updateTechAverage(any(), any(Double.class));
+        verify(sentimentMapper, never()).accumulateTechAverage(any(), any(Double.class));
         verify(sentimentMapper, never()).insertTechAverage(any(), any(Double.class));
     }
 

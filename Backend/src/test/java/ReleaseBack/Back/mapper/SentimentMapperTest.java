@@ -42,7 +42,8 @@ class SentimentMapperTest {
                 CREATE TABLE IF NOT EXISTS politics_average (
                     ID INT AUTO_INCREMENT PRIMARY KEY,
                     date DATE NOT NULL,
-                    sentimentScore DOUBLE NOT NULL
+                    sentimentScore DOUBLE NOT NULL,
+                    sampleCount INT NOT NULL DEFAULT 1
                 )
                 """
         );
@@ -51,7 +52,8 @@ class SentimentMapperTest {
                 CREATE TABLE IF NOT EXISTS tech_average (
                     ID INT AUTO_INCREMENT PRIMARY KEY,
                     date DATE NOT NULL,
-                    sentimentScore DOUBLE NOT NULL
+                    sentimentScore DOUBLE NOT NULL,
+                    sampleCount INT NOT NULL DEFAULT 1
                 )
                 """
         );
@@ -84,18 +86,32 @@ class SentimentMapperTest {
     }
 
     @Test
-    void updatePoliticsAverageShouldUpdateOnlyTheMatchingDate() {
+    void accumulatePoliticsAverageShouldRollWithinOneDateAndResetAcrossDates() {
         LocalDate today = LocalDate.of(2026, 8, 4);
-        jdbcTemplate.update(
-                "INSERT INTO politics_average(date, sentimentScore) VALUES (?, ?)",
-                today, 0.12
-        );
+        LocalDate tomorrow = today.plusDays(1);
+        sentimentMapper.insertPoliticsAverage(today, 0.2);
 
-        int updated = sentimentMapper.updatePoliticsAverage(today, 0.66);
+        int updated = sentimentMapper.accumulatePoliticsAverage(today, 0.6);
+        sentimentMapper.insertPoliticsAverage(tomorrow, -0.5);
 
         assertEquals(1, updated);
-        assertEquals(0.66, jdbcTemplate.queryForObject(
+        assertEquals(0.4, jdbcTemplate.queryForObject(
                 "SELECT sentimentScore FROM politics_average WHERE date = ?", Double.class, today));
+        assertEquals(2, jdbcTemplate.queryForObject(
+                "SELECT sampleCount FROM politics_average WHERE date = ?", Integer.class, today));
+        assertEquals(-0.5, jdbcTemplate.queryForObject(
+                "SELECT sentimentScore FROM politics_average WHERE date = ?", Double.class, tomorrow));
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT sampleCount FROM politics_average WHERE date = ?", Integer.class, tomorrow));
+    }
+
+    @Test
+    void findByDateShouldNotFallBackToAnEarlierDay() {
+        LocalDate yesterday = LocalDate.of(2026, 8, 3);
+        sentimentMapper.insertTechAverage(yesterday, 0.25);
+
+        assertNull(sentimentMapper.findByDate("tech_average", yesterday.plusDays(1)));
+        assertEquals(0.25, sentimentMapper.findByDate("tech_average", yesterday).getSentimentScore());
     }
 
     @Test

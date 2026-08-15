@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.MarketTrendDTO;
+import ReleaseBack.Back.DTO.SentimentScoreDTO;
 import ReleaseBack.Back.DTO.usStockIndexDTO;
 import ReleaseBack.Back.service.DataService;
 import ReleaseBack.Back.service.MarketTrendService;
@@ -69,12 +70,13 @@ class DataControllerTest {
 
     @Test
     void getSentimentScoreShouldReturnServiceValue() {
-        when(dataService.getSentimentScore()).thenReturn(0.42);
+        SentimentScoreDTO expected = new SentimentScoreDTO(0.42, 0.31);
+        when(dataService.getSentimentScore()).thenReturn(expected);
 
-        ResponseEntity<Double> response = dataController.getSentimentScore();
+        ResponseEntity<SentimentScoreDTO> response = dataController.getSentimentScore();
 
         assertEquals(200, response.getStatusCode().value());
-        assertEquals(0.42, response.getBody());
+        assertEquals(expected, response.getBody());
     }
 
     @Test

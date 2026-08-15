@@ -17,7 +17,8 @@ import type { AppDispatch } from '../../customTypes';
 
 function OverviewSentimentRow() {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: score, loading, error } = useSelector(selectSentimentScore);
+  const { data: sentiment, loading, error } = useSelector(selectSentimentScore);
+  const score = sentiment?.instant ?? null;
 
   useEffect(() => {
     dispatch(fetchSentimentScore());
@@ -31,7 +32,7 @@ function OverviewSentimentRow() {
 
   return (
     <div className="snapshot-row">
-      <span className="snapshot-label">市场情绪</span>
+      <span className="snapshot-label">瞬时市场情绪</span>
       <span className={'snapshot-value' + (score == null && !loading && !error ? ' muted' : '')}>
         {valueText}
       </span>

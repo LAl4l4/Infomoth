@@ -22,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import ReleaseBack.Back.entity.SentimentAverage;
 import ReleaseBack.Back.mapper.SentimentMapper;
+import ReleaseBack.Back.DTO.SentimentScoreDTO;
 
 @ExtendWith(MockitoExtension.class)
 class DataServiceTest {
@@ -141,36 +142,63 @@ class DataServiceTest {
     }
 
     @Test
-    void getSentimentScoreShouldReturnAverageWhenBothTablesHaveValues() {
+    void getSentimentScoreShouldReturnInstantAndTodaysRollingAverage() throws IOException {
+        writeSharedFile(
+                "politics_news.json",
+                """
+                [{"financeInfluence":{"sentiment_score":0.8}}, {"financeInfluence":{"sentiment_score":0.2}}]
+                """
+        );
+        writeSharedFile(
+                "tech_news.json",
+                """
+                [{"financeInfluence":{"sentiment_score":-0.2}}, {"financeInfluence":{"sentiment_score":0.4}}]
+                """
+        );
         SentimentAverage politics = sentiment(1.0);
         SentimentAverage tech = sentiment(3.0);
-        when(sentimentMapper.findLatestByTable("politics_average")).thenReturn(politics);
-        when(sentimentMapper.findLatestByTable("tech_average")).thenReturn(tech);
+        when(sentimentMapper.findByDate("politics_average", LocalDate.now())).thenReturn(politics);
+        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(tech);
 
-        double score = dataService.getSentimentScore();
+        SentimentScoreDTO score = dataService.getSentimentScore();
 
-        assertEquals(2.0, score);
+        assertEquals(0.3, score.getInstant(), 0.000001);
+        assertEquals(2.0, score.getDailyAverage());
     }
 
     @Test
-    void getSentimentScoreShouldReturnExistingValueWhenOneTableMissing() {
+    void getSentimentScoreShouldReturnAvailableValuesWhenOneCategoryIsMissing() throws IOException {
+        writeSharedFile(
+                "tech_news.json",
+                """
+                [{"financeInfluence":{"sentiment_score":0.5}}]
+                """
+        );
         SentimentAverage tech = sentiment(2.5);
-        when(sentimentMapper.findLatestByTable("politics_average")).thenReturn(null);
-        when(sentimentMapper.findLatestByTable("tech_average")).thenReturn(tech);
+        when(sentimentMapper.findByDate("politics_average", LocalDate.now())).thenReturn(null);
+        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(tech);
 
-        double score = dataService.getSentimentScore();
+        SentimentScoreDTO score = dataService.getSentimentScore();
 
-        assertEquals(2.5, score);
+        assertEquals(0.5, score.getInstant());
+        assertEquals(2.5, score.getDailyAverage());
     }
 
     @Test
-    void getSentimentScoreShouldThrowWhenBothTablesMissing() {
-        when(sentimentMapper.findLatestByTable("politics_average")).thenReturn(null);
-        when(sentimentMapper.findLatestByTable("tech_average")).thenReturn(null);
+    void getSentimentScoreShouldNotReuseYesterdayAsTodaysAverage() throws IOException {
+        writeSharedFile(
+                "politics_news.json",
+                """
+                [{"financeInfluence":{"sentiment_score":-0.4}}]
+                """
+        );
+        when(sentimentMapper.findByDate("politics_average", LocalDate.now())).thenReturn(null);
+        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(null);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> dataService.getSentimentScore());
+        SentimentScoreDTO score = dataService.getSentimentScore();
 
-        assertTrue(ex.getMessage().contains("No sentiment data available"));
+        assertEquals(-0.4, score.getInstant());
+        assertEquals(null, score.getDailyAverage());
     }
 
     private void writeSharedFile(String fileName, String content) throws IOException {

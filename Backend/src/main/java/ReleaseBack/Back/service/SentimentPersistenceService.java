@@ -8,7 +8,6 @@ import java.util.OptionalDouble;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.config.AppConfigProvider;
@@ -21,18 +20,28 @@ public class SentimentPersistenceService {
     private static final String POLITICS_FILE = "politics_news.json";
     private static final String TECH_FILE = "tech_news.json";
 
-    private final ObjectMapper objectMapper;
     private final SentimentMapper sentimentMapper;
+    private final SentimentFileReader sentimentFileReader;
     private final Path sharedDir;
 
     @Autowired
-    public SentimentPersistenceService(AppConfigProvider appConfigProvider, SentimentMapper sentimentMapper) {
-        this(appConfigProvider.getSharedDirectory(), sentimentMapper);
+    public SentimentPersistenceService(
+            AppConfigProvider appConfigProvider,
+            SentimentMapper sentimentMapper,
+            SentimentFileReader sentimentFileReader) {
+        this(appConfigProvider.getSharedDirectory(), sentimentMapper, sentimentFileReader);
     }
 
     SentimentPersistenceService(Path sharedDir, SentimentMapper sentimentMapper) {
-        this.objectMapper = new ObjectMapper();
+        this(sharedDir, sentimentMapper, new SentimentFileReader(new ObjectMapper()));
+    }
+
+    SentimentPersistenceService(
+            Path sharedDir,
+            SentimentMapper sentimentMapper,
+            SentimentFileReader sentimentFileReader) {
         this.sentimentMapper = sentimentMapper;
+        this.sentimentFileReader = sentimentFileReader;
         this.sharedDir = sharedDir;
     }
 
@@ -43,7 +52,7 @@ public class SentimentPersistenceService {
 
     private void persistPoliticsAverage() {
         persistAverage(POLITICS_FILE, "politics", (date, score) -> {
-            if (sentimentMapper.updatePoliticsAverage(date, score) == 0) {
+            if (sentimentMapper.accumulatePoliticsAverage(date, score) == 0) {
                 sentimentMapper.insertPoliticsAverage(date, score);
             }
         });
@@ -51,7 +60,7 @@ public class SentimentPersistenceService {
 
     private void persistTechAverage() {
         persistAverage(TECH_FILE, "tech", (date, score) -> {
-            if (sentimentMapper.updateTechAverage(date, score) == 0) {
+            if (sentimentMapper.accumulateTechAverage(date, score) == 0) {
                 sentimentMapper.insertTechAverage(date, score);
             }
         });
@@ -59,7 +68,7 @@ public class SentimentPersistenceService {
 
     private void persistAverage(String fileName, String category, AverageWriter writer) {
         try {
-            OptionalDouble average = readAverage(fileName);
+            OptionalDouble average = sentimentFileReader.readAverage(sharedDir.resolve(fileName));
             if (average.isEmpty()) {
                 log.warn("No valid sentiment scores in {}; keeping the existing {} average", fileName, category);
                 return;
@@ -70,24 +79,6 @@ public class SentimentPersistenceService {
         } catch (IOException e) {
             log.warn("Cannot read {} sentiment data; it will be retried on the next run", category, e);
         }
-    }
-
-    private OptionalDouble readAverage(String fileName) throws IOException {
-        JsonNode items = objectMapper.readTree(sharedDir.resolve(fileName).toFile());
-        if (items == null || !items.isArray()) {
-            throw new IOException(fileName + " must contain a JSON array");
-        }
-
-        double total = 0;
-        int count = 0;
-        for (JsonNode item : items) {
-            JsonNode score = item.path("financeInfluence").path("sentiment_score");
-            if (score.isNumber() && Double.isFinite(score.asDouble())) {
-                total += score.asDouble();
-                count++;
-            }
-        }
-        return count == 0 ? OptionalDouble.empty() : OptionalDouble.of(total / count);
     }
 
     @FunctionalInterface

@@ -53,6 +53,12 @@ export interface GeneralSettingsData {
   defaultQuoteCurrency: CurrencyCode;
 }
 
+/** Current news sentiment and the persisted rolling average for this calendar day. */
+export interface SentimentScore {
+  instant: number | null;
+  dailyAverage: number | null;
+}
+
 /** One stock index's captured price and percentage change on a trading date. */
 export interface MarketTrendStockPoint {
   symbol: string;

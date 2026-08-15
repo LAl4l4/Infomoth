@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Set;
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.MarketTrendDTO;
+import ReleaseBack.Back.DTO.SentimentScoreDTO;
 import ReleaseBack.Back.DTO.usStockIndexDTO;
 
 @RequiredArgsConstructor
@@ -43,7 +44,7 @@ public class DataController {
     }
 
     @GetMapping("/sentiment")
-    public ResponseEntity<Double> getSentimentScore() {
+    public ResponseEntity<SentimentScoreDTO> getSentimentScore() {
         return ResponseEntity.ok(dataService.getSentimentScore());
     }
 

@@ -1,11 +1,13 @@
 CREATE TABLE IF NOT EXISTS politics_average (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     date DATE NOT NULL UNIQUE,
-    sentimentScore DOUBLE NOT NULL
+    sentimentScore DOUBLE NOT NULL,
+    sampleCount INT NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS tech_average (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     date DATE NOT NULL UNIQUE,
-    sentimentScore DOUBLE NOT NULL
+    sentimentScore DOUBLE NOT NULL,
+    sampleCount INT NOT NULL DEFAULT 1
 );

@@ -6,7 +6,7 @@ import {
   pullSentimentScore,
   pullUsStockIndices,
 } from "../API/data";
-import type { RootState, AISkill, UsStockIndex, CurrencyCode } from "../customTypes";
+import type { RootState, AISkill, UsStockIndex, CurrencyCode, SentimentScore } from "../customTypes";
 
 interface CacheEntry<T> {
   data: T | null;
@@ -22,7 +22,7 @@ interface ExchangeRateCache {
 
 interface DataCacheState {
   aiSkills: CacheEntry<AISkill[]>;
-  sentimentScore: CacheEntry<number>;
+  sentimentScore: CacheEntry<SentimentScore>;
   currencies: CacheEntry<CurrencyCode[]>;
   exchangeRates: ExchangeRateCache;
   usStockIndices: CacheEntry<UsStockIndex[]>;
@@ -36,7 +36,7 @@ const createEntry = <T>(): CacheEntry<T> => ({
 
 const initialState: DataCacheState = {
   aiSkills: createEntry<AISkill[]>(),
-  sentimentScore: createEntry<number>(),
+  sentimentScore: createEntry<SentimentScore>(),
   currencies: createEntry<CurrencyCode[]>(),
   exchangeRates: { data: {}, loading: false, error: null },
   usStockIndices: createEntry<UsStockIndex[]>(),
@@ -53,7 +53,7 @@ export const fetchAISkills = createAsyncThunk<
 });
 
 export const fetchSentimentScore = createAsyncThunk<
-  number,
+  SentimentScore,
   void,
   { state: RootState }
 >("dataCache/fetchSentimentScore", async (_, { getState }) => {
@@ -100,7 +100,7 @@ const dataCacheSlice = createSlice({
   reducers: {
     clearDataCache(state) {
       state.aiSkills = createEntry<AISkill[]>();
-      state.sentimentScore = createEntry<number>();
+      state.sentimentScore = createEntry<SentimentScore>();
       state.currencies = createEntry<CurrencyCode[]>();
       state.exchangeRates = { data: {}, loading: false, error: null };
       state.usStockIndices = createEntry<UsStockIndex[]>();

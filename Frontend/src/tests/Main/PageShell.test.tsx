@@ -105,4 +105,117 @@ describe('PageShell', () => {
     expect(await screen.findByText('登录页')).toBeInTheDocument();
     expect(mockPullSettings).not.toHaveBeenCalled();
   });
+
+  it('switches tabs with the left and right arrow keys', async () => {
+    const { store } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '概览' });
+
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(store.getState().page.pagenum).toBe(1);
+
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(store.getState().page.pagenum).toBe(2);
+
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(store.getState().page.pagenum).toBe(1);
+  });
+
+  it('switches to the next tab on a leftwards trackpad swipe', async () => {
+    const { store, container } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '概览' });
+
+    const shell = container.querySelector('.page-shell') as HTMLElement;
+    fireEvent.wheel(shell, { deltaX: 180, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(1);
+  });
+
+  it('switches to the previous tab on a rightwards trackpad swipe', async () => {
+    mockPullSettings.mockResolvedValue({
+      defaultPage: 3,
+      defaultBaseCurrency: 'USD',
+      defaultQuoteCurrency: 'CNY',
+    });
+
+    const { store, container } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '汇率' });
+
+    const shell = container.querySelector('.page-shell') as HTMLElement;
+    fireEvent.wheel(shell, { deltaX: -180, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(2);
+  });
+
+  it('does not switch tabs on a vertical wheel scroll', async () => {
+    const { store, container } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '概览' });
+
+    const shell = container.querySelector('.page-shell') as HTMLElement;
+    fireEvent.wheel(shell, { deltaX: 0, deltaY: 100 });
+    expect(store.getState().page.pagenum).toBe(0);
+  });
+
+  it('advances several tabs on one long swipe', async () => {
+    const { store, container } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '概览' });
+
+    const shell = container.querySelector('.page-shell') as HTMLElement;
+    // 900px of accumulated horizontal distance = 5 tab steps.
+    fireEvent.wheel(shell, { deltaX: 900, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(5);
+  });
+
+  it('switches back and forth on consecutive swipes without getting stuck', async () => {
+    const { store, container } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '概览' });
+
+    const shell = container.querySelector('.page-shell') as HTMLElement;
+
+    fireEvent.wheel(shell, { deltaX: 180, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(1);
+
+    fireEvent.wheel(shell, { deltaX: -180, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(0);
+  });
+
+  it('keeps the tab while wobbling inside its interval', async () => {
+    const { store, container } = renderWithProviders(<PageShell />);
+    await screen.findByRole('tab', { name: '概览' });
+
+    const shell = container.querySelector('.page-shell') as HTMLElement;
+
+    // 2.5 units: interval (1.5, 2.5] still belongs to the second tab over.
+    fireEvent.wheel(shell, { deltaX: 450, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(2);
+
+    // Back to 1.6 units: still inside (1.5, 2.5], so the tab stays put.
+    fireEvent.wheel(shell, { deltaX: -162, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(2);
+
+    // Back to 1.4 units: crossed into (0.5, 1.5], so the tab follows.
+    fireEvent.wheel(shell, { deltaX: -36, deltaY: 0 });
+    expect(store.getState().page.pagenum).toBe(1);
+  });
+
+  it('restarts accumulation at the active tab after a pause', async () => {
+    let now = 1000;
+    const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    try {
+      const { store, container } = renderWithProviders(<PageShell />);
+      await screen.findByRole('tab', { name: '概览' });
+
+      const shell = container.querySelector('.page-shell') as HTMLElement;
+
+      // First gesture: ~0.6 units, advances one tab.
+      fireEvent.wheel(shell, { deltaX: 100, deltaY: 0 });
+      expect(store.getState().page.pagenum).toBe(1);
+
+      // After a pause, a new gesture starts at zero relative to tab 1, so the
+      // same distance advances one more tab (instead of riding the old residue).
+      now += 300;
+      fireEvent.wheel(shell, { deltaX: 100, deltaY: 0 });
+      expect(store.getState().page.pagenum).toBe(2);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
 });

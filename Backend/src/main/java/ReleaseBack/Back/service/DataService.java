@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.exchangeRateDTO;
+import ReleaseBack.Back.DTO.SentimentScoreDTO;
 import ReleaseBack.Back.DTO.usStockIndexDTO;
 import ReleaseBack.Back.config.AppConfigProvider;
 import ReleaseBack.Back.entity.SentimentAverage;
@@ -19,6 +20,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.nio.file.Path;
 import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.OptionalDouble;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,21 +30,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class DataService {
+    private static final String POLITICS_FILE = "politics_news.json";
+    private static final String TECH_FILE = "tech_news.json";
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final SentimentMapper sentimentMapper;
+    private final SentimentFileReader sentimentFileReader;
 
     private final Path sharedDir;
 
     // production Shared directory comes from Config/app-config.json
     @Autowired
-    public DataService(AppConfigProvider appConfigProvider, SentimentMapper sentimentMapper) {
-        this(appConfigProvider.getSharedDirectory(), sentimentMapper);
+    public DataService(
+            AppConfigProvider appConfigProvider,
+            SentimentMapper sentimentMapper,
+            SentimentFileReader sentimentFileReader) {
+        this(appConfigProvider.getSharedDirectory(), sentimentMapper, sentimentFileReader);
     }
 
     // only used for testing, allows injection of a custom Shared directory path
     public DataService(Path sharedDir, SentimentMapper sentimentMapper) {
+        this(sharedDir, sentimentMapper, new SentimentFileReader(new ObjectMapper()));
+    }
+
+    DataService(Path sharedDir, SentimentMapper sentimentMapper, SentimentFileReader sentimentFileReader) {
         this.sentimentMapper = sentimentMapper;
+        this.sentimentFileReader = sentimentFileReader;
         this.sharedDir = sharedDir;
     }
 
@@ -95,20 +111,46 @@ public class DataService {
         return currencies;
     }
 
-    public double getSentimentScore() {
-        SentimentAverage politics = sentimentMapper.findLatestByTable("politics_average");
-        SentimentAverage tech = sentimentMapper.findLatestByTable("tech_average");
+    public SentimentScoreDTO getSentimentScore() {
+        Double instant = averageAvailable(
+                readCurrentAverage(POLITICS_FILE),
+                readCurrentAverage(TECH_FILE));
 
-        if (politics == null && tech == null) {
-            throw new DataFileNotFoundException("No sentiment data available");
+        LocalDate today = LocalDate.now();
+        Double dailyAverage = averageAvailable(
+                scoreOf(sentimentMapper.findByDate("politics_average", today)),
+                scoreOf(sentimentMapper.findByDate("tech_average", today)));
+
+        return new SentimentScoreDTO(instant, dailyAverage);
+    }
+
+    private Double readCurrentAverage(String fileName) {
+        try {
+            OptionalDouble average = sentimentFileReader.readAverage(sharedDir.resolve(fileName));
+            return average.isPresent() ? average.getAsDouble() : null;
+        } catch (IOException e) {
+            return null;
         }
-        if (politics == null) {
-            return tech.getSentimentScore();
+    }
+
+    private Double scoreOf(SentimentAverage average) {
+        if (average == null || average.getSentimentScore() == null
+                || !Double.isFinite(average.getSentimentScore())) {
+            return null;
         }
-        if (tech == null) {
-            return politics.getSentimentScore();
+        return average.getSentimentScore();
+    }
+
+    private Double averageAvailable(Double... values) {
+        double total = 0;
+        int count = 0;
+        for (Double value : values) {
+            if (value != null && Double.isFinite(value)) {
+                total += value;
+                count++;
+            }
         }
-        return (politics.getSentimentScore() + tech.getSentimentScore()) / 2.0;
+        return count == 0 ? null : total / count;
     }
 
     public List<aiSkillDTO> getPopularAISkills() {

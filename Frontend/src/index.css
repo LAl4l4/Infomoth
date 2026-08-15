@@ -1,9 +1,12 @@
 html {
   background: #0C101C;
+  /* Disable the browser's swipe-to-go-back/forward navigation gesture. */
+  overscroll-behavior-x: none;
 }
 
 body {
   margin: 0;
+  overscroll-behavior-x: none;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

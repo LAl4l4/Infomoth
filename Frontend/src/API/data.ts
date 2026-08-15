@@ -4,6 +4,7 @@ import type {
   UsStockIndex,
   CurrencyCode,
   MarketTrendData,
+  SentimentScore,
 } from "../customTypes";
 
 export async function pullCurrencies(): Promise<CurrencyCode[]> {
@@ -33,12 +34,14 @@ export async function pullPopularAISkills(): Promise<AISkill[]> {
   return res.data as AISkill[];
 }
 
-export async function pullSentimentScore(): Promise<number> {
+export async function pullSentimentScore(): Promise<SentimentScore> {
   const res = await instance.get("/data/sentiment");
-  if (typeof res.data !== "number") {
+  const validScore = (value: unknown) => value === null
+    || (typeof value === "number" && Number.isFinite(value));
+  if (!res.data || !validScore(res.data.instant) || !validScore(res.data.dailyAverage)) {
     throw new Error("Invalid sentiment response");
   }
-  return res.data;
+  return res.data as SentimentScore;
 }
 
 export async function pullUsStockIndices(): Promise<UsStockIndex[]> {

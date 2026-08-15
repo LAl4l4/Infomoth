@@ -10,4 +10,5 @@ public class SentimentAverage {
     private Integer id;
     private LocalDate date;
     private Double sentimentScore;
+    private Integer sampleCount;
 }
