@@ -99,7 +99,7 @@ class DataControllerTest {
     @Test
     void getMarketTrendsShouldReturnServiceValue() {
         MarketTrendDTO expected = new MarketTrendDTO(List.of(), List.of());
-        when(marketTrendService.getLastSevenDays()).thenReturn(expected);
+        when(marketTrendService.getMarketTrends()).thenReturn(expected);
 
         ResponseEntity<MarketTrendDTO> response = dataController.getMarketTrends();
 

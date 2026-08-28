@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react';
-import MarketTrendTab from '../../Main/Contents/MarketTrendTab';
+import MarketTrendTab, { getStockChangePercents } from '../../Main/Contents/MarketTrendTab';
 import { renderWithProviders } from '../testUtils';
 import { pullMarketTrends } from '../../API/data';
+import type { MarketTrendPoint } from '../../customTypes';
 
 jest.mock('../../API/data', () => ({
   pullMarketTrends: jest.fn(),
@@ -44,11 +45,28 @@ beforeEach(() => {
 });
 
 describe('MarketTrendTab', () => {
+  it('uses Yahoo daily change percentages instead of normalizing prices from the first point', () => {
+    const points: MarketTrendPoint[] = [
+      {
+        date: '2026-08-07',
+        sentiment: null,
+        stocks: [{ symbol: '^GSPC', name: 'S&P 500', price: 100, changePercent: 1.25 }],
+      },
+      {
+        date: '2026-08-10',
+        sentiment: null,
+        stocks: [{ symbol: '^GSPC', name: 'S&P 500', price: 110, changePercent: -0.5 }],
+      },
+    ];
+
+    expect(getStockChangePercents(points, '^GSPC')).toEqual([1.25, -0.5]);
+  });
+
   it('shows the seven-day chart and calculated correlation', async () => {
     const { container } = renderWithProviders(<MarketTrendTab />);
 
     expect(await screen.findByText('7日市场走势')).toBeInTheDocument();
-    expect(screen.getByText(/Crawler 抓取并持久化的交易日涨跌幅/)).toBeInTheDocument();
+    expect(screen.getByText(/Yahoo Finance 抓取的美股每日涨跌幅/)).toBeInTheDocument();
     expect(await screen.findByText('市场情绪 × 10')).toBeInTheDocument();
     expect(await screen.findByText('corr = 1.0000')).toBeInTheDocument();
     expect(screen.getByText('^GSPC · 3 个交易日样本')).toBeInTheDocument();

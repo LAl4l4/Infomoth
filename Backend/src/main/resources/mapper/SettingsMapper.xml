@@ -22,6 +22,16 @@
         WHERE user_id = #{userId}
     </select>
 
+    <select id="findDisplaySettingsByUserId" resultType="ReleaseBack.Back.DTO.DisplaySettingsDTO">
+        SELECT
+            background_color AS backgroundColor,
+            globe_glow_color AS globeGlowColor,
+            globe_point_color AS globePointColor,
+            globe_marker_color AS globeMarkerColor
+        FROM user_settings
+        WHERE user_id = #{userId}
+    </select>
+
     <insert id="insertDefaultPage">
         INSERT INTO user_settings (user_id, default_page)
         VALUES (#{userId}, #{defaultPage})
@@ -51,6 +61,32 @@
     <update id="updateDefaultQuoteCurrency">
         UPDATE user_settings
         SET default_quote_currency = #{defaultQuoteCurrency}
+        WHERE user_id = #{userId}
+    </update>
+
+    <insert id="insertDisplaySettings">
+        INSERT INTO user_settings (
+            user_id,
+            background_color,
+            globe_glow_color,
+            globe_point_color,
+            globe_marker_color
+        )
+        VALUES (
+            #{userId},
+            #{backgroundColor},
+            #{globeGlowColor},
+            #{globePointColor},
+            #{globeMarkerColor}
+        )
+    </insert>
+
+    <update id="updateDisplaySettings">
+        UPDATE user_settings
+        SET background_color = #{backgroundColor},
+            globe_glow_color = #{globeGlowColor},
+            globe_point_color = #{globePointColor},
+            globe_marker_color = #{globeMarkerColor}
         WHERE user_id = #{userId}
     </update>
 </mapper>

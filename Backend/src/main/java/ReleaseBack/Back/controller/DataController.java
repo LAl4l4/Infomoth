@@ -55,6 +55,6 @@ public class DataController {
 
     @GetMapping("/market-trends")
     public ResponseEntity<MarketTrendDTO> getMarketTrends() {
-        return ResponseEntity.ok(marketTrendService.getLastSevenDays());
+        return ResponseEntity.ok(marketTrendService.getMarketTrends());
     }
 }

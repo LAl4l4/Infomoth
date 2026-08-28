@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 public class SentimentPersistenceScheduler {
     private final SentimentPersistenceService sentimentPersistenceService;
     private final UsStockPersistenceService usStockPersistenceService;
+    private final MarketTrendService marketTrendService;
 
     @Scheduled(
             initialDelayString = "${sentiment.persistence.initial-delay-ms}",
@@ -19,5 +20,10 @@ public class SentimentPersistenceScheduler {
     public void persistSentimentAverages() {
         sentimentPersistenceService.persistTodayAverages();
         usStockPersistenceService.persistTradingDayChanges();
+    }
+
+    @Scheduled(cron = "${market.correlation.cron}")
+    public void updateCorrelations() {
+        marketTrendService.rollingUpdateCorrelation();
     }
 }

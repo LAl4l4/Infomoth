@@ -25,6 +25,18 @@ class SchemaInitializationTest {
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM user", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM profiles", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM user_settings", Integer.class));
+        assertEquals(4, jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'USER_SETTINGS'
+                  AND COLUMN_NAME IN (
+                    'BACKGROUND_COLOR',
+                    'GLOBE_GLOW_COLOR',
+                    'GLOBE_POINT_COLOR',
+                    'GLOBE_MARKER_COLOR'
+                  )
+                """,
+                Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM politics_average", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM tech_average", Integer.class));
         assertEquals(2, jdbcTemplate.queryForObject(
@@ -35,6 +47,14 @@ class SchemaInitializationTest {
                 """,
                 Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM us_stock_indices", Integer.class));
+        assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM market_correlation", Integer.class));
+        assertEquals(1, jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'MARKET_CORRELATION'
+                  AND COLUMN_NAME = 'SAMPLE_SIZE'
+                """,
+                Integer.class));
         assertEquals(8, jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS

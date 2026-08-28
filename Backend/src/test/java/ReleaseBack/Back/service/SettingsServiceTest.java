@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import ReleaseBack.Back.DTO.DisplaySettingsDTO;
 import ReleaseBack.Back.exception.BaseException;
 import ReleaseBack.Back.mapper.SettingsMapper;
 
@@ -81,6 +82,47 @@ class SettingsServiceTest {
         BaseException exception = assertThrows(
                 BaseException.class,
                 () -> settingsService.updateSettings(7, 0, "US", "CNY"));
+
+        assertEquals(400, exception.getCode());
+        verifyNoInteractions(settingsMapper);
+    }
+
+    @Test
+    void getDisplaySettingsShouldReturnCurrentVisualDefaultsWhenNoSettingExists() {
+        when(settingsMapper.findDisplaySettingsByUserId(7)).thenReturn(null);
+
+        DisplaySettingsDTO result = settingsService.getDisplaySettings(7);
+
+        assertEquals("#0C101C", result.getBackgroundColor());
+        assertEquals("#00FFC6", result.getGlobeGlowColor());
+        assertEquals("#FFFFFF", result.getGlobePointColor());
+        assertEquals("#00E5FF", result.getGlobeMarkerColor());
+    }
+
+    @Test
+    void updateDisplaySettingsShouldNormalizeAndInsertColors() {
+        when(settingsMapper.findDefaultPageByUserId(7)).thenReturn(null);
+
+        DisplaySettingsDTO result = settingsService.updateDisplaySettings(
+                7,
+                new DisplaySettingsDTO("#112233", "#aabbcc", "#445566", "#ddeeff"));
+
+        assertEquals("#AABBCC", result.getGlobeGlowColor());
+        verify(settingsMapper).insertDisplaySettings(
+                7,
+                "#112233",
+                "#AABBCC",
+                "#445566",
+                "#DDEEFF");
+    }
+
+    @Test
+    void updateDisplaySettingsShouldRejectInvalidHexColors() {
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> settingsService.updateDisplaySettings(
+                        7,
+                        new DisplaySettingsDTO("navy", "#00FFC6", "#FFFFFF", "#00E5FF")));
 
         assertEquals(400, exception.getCode());
         verifyNoInteractions(settingsMapper);

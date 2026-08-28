@@ -1,3 +1,3 @@
--- New installations receive both currency columns from 03-user-settings.sql.
+-- New installations receive all preference columns from 03-user-settings.sql.
 -- Existing installations are migrated by UserSettingsSchemaMigration, which
 -- checks JDBC metadata before issuing each database-portable ALTER TABLE.

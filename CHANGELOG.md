@@ -1,5 +1,14 @@
 # Changelog
 
+- `08/29/2026`:
+    - Added per-account Display settings for the main background, globe glow, globe point grid, and city marker colors, with live preview, explicit save status, and a persisted Restore Default action.
+    - Added JWT-protected `GET /settings/display` and `PUT /settings/display` endpoints, `#RRGGBB` validation, portable MyBatis persistence, and additive MySQL/H2 migration of the four display columns in `user_settings`.
+    - Updated the home shell to load the saved palette and apply it to the page background and cobe renderer; kept the original dark background, green glow, white point grid, and cyan markers as shared defaults.
+    - Moved market-trend Pearson correlations out of request-time calculation into the persisted `market_correlation` cache, with application-start warm-up, nightly completed-day recomputation, concurrent-insert recovery, and full-history samples.
+    - Changed market-trend stock lines to plot Yahoo Finance's captured daily percentage changes directly instead of normalizing prices against the first visible point, while retaining weekend gap bridging and labels.
+    - Made Backend/Frontend build bases and the deployed MySQL image use the same configurable `IMAGE_PREFIX`, defaulting to `docker.1ms.run/library` to avoid unexpected Docker Hub fallbacks.
+    - Added frontend interaction/build coverage plus H2, MySQL 8, mapper, service, controller, schema, and authenticated end-to-end regression coverage for display preferences and persisted correlation data.
+
 - `08/15/2026`:
     - Split `/data/sentiment` into the current news `instant` score and the current day's persisted `dailyAverage`, with null-safe handling when either source is unavailable.
     - Changed daily sentiment persistence to a same-day, sample-count-weighted rolling average; added the additive `sampleCount` schema migration and regression coverage for date rollover and legacy tables.

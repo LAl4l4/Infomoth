@@ -12,6 +12,8 @@ import ReleaseBack.Back.entity.UsStockIndexRecord;
 public interface UsStockIndexMapper {
     List<UsStockIndexRecord> findSince(@Param("fromDate") LocalDate fromDate);
 
+    List<UsStockIndexRecord> findAll();
+
     int updateDailyChange(@Param("snapshot") UsStockIndexRecord snapshot);
 
     int insertDailyChange(@Param("snapshot") UsStockIndexRecord snapshot);

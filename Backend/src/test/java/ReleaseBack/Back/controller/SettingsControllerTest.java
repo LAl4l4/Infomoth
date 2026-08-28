@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import ReleaseBack.Back.DTO.DisplaySettingsDTO;
 import ReleaseBack.Back.DTO.SettingsDTO;
 import ReleaseBack.Back.service.SettingsService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,5 +71,27 @@ class SettingsControllerTest {
         assertEquals("EUR", result.getDefaultBaseCurrency());
         assertEquals("AUD", result.getDefaultQuoteCurrency());
         verify(settingsService).updateSettings(12, 2, "EUR", "AUD");
+    }
+
+    @Test
+    void getDisplaySettingsShouldUseAuthenticatedUserId() {
+        when(request.getAttribute("userId")).thenReturn(12);
+        DisplaySettingsDTO expected = new DisplaySettingsDTO(
+                "#0C101C", "#00FFC6", "#FFFFFF", "#00E5FF");
+        when(settingsService.getDisplaySettings(12)).thenReturn(expected);
+
+        assertEquals(expected, settingsController.getDisplaySettings(request));
+        verify(settingsService).getDisplaySettings(12);
+    }
+
+    @Test
+    void updateDisplaySettingsShouldPersistForAuthenticatedUser() {
+        when(request.getAttribute("userId")).thenReturn(12);
+        DisplaySettingsDTO requestBody = new DisplaySettingsDTO(
+                "#112233", "#445566", "#778899", "#AABBCC");
+        when(settingsService.updateDisplaySettings(12, requestBody)).thenReturn(requestBody);
+
+        assertEquals(requestBody, settingsController.updateDisplaySettings(requestBody, request));
+        verify(settingsService).updateDisplaySettings(12, requestBody);
     }
 }

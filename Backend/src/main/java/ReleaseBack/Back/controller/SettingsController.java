@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ReleaseBack.Back.DTO.DisplaySettingsDTO;
 import ReleaseBack.Back.DTO.SettingsDTO;
 import ReleaseBack.Back.service.SettingsService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,5 +48,19 @@ public class SettingsController {
                 settingsDTO.getDefaultPage(),
                 settingsDTO.getDefaultBaseCurrency(),
                 settingsDTO.getDefaultQuoteCurrency());
+    }
+
+    @GetMapping("/display")
+    public DisplaySettingsDTO getDisplaySettings(HttpServletRequest request) {
+        Integer userId = (Integer) request.getAttribute("userId");
+        return settingsService.getDisplaySettings(userId);
+    }
+
+    @PutMapping("/display")
+    public DisplaySettingsDTO updateDisplaySettings(
+            @RequestBody DisplaySettingsDTO displaySettingsDTO,
+            HttpServletRequest request) {
+        Integer userId = (Integer) request.getAttribute("userId");
+        return settingsService.updateDisplaySettings(userId, displaySettingsDTO);
     }
 }

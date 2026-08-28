@@ -6,6 +6,8 @@ services:
       context: ./Frontend
       platforms:
         - linux/amd64
+      args:
+        IMAGE_PREFIX: ${IMAGE_PREFIX:-docker.1ms.run/library}
     ports:
       - "127.0.0.1:8081:80"
     volumes:
@@ -20,6 +22,8 @@ services:
       context: ./Backend
       platforms:
         - linux/amd64
+      args:
+        IMAGE_PREFIX: ${IMAGE_PREFIX:-docker.1ms.run/library}
     environment:
       - JAVA_OPTS=-Xmx384m -Xms256m
       - SENTIMENT_PERSISTENCE_ENABLED=true
@@ -33,7 +37,7 @@ services:
     restart: unless-stopped
 
   mysql:
-    image: mysql:8.0
+    image: ${IMAGE_PREFIX:-docker.1ms.run/library}/mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes

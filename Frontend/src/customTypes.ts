@@ -53,6 +53,14 @@ export interface GeneralSettingsData {
   defaultQuoteCurrency: CurrencyCode;
 }
 
+/** Per-user colors for the main shell and interactive globe. */
+export interface DisplaySettingsData {
+  backgroundColor: string;
+  globeGlowColor: string;
+  globePointColor: string;
+  globeMarkerColor: string;
+}
+
 /** Current news sentiment and the persisted rolling average for this calendar day. */
 export interface SentimentScore {
   instant: number | null;

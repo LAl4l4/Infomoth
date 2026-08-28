@@ -17,14 +17,11 @@ interface ChartSeries {
   values: Array<number | null>;
 }
 
-function normalizeStockPrices(points: MarketTrendPoint[], symbol: string): Array<number | null> {
-  const prices = points.map((point) => {
+export function getStockChangePercents(points: MarketTrendPoint[], symbol: string): Array<number | null> {
+  return points.map((point) => {
     const stock = point.stocks.find((item) => item.symbol === symbol);
-    return stock?.price ?? null;
+    return stock?.changePercent ?? null;
   });
-  const firstPrice = prices.find((price): price is number => price !== null && Number.isFinite(price));
-  if (firstPrice === undefined || firstPrice === 0) return prices;
-  return prices.map((price) => (price === null ? null : ((price / firstPrice) - 1) * 100));
 }
 
 function isWeekend(date: string): boolean {
@@ -81,7 +78,7 @@ function TrendChart({ points, series }: { points: MarketTrendPoint[]; series: Ch
         className="trend-chart"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
         role="img"
-        aria-label="近七日市场情绪与美股走势"
+        aria-label="近七日市场情绪与美股每日涨跌幅"
       >
         {gridValues.map((value, index) => {
           const y = PLOT_TOP + plotHeight - (index / 4) * plotHeight;
@@ -173,7 +170,7 @@ export default function MarketTrendTab() {
       key: symbol,
       label: name || symbol,
       color: stockColors[index % stockColors.length],
-      values: normalizeStockPrices(data.points, symbol),
+      values: getStockChangePercents(data.points, symbol),
     }));
 
     return [
@@ -192,7 +189,7 @@ export default function MarketTrendTab() {
       <p className="eyebrow">Market Trend</p>
       <h2 className="panel-title">7日市场走势</h2>
       <p className="panel-lead">
-        对比近 7 个自然日的市场情绪与美股价格走势；corr 直接使用 Crawler 抓取并持久化的交易日涨跌幅。周末不生成行情点，曲线连接前后交易日。
+        对比近 7 个自然日的市场情绪与 Yahoo Finance 抓取的美股每日涨跌幅；corr 直接使用 Crawler 抓取并持久化的交易日涨跌幅。周末不生成行情点，曲线连接前后交易日。
       </p>
 
       {loading && <p className="state-text">加载中…</p>}

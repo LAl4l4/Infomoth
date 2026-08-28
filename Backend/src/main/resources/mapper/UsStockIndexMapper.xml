@@ -21,6 +21,22 @@
         ORDER BY date ASC
     </select>
 
+    <select id="findAll" resultType="ReleaseBack.Back.entity.UsStockIndexRecord">
+        SELECT
+            ID as id,
+            date,
+            sp500_price as sp500Price,
+            sp500_change_percent as sp500ChangePercent,
+            dow_jones_price as dowJonesPrice,
+            dow_jones_change_percent as dowJonesChangePercent,
+            nasdaq_price as nasdaqPrice,
+            nasdaq_change_percent as nasdaqChangePercent,
+            russell_2000_price as russell2000Price,
+            russell_2000_change_percent as russell2000ChangePercent
+        FROM us_stock_indices
+        ORDER BY date ASC
+    </select>
+
     <update id="updateDailyChange">
         UPDATE us_stock_indices
         SET sp500_price = #{snapshot.sp500Price},

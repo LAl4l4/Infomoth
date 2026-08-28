@@ -25,6 +25,12 @@
         ORDER BY date ASC, ID ASC
     </select>
 
+    <select id="findAllByTable" resultType="ReleaseBack.Back.entity.SentimentAverage">
+        SELECT ID as id, date, sentimentScore, sampleCount
+        FROM ${table}
+        ORDER BY date ASC, ID ASC
+    </select>
+
     <insert id="insertPoliticsAverage">
         INSERT INTO politics_average (date, sentimentScore)
         VALUES (#{date}, #{sentimentScore})

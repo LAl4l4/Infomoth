@@ -21,6 +21,8 @@ public interface SentimentMapper {
             @Param("table") String table,
             @Param("fromDate") LocalDate fromDate);
 
+    List<SentimentAverage> findAllByTable(@Param("table") String table);
+
     int insertPoliticsAverage(@Param("date") LocalDate date, @Param("sentimentScore") double sentimentScore);
 
     int accumulatePoliticsAverage(@Param("date") LocalDate date, @Param("sentimentScore") double sentimentScore);

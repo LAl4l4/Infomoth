@@ -1,13 +1,25 @@
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import PageShell from '../../Main/PageShell/PageShell';
 import { renderWithProviders } from '../testUtils';
-import { pullGeneralSettings } from '../../API/settings';
+import { pullDisplaySettings, pullGeneralSettings } from '../../API/settings';
+import { DEFAULT_DISPLAY_SETTINGS } from '../../displaySettings';
 import { checkSession } from '../../API/auth';
 
 jest.mock('../../Main/BackgroundGlobe/Globe', () => ({
   __esModule: true,
-  default: () => <div data-testid="globe-stub" />,
+  default: ({ config }: { config?: {
+    baseColor?: number[];
+    glowColor?: number[];
+    markerColor?: number[];
+  } }) => (
+    <div
+      data-testid="globe-stub"
+      data-point-color={config?.baseColor?.join(',')}
+      data-glow-color={config?.glowColor?.join(',')}
+      data-marker-color={config?.markerColor?.join(',')}
+    />
+  ),
 }));
 
 jest.mock('../../API/data', () => ({
@@ -22,6 +34,8 @@ jest.mock('../../API/data', () => ({
 jest.mock('../../API/settings', () => ({
   pullGeneralSettings: jest.fn(),
   updateGeneralSettings: jest.fn(),
+  pullDisplaySettings: jest.fn(),
+  updateDisplaySettings: jest.fn(),
 }));
 
 jest.mock('../../API/auth', () => ({
@@ -31,6 +45,7 @@ jest.mock('../../API/auth', () => ({
 }));
 
 const mockPullSettings = pullGeneralSettings as jest.Mock;
+const mockPullDisplay = pullDisplaySettings as jest.Mock;
 const mockCheckSession = checkSession as jest.Mock;
 
 beforeEach(() => {
@@ -41,6 +56,7 @@ beforeEach(() => {
     defaultBaseCurrency: 'USD',
     defaultQuoteCurrency: 'CNY',
   });
+  mockPullDisplay.mockResolvedValue(DEFAULT_DISPLAY_SETTINGS);
 });
 
 describe('PageShell', () => {
@@ -81,6 +97,24 @@ describe('PageShell', () => {
 
     expect(await screen.findByText('AI 热门技能榜')).toBeInTheDocument();
     expect(store.getState().page.pagenum).toBe(2);
+  });
+
+  it('applies the saved background and globe colors', async () => {
+    mockPullDisplay.mockResolvedValue({
+      backgroundColor: '#112233',
+      globeGlowColor: '#0000FF',
+      globePointColor: '#FF0000',
+      globeMarkerColor: '#00FF00',
+    });
+
+    const { container } = renderWithProviders(<PageShell />);
+
+    await waitFor(() => expect(container.querySelector('.page-shell')).toHaveStyle({
+      backgroundColor: '#112233',
+    }));
+    expect(screen.getByTestId('globe-stub')).toHaveAttribute('data-point-color', '1,0,0');
+    expect(screen.getByTestId('globe-stub')).toHaveAttribute('data-glow-color', '0,0,1');
+    expect(screen.getByTestId('globe-stub')).toHaveAttribute('data-marker-color', '0,1,0');
   });
 
   it('keeps the overview tab when settings fail to load', async () => {

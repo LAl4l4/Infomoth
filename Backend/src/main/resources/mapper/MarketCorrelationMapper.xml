@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ReleaseBack.Back.mapper.MarketCorrelationMapper">
+
+    <select id="findAll" resultType="ReleaseBack.Back.entity.MarketCorrelation">
+        SELECT symbol, name, corr, sample_size AS sampleSize
+        FROM market_correlation
+        ORDER BY symbol ASC
+    </select>
+
+    <update id="updateCorrelation">
+        UPDATE market_correlation
+        SET name = #{correlation.name},
+            corr = #{correlation.corr},
+            sample_size = #{correlation.sampleSize}
+        WHERE symbol = #{correlation.symbol}
+    </update>
+
+    <insert id="insertCorrelation">
+        INSERT INTO market_correlation (symbol, name, corr, sample_size)
+        VALUES (#{correlation.symbol}, #{correlation.name}, #{correlation.corr}, #{correlation.sampleSize})
+    </insert>
+
+</mapper>

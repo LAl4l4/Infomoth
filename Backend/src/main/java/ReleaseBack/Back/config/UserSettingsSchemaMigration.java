@@ -14,8 +14,8 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
- * Adds currency columns to user_settings databases created before the
- * two-sided exchange preference was introduced.
+ * Adds preference columns to user_settings databases created before newer
+ * general or display settings were introduced.
  */
 @Component
 @DependsOn("dataSourceScriptDatabaseInitializer")
@@ -43,6 +43,22 @@ public class UserSettingsSchemaMigration implements InitializingBean {
                     connection,
                     "default_quote_currency",
                     "VARCHAR(10) NOT NULL DEFAULT 'CNY'");
+            addColumnIfMissing(
+                    connection,
+                    "background_color",
+                    "VARCHAR(7) NOT NULL DEFAULT '#0C101C'");
+            addColumnIfMissing(
+                    connection,
+                    "globe_glow_color",
+                    "VARCHAR(7) NOT NULL DEFAULT '#00FFC6'");
+            addColumnIfMissing(
+                    connection,
+                    "globe_point_color",
+                    "VARCHAR(7) NOT NULL DEFAULT '#FFFFFF'");
+            addColumnIfMissing(
+                    connection,
+                    "globe_marker_color",
+                    "VARCHAR(7) NOT NULL DEFAULT '#00E5FF'");
         }
     }
 

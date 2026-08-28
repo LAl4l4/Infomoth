@@ -11,6 +11,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
+import ReleaseBack.Back.DTO.DisplaySettingsDTO;
+
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @TestPropertySource(properties = {
@@ -36,7 +38,11 @@ class SettingsMapperTest {
                     user_id INT PRIMARY KEY,
                     default_page TINYINT NOT NULL DEFAULT 0,
                     default_base_currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-                    default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY'
+                    default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY',
+                    background_color VARCHAR(7) NOT NULL DEFAULT '#0C101C',
+                    globe_glow_color VARCHAR(7) NOT NULL DEFAULT '#00FFC6',
+                    globe_point_color VARCHAR(7) NOT NULL DEFAULT '#FFFFFF',
+                    globe_marker_color VARCHAR(7) NOT NULL DEFAULT '#00E5FF'
                 )
                 """
         );
@@ -66,5 +72,20 @@ class SettingsMapperTest {
 
         assertEquals("USD", settingsMapper.findDefaultBaseCurrencyByUserId(9));
         assertEquals("CNY", settingsMapper.findDefaultQuoteCurrencyByUserId(9));
+    }
+
+    @Test
+    void displayColorsShouldInsertUpdateAndReadByUserId() {
+        assertNull(settingsMapper.findDisplaySettingsByUserId(9));
+
+        settingsMapper.insertDisplaySettings(9, "#112233", "#445566", "#778899", "#AABBCC");
+        DisplaySettingsDTO inserted = settingsMapper.findDisplaySettingsByUserId(9);
+        assertEquals("#112233", inserted.getBackgroundColor());
+        assertEquals("#445566", inserted.getGlobeGlowColor());
+
+        settingsMapper.updateDisplaySettings(9, "#010203", "#040506", "#070809", "#0A0B0C");
+        DisplaySettingsDTO updated = settingsMapper.findDisplaySettingsByUserId(9);
+        assertEquals("#070809", updated.getGlobePointColor());
+        assertEquals("#0A0B0C", updated.getGlobeMarkerColor());
     }
 }

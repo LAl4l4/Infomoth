@@ -32,7 +32,8 @@ class Mysql8SchemaIntegrationTest {
             "02-profiles.sql",
             "03-user-settings.sql",
             "04-sentiment-average.sql",
-            "05-us-stock-indices.sql");
+            "05-us-stock-indices.sql",
+            "07-market-correlation.sql");
 
     @Container
     @SuppressWarnings("resource") // The JUnit Testcontainers extension stops this container.
@@ -55,7 +56,9 @@ class Mysql8SchemaIntegrationTest {
         assertEquals(0, rowCount(jdbcTemplate, "politics_average"));
         assertEquals(0, rowCount(jdbcTemplate, "tech_average"));
         assertEquals(0, rowCount(jdbcTemplate, "us_stock_indices"));
+        assertEquals(0, rowCount(jdbcTemplate, "market_correlation"));
         assertEquals(2, currencyColumnCount(jdbcTemplate));
+        assertEquals(4, displayColumnCount(jdbcTemplate));
         assertEquals(2, sentimentSampleColumnCount(jdbcTemplate));
         assertEquals(8, dailyMarketColumnCount(jdbcTemplate));
 
@@ -77,6 +80,7 @@ class Mysql8SchemaIntegrationTest {
         migration.migrate();
 
         assertEquals(2, currencyColumnCount(jdbcTemplate));
+        assertEquals(4, displayColumnCount(jdbcTemplate));
     }
 
     @Test
@@ -183,6 +187,22 @@ class Mysql8SchemaIntegrationTest {
                 WHERE table_schema = DATABASE()
                     AND table_name = 'user_settings'
                     AND column_name IN ('default_base_currency', 'default_quote_currency')
+                """,
+                Integer.class));
+    }
+
+    private int displayColumnCount(JdbcTemplate jdbcTemplate) {
+        return requiredInteger(jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_schema = DATABASE()
+                    AND table_name = 'user_settings'
+                    AND column_name IN (
+                        'background_color',
+                        'globe_glow_color',
+                        'globe_point_color',
+                        'globe_marker_color'
+                    )
                 """,
                 Integer.class));
     }

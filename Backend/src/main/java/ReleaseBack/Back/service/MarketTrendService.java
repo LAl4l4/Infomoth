@@ -6,15 +6,23 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.springframework.stereotype.Service;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.annotation.Transactional;
 
 import ReleaseBack.Back.DTO.MarketCorrelationDTO;
 import ReleaseBack.Back.DTO.MarketTrendDTO;
 import ReleaseBack.Back.DTO.MarketTrendPointDTO;
 import ReleaseBack.Back.DTO.MarketTrendStockPointDTO;
+import ReleaseBack.Back.entity.MarketCorrelation;
 import ReleaseBack.Back.entity.SentimentAverage;
 import ReleaseBack.Back.entity.UsStockIndexRecord;
+import ReleaseBack.Back.mapper.MarketCorrelationMapper;
 import ReleaseBack.Back.mapper.SentimentMapper;
 import ReleaseBack.Back.mapper.UsStockIndexMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +35,53 @@ public class MarketTrendService {
 
     private final SentimentMapper sentimentMapper;
     private final UsStockIndexMapper stockIndexMapper;
+    private final MarketCorrelationMapper correlationMapper;
 
-    public MarketTrendDTO getLastSevenDays() {
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
+    public void initializeCorrelations() {
+        if (safeList(correlationMapper.findAll()).isEmpty()) {
+            rollingUpdateCorrelation();
+        }
+    }
+
+    // Recomputes Pearson correlations over completed persisted days and upserts
+    // one row per symbol into market_correlation. The daily scheduler keeps
+    // request-time reads independent from the size of the historical dataset.
+    @Transactional
+    public void rollingUpdateCorrelation() {
+        Map<LocalDate, List<Double>> sentimentByDate = new LinkedHashMap<>();
+        addSentiments(sentimentByDate, sentimentMapper.findAllByTable(POLITICS_TABLE));
+        addSentiments(sentimentByDate, sentimentMapper.findAllByTable(TECH_TABLE));
+
+        Map<LocalDate, UsStockIndexRecord> stocksByDate = new LinkedHashMap<>();
+        for (UsStockIndexRecord stock : safeList(stockIndexMapper.findAll())) {
+            if (stock != null && stock.getDate() != null) {
+                stocksByDate.put(stock.getDate(), stock);
+            }
+        }
+
+        List<MarketTrendPointDTO> points = buildPoints(
+                sentimentByDate,
+                stocksByDate,
+                LocalDate.now().minusDays(1));
+        for (MarketCorrelationDTO correlation : calculateCorrelations(points)) {
+            MarketCorrelation record = new MarketCorrelation();
+            record.setSymbol(correlation.getSymbol());
+            record.setName(correlation.getName());
+            record.setCorr(correlation.getCorr());
+            record.setSampleSize(correlation.getSampleSize());
+            if (correlationMapper.updateCorrelation(record) == 0) {
+                try {
+                    correlationMapper.insertCorrelation(record);
+                } catch (DuplicateKeyException ignored) {
+                    correlationMapper.updateCorrelation(record);
+                }
+            }
+        }
+    }
+
+    public MarketTrendDTO getMarketTrends() {
         LocalDate today = LocalDate.now();
         LocalDate fromDate = today.minusDays(6);
 
@@ -53,7 +106,42 @@ public class MarketTrendService {
             date = date.plusDays(1);
         }
 
-        return new MarketTrendDTO(points, calculateCorrelations(points));
+        return new MarketTrendDTO(points, findPersistedCorrelations());
+    }
+
+    private List<MarketTrendPointDTO> buildPoints(
+            Map<LocalDate, List<Double>> sentimentByDate,
+            Map<LocalDate, UsStockIndexRecord> stocksByDate,
+            LocalDate throughDate) {
+        Set<LocalDate> dates = new TreeSet<>();
+        dates.addAll(sentimentByDate.keySet());
+        dates.addAll(stocksByDate.keySet());
+
+        List<MarketTrendPointDTO> points = new ArrayList<>();
+        for (LocalDate date : dates) {
+            if (date.isAfter(throughDate)) {
+                continue;
+            }
+            List<Double> sentiments = sentimentByDate.getOrDefault(date, Collections.emptyList());
+            Double sentiment = sentiments.isEmpty() ? null : average(sentiments);
+            points.add(new MarketTrendPointDTO(date, sentiment, toStockPoints(stocksByDate.get(date))));
+        }
+        return points;
+    }
+
+    private List<MarketCorrelationDTO> findPersistedCorrelations() {
+        List<MarketCorrelationDTO> correlations = new ArrayList<>();
+        for (MarketCorrelation record : safeList(correlationMapper.findAll())) {
+            if (record == null || record.getSymbol() == null) {
+                continue;
+            }
+            correlations.add(new MarketCorrelationDTO(
+                    record.getSymbol(),
+                    record.getName(),
+                    record.getCorr(),
+                    record.getSampleSize()));
+        }
+        return correlations;
     }
 
     private void addSentiments(

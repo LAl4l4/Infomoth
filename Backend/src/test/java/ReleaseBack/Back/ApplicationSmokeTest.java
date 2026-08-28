@@ -27,8 +27,9 @@ import org.springframework.test.context.TestPropertySource;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ReleaseBack.Back.DTO.exchangeRateDTO;
+import ReleaseBack.Back.DTO.DisplaySettingsDTO;
 import ReleaseBack.Back.DTO.SettingsDTO;
+import ReleaseBack.Back.DTO.exchangeRateDTO;
 import ReleaseBack.Back.VO.TokenVO;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -82,7 +83,11 @@ class ApplicationSmokeTest {
                     user_id INT PRIMARY KEY,
                     default_page TINYINT NOT NULL DEFAULT 0,
                     default_base_currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-                    default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY'
+                    default_quote_currency VARCHAR(10) NOT NULL DEFAULT 'CNY',
+                    background_color VARCHAR(7) NOT NULL DEFAULT '#0C101C',
+                    globe_glow_color VARCHAR(7) NOT NULL DEFAULT '#00FFC6',
+                    globe_point_color VARCHAR(7) NOT NULL DEFAULT '#FFFFFF',
+                    globe_marker_color VARCHAR(7) NOT NULL DEFAULT '#00E5FF'
                 )
                 """
         );
@@ -193,6 +198,46 @@ class ApplicationSmokeTest {
             throw new AssertionError("Persisted settings response body is null");
         }
         assertEquals(4, persistedBody.getDefaultPage());
+    }
+
+    @Test
+    void smokeDisplaySettingsPersistence() {
+        String authCookie = registerAndLogin("display-user", "display-pass");
+        HttpHeaders headers = new HttpHeaders();
+        assertNotNull(authCookie);
+        headers.add(HttpHeaders.COOKIE, authCookie);
+
+        ResponseEntity<DisplaySettingsDTO> initialResponse = restTemplate.exchange(
+                "/settings/display",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                DisplaySettingsDTO.class);
+
+        assertEquals(HttpStatus.OK, initialResponse.getStatusCode());
+        assertNotNull(initialResponse.getBody());
+        assertEquals("#0C101C", initialResponse.getBody().getBackgroundColor());
+
+        DisplaySettingsDTO custom = new DisplaySettingsDTO(
+                "#112233", "#445566", "#778899", "#AABBCC");
+        ResponseEntity<DisplaySettingsDTO> updateResponse = restTemplate.exchange(
+                "/settings/display",
+                HttpMethod.PUT,
+                new HttpEntity<>(custom, headers),
+                DisplaySettingsDTO.class);
+
+        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
+        assertNotNull(updateResponse.getBody());
+        assertEquals("#AABBCC", updateResponse.getBody().getGlobeMarkerColor());
+
+        ResponseEntity<DisplaySettingsDTO> persistedResponse = restTemplate.exchange(
+                "/settings/display",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                DisplaySettingsDTO.class);
+
+        assertEquals(HttpStatus.OK, persistedResponse.getStatusCode());
+        assertNotNull(persistedResponse.getBody());
+        assertEquals("#112233", persistedResponse.getBody().getBackgroundColor());
     }
 
     private String registerAndLogin(String username, String password) {

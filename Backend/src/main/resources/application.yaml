@@ -15,6 +15,7 @@ spring:
         - file:../Schema/03-user-settings.sql
         - file:../Schema/04-sentiment-average.sql
         - file:../Schema/05-us-stock-indices.sql
+        - file:../Schema/07-market-correlation.sql
   
   
 server:
@@ -32,3 +33,7 @@ sentiment:
     enabled: ${SENTIMENT_PERSISTENCE_ENABLED:false}
     initial-delay-ms: ${SENTIMENT_PERSISTENCE_INITIAL_DELAY_MS:30000}
     fixed-delay-ms: ${SENTIMENT_PERSISTENCE_FIXED_DELAY_MS:900000}
+
+market:
+  correlation:
+    cron: ${MARKET_CORRELATION_CRON:0 10 0 * * *}

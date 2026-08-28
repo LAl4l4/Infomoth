@@ -1,14 +1,14 @@
 import './PageShell.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPageNum, setPageNum } from '../../Variable/pagenum';
 import { restoreSessionThunk, selectIsLoggedIn, selectSessionChecked } from '../../Variable/login';
-import { pullGeneralSettings } from '../../API/settings';
+import { pullDisplaySettings, pullGeneralSettings } from '../../API/settings';
 import LoginIcon from '../LoginIcon/LoginIcon';
 //import { BgGlobe } from '../BackgroundGlobe/BackgroundGlobe';
-import Globe from '../BackgroundGlobe/Globe';
+import Globe, { GLOBE_CONFIG } from '../BackgroundGlobe/Globe';
 import TabBar from '../TabBar/TabBar';
 import OverviewTab from '../Contents/OverviewTab';
 import SentimentTab from '../Contents/SentimentTab';
@@ -17,6 +17,7 @@ import ExchangeRateTab from '../Contents/ExchangeRateTab';
 import UsStockTab from '../Contents/UsStockTab';
 import MarketTrendTab from '../Contents/MarketTrendTab';
 import type { AppDispatch, TabItem } from '../../customTypes';
+import { DEFAULT_DISPLAY_SETTINGS, hexToRgb } from '../../displaySettings';
 
 const TABS: TabItem[] = [
   { key: 0, label: '概览' },
@@ -62,6 +63,7 @@ export default function PageShell() {
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const sessionChecked = useSelector(selectSessionChecked);
   const dispatch = useDispatch<AppDispatch>();
+  const [displaySettings, setDisplaySettings] = useState(DEFAULT_DISPLAY_SETTINGS);
 
   const safeTab = clampTab(pagenum);
 
@@ -114,6 +116,30 @@ export default function PageShell() {
       active = false;
     };
   }, [dispatch, isLoggedIn]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    let active = true;
+    pullDisplaySettings()
+      .then((settings) => {
+        if (active) setDisplaySettings(settings);
+      })
+      .catch(() => {
+        // Keep the current InfoMoth palette when display settings are unavailable.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isLoggedIn]);
+
+  const globeConfig = useMemo(() => ({
+    ...GLOBE_CONFIG,
+    baseColor: hexToRgb(displaySettings.globePointColor),
+    glowColor: hexToRgb(displaySettings.globeGlowColor),
+    markerColor: hexToRgb(displaySettings.globeMarkerColor),
+  }), [displaySettings]);
 
   // Switch tabs with the left / right arrow keys.
   useEffect(() => {
@@ -207,8 +233,12 @@ export default function PageShell() {
   if (!isLoggedIn) return <Navigate to="/login" replace />;
 
   return (
-    <div className="page-shell" ref={shellRef}>
-      <Globe />
+    <div
+      className="page-shell"
+      ref={shellRef}
+      style={{ backgroundColor: displaySettings.backgroundColor }}
+    >
+      <Globe config={globeConfig} />
       <TabBar
         tabs={TABS}
         active={safeTab}

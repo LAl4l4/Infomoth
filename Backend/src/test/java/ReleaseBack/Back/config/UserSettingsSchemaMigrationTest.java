@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class UserSettingsSchemaMigrationTest {
     @Test
-    void addsOnlyMissingCurrencyColumnsAndCanRunAgain() throws Exception {
+    void addsOnlyMissingPreferenceColumnsAndCanRunAgain() throws Exception {
         JdbcDataSource dataSource = new JdbcDataSource();
         dataSource.setURL("jdbc:h2:mem:user_settings_migration;MODE=MySQL;DB_CLOSE_DELAY=-1");
 
@@ -23,16 +23,19 @@ class UserSettingsSchemaMigrationTest {
         migration.migrate();
 
         try (Connection connection = dataSource.getConnection()) {
-            assertEquals(2, countCurrencyColumns(connection));
+            assertEquals(6, countPreferenceColumns(connection));
         }
     }
 
-    private int countCurrencyColumns(Connection connection) throws Exception {
+    private int countPreferenceColumns(Connection connection) throws Exception {
         try (var statement = connection.createStatement();
                 var result = statement.executeQuery(
                         "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
                                 + "WHERE TABLE_NAME = 'USER_SETTINGS' "
-                                + "AND COLUMN_NAME IN ('DEFAULT_BASE_CURRENCY', 'DEFAULT_QUOTE_CURRENCY')")) {
+                                + "AND COLUMN_NAME IN ("
+                                + "'DEFAULT_BASE_CURRENCY', 'DEFAULT_QUOTE_CURRENCY', "
+                                + "'BACKGROUND_COLOR', 'GLOBE_GLOW_COLOR', "
+                                + "'GLOBE_POINT_COLOR', 'GLOBE_MARKER_COLOR')")) {
             result.next();
             return result.getInt(1);
         }

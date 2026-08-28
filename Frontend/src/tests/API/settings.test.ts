@@ -1,5 +1,10 @@
 import instance from '../../API/axios';
-import { pullGeneralSettings, updateGeneralSettings } from '../../API/settings';
+import {
+  pullDisplaySettings,
+  pullGeneralSettings,
+  updateDisplaySettings,
+  updateGeneralSettings,
+} from '../../API/settings';
 
 jest.mock('../../API/axios', () => ({
   __esModule: true,
@@ -38,5 +43,31 @@ describe('settings API', () => {
       defaultBaseCurrency: 'EUR',
       defaultQuoteCurrency: 'AUD',
     });
+  });
+
+  it('pullDisplaySettings gets /settings/display', async () => {
+    const settings = {
+      backgroundColor: '#0C101C',
+      globeGlowColor: '#00FFC6',
+      globePointColor: '#FFFFFF',
+      globeMarkerColor: '#00E5FF',
+    };
+    mockGet.mockResolvedValue({ data: settings });
+
+    await expect(pullDisplaySettings()).resolves.toEqual(settings);
+    expect(mockGet).toHaveBeenCalledWith('/settings/display');
+  });
+
+  it('updateDisplaySettings puts all four colors', async () => {
+    const settings = {
+      backgroundColor: '#112233',
+      globeGlowColor: '#445566',
+      globePointColor: '#778899',
+      globeMarkerColor: '#AABBCC',
+    };
+    mockPut.mockResolvedValue({ data: settings });
+
+    await expect(updateDisplaySettings(settings)).resolves.toEqual(settings);
+    expect(mockPut).toHaveBeenCalledWith('/settings/display', settings);
   });
 });

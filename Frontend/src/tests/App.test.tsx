@@ -26,6 +26,13 @@ jest.mock('../API/settings', () => ({
     defaultQuoteCurrency: 'CNY',
   })),
   updateGeneralSettings: jest.fn(),
+  pullDisplaySettings: jest.fn(() => Promise.resolve({
+    backgroundColor: '#0C101C',
+    globeGlowColor: '#00FFC6',
+    globePointColor: '#FFFFFF',
+    globeMarkerColor: '#00E5FF',
+  })),
+  updateDisplaySettings: jest.fn(),
 }));
 
 jest.mock('../API/auth', () => ({

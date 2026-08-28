@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import type { AppDispatch } from '../customTypes';
+import type { AppDispatch, DisplaySettingsData } from '../customTypes';
 import { pullCurrencies } from '../API/data';
-import { pullGeneralSettings, updateGeneralSettings } from '../API/settings';
+import {
+  pullDisplaySettings,
+  pullGeneralSettings,
+  updateDisplaySettings,
+  updateGeneralSettings,
+} from '../API/settings';
 import { setPageNum } from '../Variable/pagenum';
+import { DEFAULT_DISPLAY_SETTINGS } from '../displaySettings';
 import './Settings.css';
 
 type SettingsTab = 'general' | 'display' | 'about';
@@ -31,6 +37,33 @@ const HOME_PAGE_OPTIONS = [
   { value: 3, label: '汇率' },
   { value: 4, label: '美股' },
   { value: 5, label: '市场走势' },
+];
+
+const DISPLAY_COLOR_FIELDS: Array<{
+  key: keyof DisplaySettingsData;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: 'backgroundColor',
+    label: '主界面背景颜色',
+    description: '主界面最底层的背景色。',
+  },
+  {
+    key: 'globeGlowColor',
+    label: '地球光晕颜色',
+    description: '地球边缘向外扩散的光晕色。',
+  },
+  {
+    key: 'globePointColor',
+    label: '地球点颜色',
+    description: '组成地球表面的点阵颜色。',
+  },
+  {
+    key: 'globeMarkerColor',
+    label: 'Mark 颜色',
+    description: '地球上城市标记点的颜色。',
+  },
 ];
 
 export default function Settings() {
@@ -266,11 +299,138 @@ function GeneralSettings({ onOpenHome }: GeneralSettingsProps) {
 }
 
 function DisplaySettings() {
+  const [settings, setSettings] = useState<DisplaySettingsData>({
+    ...DEFAULT_DISPLAY_SETTINGS,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState('正在读取显示设置…');
+
+  useEffect(() => {
+    let active = true;
+
+    const loadSettings = async () => {
+      try {
+        const result = await pullDisplaySettings();
+        if (!active) return;
+        setSettings(result);
+        setStatus('显示设置已同步');
+      } catch (error: unknown) {
+        if (!active) return;
+        setStatus(error instanceof Error ? error.message : '读取显示设置失败');
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    void loadSettings();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const saveSettings = async (nextSettings: DisplaySettingsData) => {
+    setIsSaving(true);
+    setStatus('正在保存显示设置…');
+    try {
+      const saved = await updateDisplaySettings(nextSettings);
+      setSettings(saved);
+      setStatus('显示设置已保存');
+    } catch (error: unknown) {
+      setStatus(error instanceof Error ? error.message : '保存显示设置失败');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const restoreDefaults = () => {
+    const defaults = { ...DEFAULT_DISPLAY_SETTINGS };
+    setSettings(defaults);
+    void saveSettings(defaults);
+  };
+
   return (
     <div className="right-inner">
       <div className="card-block">
         <h3 className="section-title">显示</h3>
-        <div className="settings-placeholder">主题 / 动画 / 字号（待实现）</div>
+
+        <div
+          className="display-preview"
+          style={{ backgroundColor: settings.backgroundColor }}
+          aria-label="颜色预览"
+        >
+          <div
+            className="display-preview-globe"
+            style={{
+              borderColor: settings.globePointColor,
+              boxShadow: `0 0 34px ${settings.globeGlowColor}, inset 0 0 20px ${settings.globeGlowColor}`,
+            }}
+          >
+            <span
+              className="display-preview-dot"
+              style={{ backgroundColor: settings.globePointColor }}
+            />
+            <span
+              className="display-preview-marker"
+              style={{
+                backgroundColor: settings.globeMarkerColor,
+                boxShadow: `0 0 12px ${settings.globeMarkerColor}`,
+              }}
+            />
+          </div>
+          <span className="display-preview-label">实时预览</span>
+        </div>
+
+        <div className="display-color-list">
+          {DISPLAY_COLOR_FIELDS.map(({ key, label, description }) => (
+            <div className="setting-group color-setting-group" key={key}>
+              <div className="setting-copy">
+                <label className="setting-label" htmlFor={`display-${key}`}>{label}</label>
+                <p className="setting-description">{description}</p>
+              </div>
+              <div className="color-control">
+                <input
+                  id={`display-${key}`}
+                  className="color-input"
+                  type="color"
+                  value={settings[key]}
+                  disabled={isLoading || isSaving}
+                  onChange={(event) => {
+                    setSettings((current) => ({
+                      ...current,
+                      [key]: event.target.value.toUpperCase(),
+                    }));
+                    setStatus('有未保存的显示更改');
+                  }}
+                />
+                <span className="color-value">{settings[key]}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="settings-actions">
+          <span className="settings-save-hint" role="status">{status}</span>
+          <div className="settings-action-buttons">
+            <button
+              className="settings-button secondary"
+              type="button"
+              disabled={isLoading || isSaving}
+              onClick={restoreDefaults}
+            >
+              恢复默认
+            </button>
+            <button
+              className="settings-button primary"
+              type="button"
+              disabled={isLoading || isSaving}
+              onClick={() => void saveSettings(settings)}
+            >
+              保存显示设置
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
