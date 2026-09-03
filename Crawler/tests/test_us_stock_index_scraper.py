@@ -47,6 +47,19 @@ class TestExtractCloseSeries:
         series = scraper._extract_close_series(data, "^GSPC")
         assert len(series) == 2
 
+    def test_collapses_intraday_bars_to_each_trading_days_latest_price(self, scraper):
+        index = pd.to_datetime([
+            "2026-08-06 15:55:00",
+            "2026-08-06 16:00:00",
+            "2026-08-07 09:35:00",
+            "2026-08-07 09:40:00",
+        ])
+        closes = pd.Series([4990.0, 5000.0, 5010.0, 5020.0], index=index)
+
+        daily_closes = scraper._collapse_to_daily_closes(closes)
+
+        assert daily_closes.tolist() == [5000.0, 5020.0]
+
 
 class TestScrape:
     @patch("infomoth.us_stock_index_scraper.yf.download")
@@ -64,6 +77,30 @@ class TestScrape:
         assert abs(sp500["changePercent"] - 2.0) < 0.001
         assert sp500["date"] == "2026-08-07"
         assert sp500["name"] == "S&P 500"
+        assert mock_download.call_args.kwargs["interval"] == "5m"
+        assert mock_download.call_args.kwargs["prepost"] is False
+
+    @patch("infomoth.us_stock_index_scraper.yf.download")
+    def test_uses_previous_trading_day_close_for_intraday_change(self, mock_download, scraper):
+        index = pd.to_datetime([
+            "2026-08-06 15:55:00",
+            "2026-08-06 16:00:00",
+            "2026-08-07 09:35:00",
+            "2026-08-07 09:40:00",
+        ])
+        values = {
+            (symbol, "Close"): [4990.0, 5000.0, 5010.0, 5020.0]
+            for symbol in _INDEX_SYMBOLS
+        }
+        mock_download.return_value = pd.DataFrame(values, index=index)
+
+        results = scraper.scrape()
+
+        sp500 = next(r for r in results if r["symbol"] == "^GSPC")
+        assert sp500["price"] == 5020.0
+        assert sp500["change"] == 20.0
+        assert sp500["changePercent"] == 0.4
+        assert sp500["date"] == "2026-08-07"
 
     @patch("infomoth.us_stock_index_scraper.yf.download")
     def test_returns_empty_on_download_failure(self, mock_download, scraper):

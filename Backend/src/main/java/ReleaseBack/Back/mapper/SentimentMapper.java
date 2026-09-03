@@ -23,11 +23,15 @@ public interface SentimentMapper {
 
     List<SentimentAverage> findAllByTable(@Param("table") String table);
 
-    int insertPoliticsAverage(@Param("date") LocalDate date, @Param("sentimentScore") double sentimentScore);
+    int insertPoliticsAverage(
+            @Param("date") LocalDate date,
+            @Param("sentimentScore") double sentimentScore,
+            @Param("rollingAverage") double rollingAverage,
+            @Param("sampleCount") int sampleCount);
 
-    int accumulatePoliticsAverage(@Param("date") LocalDate date, @Param("sentimentScore") double sentimentScore);
-
-    int insertTechAverage(@Param("date") LocalDate date, @Param("sentimentScore") double sentimentScore);
-
-    int accumulateTechAverage(@Param("date") LocalDate date, @Param("sentimentScore") double sentimentScore);
+    int insertTechAverage(
+            @Param("date") LocalDate date,
+            @Param("sentimentScore") double sentimentScore,
+            @Param("rollingAverage") double rollingAverage,
+            @Param("sampleCount") int sampleCount);
 }

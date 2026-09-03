@@ -58,15 +58,15 @@ describe('data API', () => {
     await expect(pullPopularAISkills()).rejects.toThrow('Invalid AI skills response');
   });
 
-  it('pullSentimentScore returns instant and daily rolling scores', async () => {
-    const sentiment = { instant: -0.1, dailyAverage: 0.05 };
+  it('pullSentimentScore returns normalized and cumulative rolling scores', async () => {
+    const sentiment = { normalizedScore: -0.1, rollingAverage: 0.05 };
     mockGet.mockResolvedValue({ data: sentiment });
     await expect(pullSentimentScore()).resolves.toEqual(sentiment);
     expect(mockGet).toHaveBeenCalledWith('/data/sentiment');
   });
 
   it('pullSentimentScore rejects on non-number response', async () => {
-    mockGet.mockResolvedValue({ data: { instant: 'bad', dailyAverage: 0.1 } });
+    mockGet.mockResolvedValue({ data: { normalizedScore: 'bad', rollingAverage: 0.1 } });
     await expect(pullSentimentScore()).rejects.toThrow('Invalid sentiment response');
   });
 

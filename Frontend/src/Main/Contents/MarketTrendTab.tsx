@@ -9,6 +9,7 @@ const PLOT_LEFT = 48;
 const PLOT_RIGHT = 18;
 const PLOT_TOP = 22;
 const PLOT_BOTTOM = 42;
+export const MARKET_TREND_REFRESH_MS = 5 * 60 * 1000;
 
 interface ChartSeries {
   key: string;
@@ -144,17 +145,37 @@ export default function MarketTrendTab() {
 
   useEffect(() => {
     let active = true;
-    pullMarketTrends()
-      .then((result) => {
-        if (active) setData(result);
+    let hasData = false;
+    let refreshing = false;
+
+    const refresh = async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        const result = await pullMarketTrends();
+        if (active) {
+          hasData = true;
+          setData(result);
+          setError(null);
+        }
+      } catch (reason) {
+        if (active && !hasData) {
+          setError(reason instanceof Error ? reason.message : '加载失败');
+        }
+      } finally {
+        refreshing = false;
         if (active) setLoading(false);
-      }, (reason: unknown) => {
-        if (active) setError(reason instanceof Error ? reason.message : '加载失败');
-        if (active) setLoading(false);
-      });
+      }
+    };
+
+    void refresh();
+    const refreshTimer = window.setInterval(() => {
+      void refresh();
+    }, MARKET_TREND_REFRESH_MS);
 
     return () => {
       active = false;
+      window.clearInterval(refreshTimer);
     };
   }, []);
 
@@ -189,7 +210,7 @@ export default function MarketTrendTab() {
       <p className="eyebrow">Market Trend</p>
       <h2 className="panel-title">7日市场走势</h2>
       <p className="panel-lead">
-        对比近 7 个自然日的市场情绪与 Yahoo Finance 抓取的美股每日涨跌幅；corr 直接使用 Crawler 抓取并持久化的交易日涨跌幅。周末不生成行情点，曲线连接前后交易日。
+        对比近 7 个自然日的市场情绪与 Yahoo Finance 美股涨跌幅；交易时段使用 5 分钟行情并自动刷新，corr 使用持久化的交易日数据。周末不生成行情点，曲线连接前后交易日。
       </p>
 
       {loading && <p className="state-text">加载中…</p>}

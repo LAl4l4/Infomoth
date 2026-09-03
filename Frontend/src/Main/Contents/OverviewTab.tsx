@@ -3,11 +3,9 @@ import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   fetchSentimentScore,
-  fetchAISkills,
   fetchExchangeRate,
   fetchUsStockIndices,
   selectSentimentScore,
-  selectAISkills,
   selectExchangeRates,
   selectUsStockIndices,
 } from '../../Variable/dataCache';
@@ -18,7 +16,7 @@ import type { AppDispatch } from '../../customTypes';
 function OverviewSentimentRow() {
   const dispatch = useDispatch<AppDispatch>();
   const { data: sentiment, loading, error } = useSelector(selectSentimentScore);
-  const score = sentiment?.instant ?? null;
+  const score = sentiment?.normalizedScore ?? null;
 
   useEffect(() => {
     dispatch(fetchSentimentScore());
@@ -32,33 +30,10 @@ function OverviewSentimentRow() {
 
   return (
     <div className="snapshot-row">
-      <span className="snapshot-label">瞬时市场情绪</span>
+      <span className="snapshot-label">归一化市场情绪</span>
       <span className={'snapshot-value' + (score == null && !loading && !error ? ' muted' : '')}>
         {valueText}
       </span>
-    </div>
-  );
-}
-
-function OverviewAISkillRow() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { data: skills, loading } = useSelector(selectAISkills);
-
-  useEffect(() => {
-    dispatch(fetchAISkills());
-  }, [dispatch]);
-
-  const top = skills && skills.length > 0 ? skills[0] : null;
-
-  let valueText;
-  if (loading) valueText = '加载中…';
-  else if (!top) valueText = '今日暂无';
-  else valueText = `${top.rank}. ${top.skill}`;
-
-  return (
-    <div className="snapshot-row">
-      <span className="snapshot-label">AI 热门技能 Top 1</span>
-      <span className={'snapshot-value' + (!top ? ' muted' : '')}>{valueText}</span>
     </div>
   );
 }
@@ -146,13 +121,12 @@ export default function OverviewTab() {
       <p className="eyebrow">Overview</p>
       <h2 className="panel-title">今日资讯概览</h2>
       <p className="panel-lead">
-        欢迎来到 InfoMoth。这里汇聚当日市场情绪、AI 热门技能与汇率速查，
+        欢迎来到 InfoMoth。这里汇聚当日市场情绪、汇率与美股行情，
         在顶部的标签栏中切换即可深入查看每一项数据。
       </p>
 
       <div className="overview-snapshot">
         <OverviewSentimentRow />
-        <OverviewAISkillRow />
         <OverviewRateRow />
         <OverviewStockRow />
       </div>

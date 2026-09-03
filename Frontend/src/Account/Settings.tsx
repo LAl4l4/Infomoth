@@ -33,10 +33,10 @@ const TABS: { key: SettingsTab; label: string }[] = [
 const HOME_PAGE_OPTIONS = [
   { value: 0, label: '概览' },
   { value: 1, label: '市场情绪' },
-  { value: 2, label: 'AI 技能' },
-  { value: 3, label: '汇率' },
-  { value: 4, label: '美股' },
-  { value: 5, label: '市场走势' },
+  { value: 2, label: '汇率' },
+  { value: 3, label: '美股' },
+  { value: 4, label: '市场走势' },
+  { value: 5, label: '更多' },
 ];
 
 const DISPLAY_COLOR_FIELDS: Array<{

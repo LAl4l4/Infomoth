@@ -40,7 +40,7 @@ FinBERT-based analysis adds a finance-oriented sentiment signal to news items. I
 
 ### AI trend tracking
 
-A dedicated view of AI skill trends helps surface topics and capabilities that are gaining attention.
+The secondary More view keeps AI skill trends available without competing with the core market workflow.
 
 ### A personal workspace
 
@@ -67,7 +67,7 @@ docker compose -f docker-compose.app.yml up -d --build
 
 Then open [http://localhost](http://localhost).
 
-On the Pipeline VM, start the hourly data pipeline service:
+On the Pipeline VM, start the service that runs the full data pipeline hourly and refreshes US stock snapshots every five minutes:
 
 ```bash
 docker compose \

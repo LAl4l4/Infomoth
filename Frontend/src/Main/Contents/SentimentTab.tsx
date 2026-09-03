@@ -48,7 +48,7 @@ export default function SentimentTab() {
     dispatch(fetchSentimentScore());
   }, [dispatch]);
 
-  const readingScore = sentiment?.dailyAverage ?? sentiment?.instant ?? null;
+  const readingScore = sentiment?.normalizedScore ?? null;
 
   const reading = readingScore === null
     ? '今天暂无可用数据。'
@@ -63,7 +63,7 @@ export default function SentimentTab() {
       <p className="eyebrow">Market Sentiment</p>
       <h2 className="panel-title">市场情绪指数</h2>
       <p className="panel-lead">
-        瞬时值反映当前新闻语料；滚动平均只累计今天的采样，并用于持久化和市场相关性计算。
+        归一化值为当前 FinBERT 原始分数减去此前样本均值；累计平均会包含当前样本。
       </p>
 
       <div className="sentiment-stage">
@@ -72,14 +72,14 @@ export default function SentimentTab() {
         {!loading && !error && (
           <div className="sentiment-grid">
             <SentimentMetric
-              title="瞬时情绪"
-              score={sentiment?.instant ?? null}
-              caption="当前一批新闻的综合分数"
+              title="归一化情绪"
+              score={sentiment?.normalizedScore ?? null}
+              caption="原始分数 − 加入本条前的滚动平均"
             />
             <SentimentMetric
-              title="今日滚动平均"
-              score={sentiment?.dailyAverage ?? null}
-              caption="跨日重置 · 持久化与 Corr 数据源"
+              title="累计滚动平均"
+              score={sentiment?.rollingAverage ?? null}
+              caption="包含当前样本 · 跨日期连续累计"
             />
           </div>
         )}

@@ -38,7 +38,9 @@ export async function pullSentimentScore(): Promise<SentimentScore> {
   const res = await instance.get("/data/sentiment");
   const validScore = (value: unknown) => value === null
     || (typeof value === "number" && Number.isFinite(value));
-  if (!res.data || !validScore(res.data.instant) || !validScore(res.data.dailyAverage)) {
+  if (!res.data
+      || !validScore(res.data.normalizedScore)
+      || !validScore(res.data.rollingAverage)) {
     throw new Error("Invalid sentiment response");
   }
   return res.data as SentimentScore;

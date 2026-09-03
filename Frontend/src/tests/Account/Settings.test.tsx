@@ -54,6 +54,24 @@ describe('Settings page', () => {
     expect((screen.getByLabelText('默认首页') as HTMLSelectElement).value).toBe('3');
   });
 
+  it('lists default pages in the main navigation order', async () => {
+    renderSettings();
+    await screen.findByText('设置已同步');
+
+    const options = Array.from(
+      (screen.getByLabelText('默认首页') as HTMLSelectElement).options
+    ).map((option) => [option.value, option.text]);
+
+    expect(options).toEqual([
+      ['0', '概览'],
+      ['1', '市场情绪'],
+      ['2', '汇率'],
+      ['3', '美股'],
+      ['4', '市场走势'],
+      ['5', '更多'],
+    ]);
+  });
+
   it('marks unsaved changes when the select changes', async () => {
     renderSettings();
     await screen.findByText('设置已同步');

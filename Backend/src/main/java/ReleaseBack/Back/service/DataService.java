@@ -20,9 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.nio.file.Path;
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
-import java.util.OptionalDouble;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class DataService {
-    private static final String POLITICS_FILE = "politics_news.json";
-    private static final String TECH_FILE = "tech_news.json";
-
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final SentimentMapper sentimentMapper;
-    private final SentimentFileReader sentimentFileReader;
 
     private final Path sharedDir;
 
@@ -44,19 +38,13 @@ public class DataService {
     @Autowired
     public DataService(
             AppConfigProvider appConfigProvider,
-            SentimentMapper sentimentMapper,
-            SentimentFileReader sentimentFileReader) {
-        this(appConfigProvider.getSharedDirectory(), sentimentMapper, sentimentFileReader);
+            SentimentMapper sentimentMapper) {
+        this(appConfigProvider.getSharedDirectory(), sentimentMapper);
     }
 
     // only used for testing, allows injection of a custom Shared directory path
     public DataService(Path sharedDir, SentimentMapper sentimentMapper) {
-        this(sharedDir, sentimentMapper, new SentimentFileReader(new ObjectMapper()));
-    }
-
-    DataService(Path sharedDir, SentimentMapper sentimentMapper, SentimentFileReader sentimentFileReader) {
         this.sentimentMapper = sentimentMapper;
-        this.sentimentFileReader = sentimentFileReader;
         this.sharedDir = sharedDir;
     }
 
@@ -112,33 +100,18 @@ public class DataService {
     }
 
     public SentimentScoreDTO getSentimentScore() {
-        Double instant = averageAvailable(
-                readCurrentAverage(POLITICS_FILE),
-                readCurrentAverage(TECH_FILE));
-
         LocalDate today = LocalDate.now();
-        Double dailyAverage = averageAvailable(
-                scoreOf(sentimentMapper.findByDate("politics_average", today)),
-                scoreOf(sentimentMapper.findByDate("tech_average", today)));
+        SentimentAverage politics = sentimentMapper.findByDate("politics_average", today);
+        SentimentAverage tech = sentimentMapper.findByDate("tech_average", today);
 
-        return new SentimentScoreDTO(instant, dailyAverage);
-    }
+        Double normalizedScore = averageAvailable(
+                SentimentScoreCalculator.normalizedScore(politics),
+                SentimentScoreCalculator.normalizedScore(tech));
+        Double rollingAverage = averageAvailable(
+                SentimentScoreCalculator.rollingAverage(politics),
+                SentimentScoreCalculator.rollingAverage(tech));
 
-    private Double readCurrentAverage(String fileName) {
-        try {
-            OptionalDouble average = sentimentFileReader.readAverage(sharedDir.resolve(fileName));
-            return average.isPresent() ? average.getAsDouble() : null;
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    private Double scoreOf(SentimentAverage average) {
-        if (average == null || average.getSentimentScore() == null
-                || !Double.isFinite(average.getSentimentScore())) {
-            return null;
-        }
-        return average.getSentimentScore();
+        return new SentimentScoreDTO(normalizedScore, rollingAverage);
     }
 
     private Double averageAvailable(Double... values) {

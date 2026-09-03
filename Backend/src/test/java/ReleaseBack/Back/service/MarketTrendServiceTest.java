@@ -49,6 +49,7 @@ class MarketTrendServiceTest {
         LocalDate fromDate = today.minusDays(6);
         when(sentimentMapper.findSince("politics_average", fromDate)).thenReturn(List.of(
                 sentiment(fromDate.plusDays(4), 1.0),
+                sentiment(fromDate.plusDays(4), 3.0),
                 sentiment(fromDate.plusDays(5), 2.0),
                 sentiment(today, 3.0)));
         when(sentimentMapper.findSince("tech_average", fromDate)).thenReturn(List.of());
@@ -63,6 +64,7 @@ class MarketTrendServiceTest {
         assertEquals(7, result.getPoints().size());
         assertEquals(fromDate, result.getPoints().get(0).getDate());
         assertNull(result.getPoints().get(0).getSentiment());
+        assertEquals(2.0, result.getPoints().get(4).getSentiment(), 0.000001);
         MarketCorrelationDTO correlation = result.getCorrelations().get(0);
         assertEquals("^GSPC", correlation.getSymbol());
         assertEquals(1.0, correlation.getCorr(), 0.000001);
@@ -182,6 +184,8 @@ class MarketTrendServiceTest {
         SentimentAverage average = new SentimentAverage();
         average.setDate(date);
         average.setSentimentScore(score);
+        average.setRollingAverage(score / 2);
+        average.setSampleCount(2);
         return average;
     }
 

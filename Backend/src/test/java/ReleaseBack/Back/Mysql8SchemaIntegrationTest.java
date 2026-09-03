@@ -59,7 +59,7 @@ class Mysql8SchemaIntegrationTest {
         assertEquals(0, rowCount(jdbcTemplate, "market_correlation"));
         assertEquals(2, currencyColumnCount(jdbcTemplate));
         assertEquals(4, displayColumnCount(jdbcTemplate));
-        assertEquals(2, sentimentSampleColumnCount(jdbcTemplate));
+        assertEquals(4, sentimentRollingColumnCount(jdbcTemplate));
         assertEquals(8, dailyMarketColumnCount(jdbcTemplate));
 
         try (Connection connection = dataSource.getConnection()) {
@@ -84,15 +84,17 @@ class Mysql8SchemaIntegrationTest {
     }
 
     @Test
-    void migrationAddsSampleCountsToExistingSentimentTablesInMysql8() throws Exception {
+    void migrationMakesLegacySentimentTablesAppendOnlyInMysql8() throws Exception {
         DataSource dataSource = testDataSource();
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         jdbcTemplate.execute("DROP TABLE IF EXISTS politics_average");
         jdbcTemplate.execute("DROP TABLE IF EXISTS tech_average");
         jdbcTemplate.execute(
-                "CREATE TABLE politics_average (ID INT PRIMARY KEY, date DATE, sentimentScore DOUBLE)");
+                "CREATE TABLE politics_average ("
+                        + "ID INT PRIMARY KEY, date DATE UNIQUE, sentimentScore DOUBLE)");
         jdbcTemplate.execute(
-                "CREATE TABLE tech_average (ID INT PRIMARY KEY, date DATE, sentimentScore DOUBLE)");
+                "CREATE TABLE tech_average ("
+                        + "ID INT PRIMARY KEY, date DATE UNIQUE, sentimentScore DOUBLE)");
         jdbcTemplate.update(
                 "INSERT INTO politics_average VALUES (1, '2026-08-11', 0.25)");
 
@@ -101,10 +103,17 @@ class Mysql8SchemaIntegrationTest {
             migration.migrate();
             migration.migrate();
 
-            assertEquals(2, sentimentSampleColumnCount(jdbcTemplate));
+            assertEquals(4, sentimentRollingColumnCount(jdbcTemplate));
             assertEquals(1, jdbcTemplate.queryForObject(
                     "SELECT sampleCount FROM politics_average WHERE ID = 1",
                     Integer.class));
+            assertEquals(0.25, jdbcTemplate.queryForObject(
+                    "SELECT rollingAverage FROM politics_average WHERE ID = 1",
+                    Double.class));
+            jdbcTemplate.update(
+                    "INSERT INTO politics_average "
+                            + "(ID, date, sentimentScore, rollingAverage, sampleCount) "
+                            + "VALUES (2, '2026-08-11', 0.5, 0.375, 2)");
         } finally {
             jdbcTemplate.execute("DROP TABLE IF EXISTS politics_average");
             jdbcTemplate.execute("DROP TABLE IF EXISTS tech_average");
@@ -207,13 +216,13 @@ class Mysql8SchemaIntegrationTest {
                 Integer.class));
     }
 
-    private int sentimentSampleColumnCount(JdbcTemplate jdbcTemplate) {
+    private int sentimentRollingColumnCount(JdbcTemplate jdbcTemplate) {
         return requiredInteger(jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM information_schema.columns
                 WHERE table_schema = DATABASE()
                     AND table_name IN ('politics_average', 'tech_average')
-                    AND column_name = 'sampleCount'
+                    AND column_name IN ('sampleCount', 'rollingAverage')
                 """,
                 Integer.class));
     }

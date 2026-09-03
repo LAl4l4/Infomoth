@@ -24,11 +24,12 @@ class USStockIndexScraper:
             data = yf.download(
                 tickers=symbols,
                 period="5d",
-                interval="1d",
+                interval="5m",
                 progress=False,
                 auto_adjust=False,
                 group_by="ticker",
                 threads=False,
+                prepost=False,
             )
         except Exception as exc:
             LOGGER.warning("Failed to fetch US stock indices from Yahoo Finance: %s", exc)
@@ -41,15 +42,16 @@ class USStockIndexScraper:
         results: List[Dict[str, object]] = []
         for symbol in symbols:
             closes = self._extract_close_series(data, symbol)
-            if closes is None or len(closes) < 2:
+            daily_closes = self._collapse_to_daily_closes(closes)
+            if daily_closes is None or len(daily_closes) < 2:
                 LOGGER.warning("Insufficient close data for index %s", symbol)
                 continue
 
-            latest_close = float(closes.iloc[-1])
-            previous_close = float(closes.iloc[-2])
+            latest_close = float(daily_closes.iloc[-1])
+            previous_close = float(daily_closes.iloc[-2])
             change = latest_close - previous_close
             change_percent = (change / previous_close * 100.0) if previous_close else 0.0
-            latest_index = closes.index[-1]
+            latest_index = daily_closes.index[-1]
             trading_day = latest_index.date() if hasattr(latest_index, "date") else latest_index
             if not hasattr(trading_day, "isoformat"):
                 LOGGER.warning("Invalid trading date for index %s", symbol)
@@ -82,6 +84,20 @@ class USStockIndexScraper:
             return None
         close_series = close_series.dropna()
         return close_series if len(close_series) >= 2 else None
+
+    def _collapse_to_daily_closes(self, closes) -> Optional[object]:
+        if closes is None or len(closes) < 2:
+            return None
+
+        trading_days = []
+        for timestamp in closes.index:
+            trading_day = timestamp.date() if hasattr(timestamp, "date") else timestamp
+            if not hasattr(trading_day, "isoformat"):
+                return None
+            trading_days.append(trading_day)
+
+        daily_closes = closes.groupby(trading_days).last()
+        return daily_closes if len(daily_closes) >= 2 else None
     
 
         

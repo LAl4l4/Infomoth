@@ -1,5 +1,18 @@
 # Changelog
 
+- `09/03/2026`:
+    - Reordered the primary navigation to 概览 / 市场情绪 / 汇率 / 美股 / 市场走势 / 更多, moved AI skill trends into the secondary More view, and reduced the ranking to five entries until expanded.
+    - Removed AI skills from the Overview snapshot so its data loads only when More is opened. Breaking: `defaultPage` values were renumbered to match the new tab order without migrating previously saved preferences.
+
+- `09/01/2026`:
+    - Changed sentiment persistence to append one immutable politics and technology sample per run, storing the raw FinBERT score, the cumulative rolling average including that sample, and the cumulative sample count.
+    - Normalized sentiment reads as the current raw score minus the rolling average that existed before it; `/data/sentiment` now returns `normalizedScore` and `rollingAverage`, and market-trend sentiment/correlation uses normalized daily observations.
+    - Added a repeatable MySQL 8/H2 migration that initializes cumulative values for legacy rows, removes the old unique-date restriction, and renumbers legacy sample counts to match the append-only record sequence.
+    - Updated the Overview and Market Sentiment UI to present normalized sentiment and the cross-date cumulative average, with backend mapper/service/schema and frontend regression coverage.
+    - Switched US index acquisition from completed daily candles to 5-minute intraday candles, collapsing each trading day to its latest price so the current session's change remains relative to the previous trading-day close.
+    - Added a lightweight five-minute stock-only Pipeline refresh and a separate five-minute Backend persistence schedule, leaving the full Crawler → Analyser pipeline on its hourly cadence.
+    - Made the Market Trend tab refresh automatically every five minutes while open, so an in-progress US trading day can update without waiting for a page reload or market close.
+
 - `08/29/2026`:
     - Added per-account Display settings for the main background, globe glow, globe point grid, and city marker colors, with live preview, explicit save status, and a persisted Restore Default action.
     - Added JWT-protected `GET /settings/display` and `PUT /settings/display` endpoints, `#RRGGBB` validation, portable MyBatis persistence, and additive MySQL/H2 migration of the four display columns in `user_settings`.

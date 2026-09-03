@@ -1,7 +1,7 @@
 # 机器 B — 数据管道（Crawler + Analyser）
 # 用法:
 #   首次部署前单独运行 make submit-models 上传本地模型
-#   容器启动后立即运行一次，之后每小时运行一次
+#   容器启动后立即运行完整管道，之后每小时运行一次；美股盘中行情每 5 分钟刷新
 services:
   pipeline:
     image: infomoth-pipeline:latest
@@ -16,4 +16,7 @@ services:
       - ./models:/root/.cache/huggingface/hub:ro
       - /home/ubuntu/.ssh/id_ed25519:/root/.ssh/id_ed25519:ro
       - /home/ubuntu/.ssh/known_hosts:/root/.ssh/known_hosts:ro
+    environment:
+      - PIPELINE_INTERVAL_SECONDS=${PIPELINE_INTERVAL_SECONDS:-3600}
+      - STOCK_REFRESH_SECONDS=${STOCK_REFRESH_SECONDS:-300}
     restart: unless-stopped

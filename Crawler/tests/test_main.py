@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from main import save_exchange_rates, save_json, save_us_stock_indices
+from main import run_stocks, save_exchange_rates, save_json, save_us_stock_indices
 
 
 class TestSaveJson:
@@ -102,3 +102,20 @@ class TestRun:
         run()
 
         assert mock_save.call_count == 5
+
+    @patch("main.USStockIndexScraper")
+    @patch("main.load_shared_directory")
+    def test_run_stocks_only_updates_just_the_stock_output(
+        self,
+        mock_shared_directory,
+        mock_stock_cls,
+        tmp_path,
+    ):
+        mock_shared_directory.return_value = tmp_path
+        payload = [{"symbol": "^GSPC", "date": "2026-08-07"}]
+        mock_stock_cls.return_value.scrape.return_value = payload
+
+        run_stocks()
+
+        output = tmp_path / "us_stock_indices.json"
+        assert json.loads(output.read_text(encoding="utf-8")) == payload

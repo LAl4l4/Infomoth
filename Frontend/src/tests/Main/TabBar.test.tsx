@@ -4,7 +4,7 @@ import TabBar from '../../Main/TabBar/TabBar';
 const TABS = [
   { key: 0, label: '概览' },
   { key: 1, label: '市场情绪' },
-  { key: 2, label: 'AI技能' },
+  { key: 2, label: '更多' },
 ];
 
 describe('TabBar', () => {
@@ -14,7 +14,7 @@ describe('TabBar', () => {
     expect(screen.getByRole('tablist')).toBeInTheDocument();
     const tabs = screen.getAllByRole('tab');
     expect(tabs).toHaveLength(3);
-    expect(tabs.map((t) => t.textContent)).toEqual(['概览', '市场情绪', 'AI技能']);
+    expect(tabs.map((t) => t.textContent)).toEqual(['概览', '市场情绪', '更多']);
   });
 
   it('marks only the active tab as selected', () => {
@@ -31,7 +31,7 @@ describe('TabBar', () => {
     const onSelect = jest.fn();
     render(<TabBar tabs={TABS} active={0} onSelect={onSelect} />);
 
-    fireEvent.click(screen.getByText('AI技能'));
+    fireEvent.click(screen.getByText('更多'));
     expect(onSelect).toHaveBeenCalledWith(2);
   });
 });

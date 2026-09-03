@@ -61,10 +61,12 @@ export interface DisplaySettingsData {
   globeMarkerColor: string;
 }
 
-/** Current news sentiment and the persisted rolling average for this calendar day. */
+/** Current normalized sentiment delta and the persisted cumulative rolling average. */
 export interface SentimentScore {
-  instant: number | null;
-  dailyAverage: number | null;
+  /** Current raw FinBERT score minus the average before that sample was added. */
+  normalizedScore: number | null;
+  /** Cumulative rolling average after the current sample was added. */
+  rollingAverage: number | null;
 }
 
 /** One stock index's captured price and percentage change on a trading date. */

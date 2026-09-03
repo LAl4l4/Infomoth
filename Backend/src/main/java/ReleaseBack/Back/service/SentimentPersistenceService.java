@@ -7,10 +7,12 @@ import java.util.OptionalDouble;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.config.AppConfigProvider;
+import ReleaseBack.Back.entity.SentimentAverage;
 import ReleaseBack.Back.mapper.SentimentMapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,44 +47,77 @@ public class SentimentPersistenceService {
         this.sharedDir = sharedDir;
     }
 
+    @Transactional
     public void persistTodayAverages() {
         persistPoliticsAverage();
         persistTechAverage();
     }
 
     private void persistPoliticsAverage() {
-        persistAverage(POLITICS_FILE, "politics", (date, score) -> {
-            if (sentimentMapper.accumulatePoliticsAverage(date, score) == 0) {
-                sentimentMapper.insertPoliticsAverage(date, score);
-            }
-        });
+        persistAverage(
+                POLITICS_FILE,
+                "politics",
+                "politics_average",
+                sentimentMapper::insertPoliticsAverage);
     }
 
     private void persistTechAverage() {
-        persistAverage(TECH_FILE, "tech", (date, score) -> {
-            if (sentimentMapper.accumulateTechAverage(date, score) == 0) {
-                sentimentMapper.insertTechAverage(date, score);
-            }
-        });
+        persistAverage(
+                TECH_FILE,
+                "tech",
+                "tech_average",
+                sentimentMapper::insertTechAverage);
     }
 
-    private void persistAverage(String fileName, String category, AverageWriter writer) {
+    private void persistAverage(
+            String fileName,
+            String category,
+            String tableName,
+            AverageWriter writer) {
         try {
             OptionalDouble average = sentimentFileReader.readAverage(sharedDir.resolve(fileName));
             if (average.isEmpty()) {
-                log.warn("No valid sentiment scores in {}; keeping the existing {} average", fileName, category);
+                log.warn("No valid sentiment scores in {}; skipping the {} sample", fileName, category);
                 return;
             }
 
-            writer.write(LocalDate.now(), average.getAsDouble());
-            log.info("Persisted {} sentiment average: {}", category, average.getAsDouble());
+            double rawScore = average.getAsDouble();
+            SentimentAverage previous = sentimentMapper.findLatestByTable(tableName);
+            int sampleCount = nextSampleCount(previous);
+            double rollingAverage = nextRollingAverage(previous, rawScore, sampleCount);
+
+            writer.write(LocalDate.now(), rawScore, rollingAverage, sampleCount);
+            log.info(
+                    "Persisted {} sentiment sample: raw={}, rollingAverage={}, sampleCount={}",
+                    category,
+                    rawScore,
+                    rollingAverage,
+                    sampleCount);
         } catch (IOException e) {
             log.warn("Cannot read {} sentiment data; it will be retried on the next run", category, e);
         }
     }
 
+    private int nextSampleCount(SentimentAverage previous) {
+        if (previous == null || previous.getSampleCount() == null || previous.getSampleCount() < 1) {
+            return 1;
+        }
+        return previous.getSampleCount() + 1;
+    }
+
+    private double nextRollingAverage(
+            SentimentAverage previous,
+            double rawScore,
+            int sampleCount) {
+        if (previous == null || previous.getRollingAverage() == null
+                || !Double.isFinite(previous.getRollingAverage()) || sampleCount == 1) {
+            return rawScore;
+        }
+        return ((previous.getRollingAverage() * (sampleCount - 1)) + rawScore) / sampleCount;
+    }
+
     @FunctionalInterface
     private interface AverageWriter {
-        void write(LocalDate date, double score);
+        void write(LocalDate date, double score, double rollingAverage, int sampleCount);
     }
 }

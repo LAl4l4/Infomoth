@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SentimentScoreDTO {
-    private Double instant;
-    private Double dailyAverage;
+    private Double normalizedScore;
+    private Double rollingAverage;
 }

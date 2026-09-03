@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor
@@ -55,6 +56,14 @@ def save_exchange_rates(path: Path, payload: list[dict[str, Any]]) -> None:
     save_json(path, payload)
 
 
+def run_stocks() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    output = load_shared_directory() / "us_stock_indices.json"
+    results = USStockIndexScraper().scrape()
+    save_us_stock_indices(output, results)
+    logging.info("Saved %s US stock indices to %s", len(results), output.name)
+
+
 def run() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     shared_directory = load_shared_directory()
@@ -99,4 +108,7 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    run()
+    if sys.argv[1:] == ["--stocks-only"]:
+        run_stocks()
+    else:
+        run()

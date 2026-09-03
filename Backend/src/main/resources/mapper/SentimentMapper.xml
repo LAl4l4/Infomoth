@@ -5,54 +5,41 @@
 <mapper namespace="ReleaseBack.Back.mapper.SentimentMapper">
 
     <select id="findLatestByTable" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
         FROM ${table}
-        ORDER BY date DESC, ID DESC
+        ORDER BY ID DESC
         LIMIT 1
     </select>
 
     <select id="findByDate" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
         FROM ${table}
         WHERE date = #{date}
+        ORDER BY ID DESC
         LIMIT 1
     </select>
 
     <select id="findSince" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
         FROM ${table}
         WHERE date &gt;= #{fromDate}
         ORDER BY date ASC, ID ASC
     </select>
 
     <select id="findAllByTable" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
         FROM ${table}
-        ORDER BY date ASC, ID ASC
+        ORDER BY ID ASC
     </select>
 
     <insert id="insertPoliticsAverage">
-        INSERT INTO politics_average (date, sentimentScore)
-        VALUES (#{date}, #{sentimentScore})
+        INSERT INTO politics_average (date, sentimentScore, rollingAverage, sampleCount)
+        VALUES (#{date}, #{sentimentScore}, #{rollingAverage}, #{sampleCount})
     </insert>
-
-    <update id="accumulatePoliticsAverage">
-        UPDATE politics_average
-        SET sentimentScore = ((sentimentScore * sampleCount) + #{sentimentScore}) / (sampleCount + 1),
-            sampleCount = sampleCount + 1
-        WHERE date = #{date}
-    </update>
 
     <insert id="insertTechAverage">
-        INSERT INTO tech_average (date, sentimentScore)
-        VALUES (#{date}, #{sentimentScore})
+        INSERT INTO tech_average (date, sentimentScore, rollingAverage, sampleCount)
+        VALUES (#{date}, #{sentimentScore}, #{rollingAverage}, #{sampleCount})
     </insert>
-
-    <update id="accumulateTechAverage">
-        UPDATE tech_average
-        SET sentimentScore = ((sentimentScore * sampleCount) + #{sentimentScore}) / (sampleCount + 1),
-            sampleCount = sampleCount + 1
-        WHERE date = #{date}
-    </update>
 
 </mapper>

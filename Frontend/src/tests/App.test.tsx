@@ -76,7 +76,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: '美股' }));
 
-    expect(store.getState().page.pagenum).toBe(4);
+    expect(store.getState().page.pagenum).toBe(3);
     expect(await screen.findByText('美股主要指数')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '美股' })).toHaveAttribute('aria-selected', 'true');
   });

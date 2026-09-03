@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 @ConditionalOnProperty(prefix = "sentiment.persistence", name = "enabled", havingValue = "true")
 public class SentimentPersistenceScheduler {
     private final SentimentPersistenceService sentimentPersistenceService;
-    private final UsStockPersistenceService usStockPersistenceService;
     private final MarketTrendService marketTrendService;
 
     @Scheduled(
@@ -19,7 +18,6 @@ public class SentimentPersistenceScheduler {
             fixedDelayString = "${sentiment.persistence.fixed-delay-ms}")
     public void persistSentimentAverages() {
         sentimentPersistenceService.persistTodayAverages();
-        usStockPersistenceService.persistTradingDayChanges();
     }
 
     @Scheduled(cron = "${market.correlation.cron}")

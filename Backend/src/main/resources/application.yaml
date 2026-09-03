@@ -34,6 +34,12 @@ sentiment:
     initial-delay-ms: ${SENTIMENT_PERSISTENCE_INITIAL_DELAY_MS:30000}
     fixed-delay-ms: ${SENTIMENT_PERSISTENCE_FIXED_DELAY_MS:900000}
 
+stock:
+  persistence:
+    enabled: ${STOCK_PERSISTENCE_ENABLED:false}
+    initial-delay-ms: ${STOCK_PERSISTENCE_INITIAL_DELAY_MS:30000}
+    fixed-delay-ms: ${STOCK_PERSISTENCE_FIXED_DELAY_MS:300000}
+
 market:
   correlation:
     cron: ${MARKET_CORRELATION_CRON:0 10 0 * * *}

@@ -69,11 +69,17 @@ describe('PageShell', () => {
     renderWithProviders(<PageShell />);
 
     await screen.findByRole('tab', { name: '概览' });
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      '概览',
+      '市场情绪',
+      '汇率',
+      '美股',
+      '市场走势',
+      '更多',
+    ]);
+
     fireEvent.click(screen.getByRole('tab', { name: '市场情绪' }));
     expect(await screen.findByText('市场情绪指数')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('tab', { name: 'AI技能' }));
-    expect(screen.getByText('AI 热门技能榜')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: '汇率' }));
     expect(screen.getByText('汇率查询')).toBeInTheDocument();
@@ -83,12 +89,15 @@ describe('PageShell', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: '市场走势' }));
     expect(await screen.findByText('7日市场走势')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: '更多' }));
+    expect(screen.getByText('AI 热门技能榜')).toBeInTheDocument();
   });
 
   it('loads the account default page when the session cookie is valid', async () => {
     mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
     mockPullSettings.mockResolvedValue({
-      defaultPage: 2,
+      defaultPage: 5,
       defaultBaseCurrency: 'USD',
       defaultQuoteCurrency: 'CNY',
     });
@@ -96,7 +105,8 @@ describe('PageShell', () => {
     const { store } = renderWithProviders(<PageShell />);
 
     expect(await screen.findByText('AI 热门技能榜')).toBeInTheDocument();
-    expect(store.getState().page.pagenum).toBe(2);
+    expect(screen.getByRole('tab', { name: '更多' })).toHaveAttribute('aria-selected', 'true');
+    expect(store.getState().page.pagenum).toBe(5);
   });
 
   it('applies the saved background and globe colors', async () => {
@@ -149,6 +159,7 @@ describe('PageShell', () => {
 
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(store.getState().page.pagenum).toBe(2);
+    expect(screen.getByRole('tab', { name: '汇率' })).toHaveAttribute('aria-selected', 'true');
 
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(store.getState().page.pagenum).toBe(1);
@@ -171,7 +182,7 @@ describe('PageShell', () => {
     });
 
     const { store, container } = renderWithProviders(<PageShell />);
-    await screen.findByRole('tab', { name: '汇率' });
+    await screen.findByRole('tab', { name: '美股' });
 
     const shell = container.querySelector('.page-shell') as HTMLElement;
     fireEvent.wheel(shell, { deltaX: -180, deltaY: 0 });

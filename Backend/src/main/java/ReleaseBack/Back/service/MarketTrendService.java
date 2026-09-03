@@ -148,11 +148,12 @@ public class MarketTrendService {
             Map<LocalDate, List<Double>> sentimentByDate,
             List<SentimentAverage> averages) {
         for (SentimentAverage average : safeList(averages)) {
-            if (average != null && average.getDate() != null && average.getSentimentScore() != null
-                    && Double.isFinite(average.getSentimentScore())) {
+            Double normalizedScore = SentimentScoreCalculator.normalizedScore(average);
+            if (average != null && average.getDate() != null && normalizedScore != null
+                    && Double.isFinite(normalizedScore)) {
                 sentimentByDate
                         .computeIfAbsent(average.getDate(), ignored -> new ArrayList<>())
-                        .add(average.getSentimentScore());
+                        .add(normalizedScore);
             }
         }
     }
