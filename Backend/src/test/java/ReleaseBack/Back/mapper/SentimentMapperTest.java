@@ -44,6 +44,7 @@ class SentimentMapperTest {
                     date DATE NOT NULL,
                     sentimentScore DOUBLE NOT NULL,
                     rollingAverage DOUBLE NOT NULL,
+                    rollingStandardDeviation DOUBLE NOT NULL DEFAULT 0,
                     sampleCount INT NOT NULL DEFAULT 1
                 )
                 """
@@ -55,6 +56,7 @@ class SentimentMapperTest {
                     date DATE NOT NULL,
                     sentimentScore DOUBLE NOT NULL,
                     rollingAverage DOUBLE NOT NULL,
+                    rollingStandardDeviation DOUBLE NOT NULL DEFAULT 0,
                     sampleCount INT NOT NULL DEFAULT 1
                 )
                 """
@@ -91,9 +93,9 @@ class SentimentMapperTest {
     void insertPoliticsAverageShouldAppendRawAndCumulativeValuesAcrossDates() {
         LocalDate today = LocalDate.of(2026, 8, 4);
         LocalDate tomorrow = today.plusDays(1);
-        sentimentMapper.insertPoliticsAverage(today, 0.2, 0.2, 1);
-        sentimentMapper.insertPoliticsAverage(today, 0.6, 0.4, 2);
-        sentimentMapper.insertPoliticsAverage(tomorrow, -0.5, 0.1, 3);
+        sentimentMapper.insertPoliticsAverage(today, 0.2, 0.2, 0.0, 1);
+        sentimentMapper.insertPoliticsAverage(today, 0.6, 0.4, 0.2, 2);
+        sentimentMapper.insertPoliticsAverage(tomorrow, -0.5, 0.1, 0.454606, 3);
 
         SentimentAverage latestToday = sentimentMapper.findByDate("politics_average", today);
         SentimentAverage latest = sentimentMapper.findLatestByTable("politics_average");
@@ -102,6 +104,7 @@ class SentimentMapperTest {
                 "SELECT COUNT(*) FROM politics_average", Integer.class));
         assertEquals(0.6, latestToday.getSentimentScore());
         assertEquals(0.4, latestToday.getRollingAverage());
+        assertEquals(0.2, latestToday.getRollingStandardDeviation());
         assertEquals(2, latestToday.getSampleCount());
         assertEquals(-0.5, latest.getSentimentScore());
         assertEquals(0.1, latest.getRollingAverage(), 0.000001);
@@ -111,7 +114,7 @@ class SentimentMapperTest {
     @Test
     void findByDateShouldNotFallBackToAnEarlierDay() {
         LocalDate yesterday = LocalDate.of(2026, 8, 3);
-        sentimentMapper.insertTechAverage(yesterday, 0.25, 0.25, 1);
+        sentimentMapper.insertTechAverage(yesterday, 0.25, 0.25, 0.0, 1);
 
         assertNull(sentimentMapper.findByDate("tech_average", yesterday.plusDays(1)));
         assertEquals(0.25, sentimentMapper.findByDate("tech_average", yesterday).getSentimentScore());

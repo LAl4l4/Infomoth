@@ -10,6 +10,8 @@ services:
       dockerfile: Dockerfile.pipeline
       platforms:
         - linux/amd64
+      args:
+        IMAGE_PREFIX: ${IMAGE_PREFIX:-docker.1ms.run/library}
     volumes:
       - ./Shared:/app/Shared
       - ./Config/deploy-config.json:/app/Config/app-config.json:ro

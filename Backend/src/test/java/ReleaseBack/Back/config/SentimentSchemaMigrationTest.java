@@ -32,14 +32,16 @@ class SentimentSchemaMigrationTest {
         migration.migrate();
 
         try (Connection connection = dataSource.getConnection()) {
-            assertEquals(4, countRollingColumns(connection));
+            assertEquals(6, countRollingColumns(connection));
             assertEquals(1, sampleCount(connection, "politics_average", 1));
             assertEquals(2, sampleCount(connection, "politics_average", 2));
             assertEquals(0.5, rollingAverage(connection, "politics_average", 2), 0.000001);
+            assertEquals(0.25, rollingStandardDeviation(connection, "politics_average", 2), 0.000001);
             connection.createStatement().execute(
                     "INSERT INTO politics_average "
-                            + "(ID, date, sentimentScore, rollingAverage, sampleCount) "
-                            + "VALUES (3, DATE '2026-08-12', 0.5, 0.5, 3)");
+                            + "(ID, date, sentimentScore, rollingAverage, "
+                            + "rollingStandardDeviation, sampleCount) "
+                            + "VALUES (3, DATE '2026-08-12', 0.5, 0.5, 0.204124, 3)");
         }
     }
 
@@ -48,7 +50,8 @@ class SentimentSchemaMigrationTest {
                 var result = statement.executeQuery(
                         "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
                                 + "WHERE TABLE_NAME IN ('POLITICS_AVERAGE', 'TECH_AVERAGE') "
-                                + "AND COLUMN_NAME IN ('SAMPLECOUNT', 'ROLLINGAVERAGE')")) {
+                                + "AND COLUMN_NAME IN ("
+                                + "'SAMPLECOUNT', 'ROLLINGAVERAGE', 'ROLLINGSTANDARDDEVIATION')")) {
             result.next();
             return result.getInt(1);
         }
@@ -67,6 +70,16 @@ class SentimentSchemaMigrationTest {
         try (var statement = connection.createStatement();
                 var result = statement.executeQuery(
                         "SELECT rollingAverage FROM " + table + " WHERE ID = " + id)) {
+            result.next();
+            return result.getDouble(1);
+        }
+    }
+
+    private double rollingStandardDeviation(Connection connection, String table, int id)
+            throws Exception {
+        try (var statement = connection.createStatement();
+                var result = statement.executeQuery(
+                        "SELECT rollingStandardDeviation FROM " + table + " WHERE ID = " + id)) {
             result.next();
             return result.getDouble(1);
         }

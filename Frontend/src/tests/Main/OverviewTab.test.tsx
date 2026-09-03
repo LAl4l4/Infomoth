@@ -30,7 +30,7 @@ const mockSettings = pullGeneralSettings as jest.Mock;
 beforeEach(() => {
   jest.clearAllMocks();
   mockSkills.mockResolvedValue([{ rank: 1, skill: 'RAG', mentions: 42 }]);
-  mockSentiment.mockResolvedValue({ normalizedScore: 0.1234, rollingAverage: 0.1 });
+  mockSentiment.mockResolvedValue({ normalizedScore: 0.1234, dailyAverage: 0.1 });
   mockRate.mockResolvedValue(7.2);
   mockStocks.mockResolvedValue([
     { symbol: '^GSPC', name: 'S&P 500', price: 6023.45, change: 10, changePercent: 0.17, date: '2026-07-30' },
@@ -54,7 +54,7 @@ describe('OverviewTab', () => {
   });
 
   it('shows fallback text when no data is available', async () => {
-    mockSentiment.mockResolvedValue({ normalizedScore: null, rollingAverage: null });
+    mockSentiment.mockResolvedValue({ normalizedScore: null, dailyAverage: null });
     // sentiment thunk caches null; use a fresh store per test (renderWithProviders does)
     mockStocks.mockResolvedValue([]);
     mockRate.mockResolvedValue(undefined as never);

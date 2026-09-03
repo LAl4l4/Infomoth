@@ -170,21 +170,24 @@ class MarketTrendServiceTest {
     }
 
     @Test
-    void initializationSkipsFullHistoryWhenCorrelationsAlreadyExist() {
-        when(correlationMapper.findAll()).thenReturn(List.of(persisted("^GSPC", "S&P 500", 0.25, 12)));
+    void initializationRebuildsFullHistoryWhenCorrelationsAlreadyExist() {
+        when(sentimentMapper.findAllByTable("politics_average")).thenReturn(List.of());
+        when(sentimentMapper.findAllByTable("tech_average")).thenReturn(List.of());
+        when(stockIndexMapper.findAll()).thenReturn(List.of());
 
         marketTrendService.initializeCorrelations();
 
-        verify(sentimentMapper, never()).findAllByTable(any());
-        verify(stockIndexMapper, never()).findAll();
-        verify(correlationMapper, never()).updateCorrelation(any());
+        verify(sentimentMapper).findAllByTable("politics_average");
+        verify(sentimentMapper).findAllByTable("tech_average");
+        verify(stockIndexMapper).findAll();
     }
 
     private SentimentAverage sentiment(LocalDate date, double score) {
         SentimentAverage average = new SentimentAverage();
         average.setDate(date);
         average.setSentimentScore(score);
-        average.setRollingAverage(score / 2);
+        average.setRollingAverage(0.0);
+        average.setRollingStandardDeviation(1.0);
         average.setSampleCount(2);
         return average;
     }

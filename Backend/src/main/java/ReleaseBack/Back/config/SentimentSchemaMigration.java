@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-/** Migrates legacy daily sentiment rows to append-only cumulative samples. */
+/** Migrates legacy sentiment rows to append-only samples with cumulative statistics. */
 @Component
 @DependsOn("dataSourceScriptDatabaseInitializer")
 public class SentimentSchemaMigration implements InitializingBean {
@@ -40,6 +40,7 @@ public class SentimentSchemaMigration implements InitializingBean {
             for (String tableName : TABLE_NAMES) {
                 addColumnIfMissing(connection, tableName, "sampleCount", "INT NOT NULL DEFAULT 1");
                 addColumnIfMissing(connection, tableName, "rollingAverage", "DOUBLE");
+                addColumnIfMissing(connection, tableName, "rollingStandardDeviation", "DOUBLE");
                 initializeRollingValues(connection, tableName);
                 dropDateUniqueness(connection, tableName);
             }
@@ -62,7 +63,7 @@ public class SentimentSchemaMigration implements InitializingBean {
     }
 
     private void initializeRollingValues(Connection connection, String tableName) throws SQLException {
-        if (!hasNullRollingAverage(connection, tableName)) {
+        if (!hasNullRollingStatistics(connection, tableName)) {
             return;
         }
 
@@ -77,26 +78,36 @@ public class SentimentSchemaMigration implements InitializingBean {
             }
         }
 
-        double total = 0;
         int cumulativeCount = 0;
+        double rollingAverage = 0;
+        double rollingM2 = 0;
         try (PreparedStatement update = connection.prepareStatement(
-                "UPDATE " + tableName + " SET rollingAverage = ?, sampleCount = ? WHERE ID = ?")) {
+                "UPDATE " + tableName + " SET rollingAverage = ?, "
+                        + "rollingStandardDeviation = ?, sampleCount = ? WHERE ID = ?")) {
             for (LegacySentimentRow row : rows) {
-                total += row.sentimentScore();
                 cumulativeCount++;
-                update.setDouble(1, total / cumulativeCount);
-                update.setInt(2, cumulativeCount);
-                update.setInt(3, row.id());
+                double delta = row.sentimentScore() - rollingAverage;
+                rollingAverage += delta / cumulativeCount;
+                rollingM2 += delta * (row.sentimentScore() - rollingAverage);
+                double rollingStandardDeviation = Math.sqrt(
+                        Math.max(0.0, rollingM2 / cumulativeCount));
+
+                update.setDouble(1, rollingAverage);
+                update.setDouble(2, rollingStandardDeviation);
+                update.setInt(3, cumulativeCount);
+                update.setInt(4, row.id());
                 update.addBatch();
             }
             update.executeBatch();
         }
     }
 
-    private boolean hasNullRollingAverage(Connection connection, String tableName) throws SQLException {
+    private boolean hasNullRollingStatistics(Connection connection, String tableName) throws SQLException {
         try (Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(
-                        "SELECT COUNT(*) FROM " + tableName + " WHERE rollingAverage IS NULL")) {
+                        "SELECT COUNT(*) FROM " + tableName
+                                + " WHERE rollingAverage IS NULL "
+                                + "OR rollingStandardDeviation IS NULL")) {
             result.next();
             return result.getInt(1) > 0;
         }

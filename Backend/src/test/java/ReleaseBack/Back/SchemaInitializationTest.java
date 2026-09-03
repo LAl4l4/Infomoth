@@ -39,11 +39,15 @@ class SchemaInitializationTest {
                 Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM politics_average", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM tech_average", Integer.class));
-        assertEquals(4, jdbcTemplate.queryForObject(
+        assertEquals(6, jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE TABLE_NAME IN ('POLITICS_AVERAGE', 'TECH_AVERAGE')
-                  AND COLUMN_NAME IN ('SAMPLECOUNT', 'ROLLINGAVERAGE')
+                  AND COLUMN_NAME IN (
+                    'SAMPLECOUNT',
+                    'ROLLINGAVERAGE',
+                    'ROLLINGSTANDARDDEVIATION'
+                  )
                 """,
                 Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM us_stock_indices", Integer.class));

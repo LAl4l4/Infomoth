@@ -197,9 +197,9 @@ export default function MarketTrendTab() {
     return [
       {
         key: 'sentiment',
-        label: '市场情绪 × 10',
+        label: '市场情绪指数',
         color: '#FFFFFF',
-        values: data.points.map((point) => point.sentiment === null ? null : point.sentiment * 10),
+        values: data.points.map((point) => point.sentiment),
       },
       ...stockSeries,
     ];
@@ -210,7 +210,7 @@ export default function MarketTrendTab() {
       <p className="eyebrow">Market Trend</p>
       <h2 className="panel-title">7日市场走势</h2>
       <p className="panel-lead">
-        对比近 7 个自然日的市场情绪与 Yahoo Finance 美股涨跌幅；交易时段使用 5 分钟行情并自动刷新，corr 使用持久化的交易日数据。周末不生成行情点，曲线连接前后交易日。
+        对比近 7 个自然日的标准化市场情绪与 Yahoo Finance 美股涨跌幅；交易时段使用 5 分钟行情并自动刷新。corr 使用全部已完成交易日的历史持久化数据，不局限于图中 7 天。周末不生成行情点，曲线连接前后交易日。
       </p>
 
       {loading && <p className="state-text">加载中…</p>}

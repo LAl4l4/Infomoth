@@ -57,11 +57,13 @@ class SentimentPersistenceServiceTest {
                 any(),
                 doubleThat(score -> Math.abs(score - 0.3) < 0.000001),
                 doubleThat(score -> Math.abs(score - 0.3) < 0.000001),
+                eq(0.0),
                 eq(1));
         verify(sentimentMapper).insertTechAverage(
                 any(),
                 doubleThat(score -> Math.abs(score - 0.3) < 0.000001),
                 doubleThat(score -> Math.abs(score - 0.3) < 0.000001),
+                eq(0.0),
                 eq(1));
     }
 
@@ -72,7 +74,7 @@ class SentimentPersistenceServiceTest {
         """);
         write("tech_news.json", "[]");
         when(sentimentMapper.findLatestByTable("politics_average"))
-                .thenReturn(sentiment(0.2, 4));
+                .thenReturn(sentiment(0.2, 0.1, 4));
 
         service.persistTodayAverages();
 
@@ -80,22 +82,27 @@ class SentimentPersistenceServiceTest {
                 any(),
                 eq(0.5),
                 doubleThat(score -> Math.abs(score - 0.26) < 0.000001),
+                doubleThat(score -> Math.abs(score - 0.1496662955) < 0.000001),
                 eq(5));
         verify(sentimentMapper, never()).findLatestByTable("tech_average");
         verify(sentimentMapper, never()).insertTechAverage(
-                any(), anyDouble(), anyDouble(), anyInt());
+                any(), anyDouble(), anyDouble(), anyDouble(), anyInt());
     }
 
     private void write(String fileName, String content) throws IOException {
         Files.writeString(tempDir.resolve(fileName), content);
     }
 
-    private SentimentAverage sentiment(double rollingAverage, int sampleCount) {
+    private SentimentAverage sentiment(
+            double rollingAverage,
+            double rollingStandardDeviation,
+            int sampleCount) {
         SentimentAverage sample = new SentimentAverage();
         sample.setId(1);
         sample.setDate(LocalDate.now().minusDays(1));
         sample.setSentimentScore(rollingAverage);
         sample.setRollingAverage(rollingAverage);
+        sample.setRollingStandardDeviation(rollingStandardDeviation);
         sample.setSampleCount(sampleCount);
         return sample;
     }

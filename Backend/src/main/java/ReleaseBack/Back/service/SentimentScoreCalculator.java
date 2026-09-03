@@ -11,25 +11,19 @@ final class SentimentScoreCalculator {
                 || !Double.isFinite(sample.getSentimentScore())) {
             return null;
         }
-        if (sample.getSampleCount() == null || sample.getSampleCount() <= 1) {
-            return 0.0;
-        }
         if (sample.getRollingAverage() == null || !Double.isFinite(sample.getRollingAverage())) {
             return null;
         }
-
-        double previousAverage = (
-                (sample.getRollingAverage() * sample.getSampleCount())
-                        - sample.getSentimentScore())
-                / (sample.getSampleCount() - 1);
-        return sample.getSentimentScore() - previousAverage;
-    }
-
-    static Double rollingAverage(SentimentAverage sample) {
-        if (sample == null || sample.getRollingAverage() == null
-                || !Double.isFinite(sample.getRollingAverage())) {
+        if (sample.getRollingStandardDeviation() == null
+                || !Double.isFinite(sample.getRollingStandardDeviation())
+                || sample.getRollingStandardDeviation() < 0) {
             return null;
         }
-        return sample.getRollingAverage();
+        if (sample.getRollingStandardDeviation() == 0) {
+            return 0.0;
+        }
+
+        return (sample.getSentimentScore() - sample.getRollingAverage())
+                / sample.getRollingStandardDeviation();
     }
 }

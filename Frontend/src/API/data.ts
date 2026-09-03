@@ -40,7 +40,7 @@ export async function pullSentimentScore(): Promise<SentimentScore> {
     || (typeof value === "number" && Number.isFinite(value));
   if (!res.data
       || !validScore(res.data.normalizedScore)
-      || !validScore(res.data.rollingAverage)) {
+      || !validScore(res.data.dailyAverage)) {
     throw new Error("Invalid sentiment response");
   }
   return res.data as SentimentScore;

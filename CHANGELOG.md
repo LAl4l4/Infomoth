@@ -1,5 +1,11 @@
 # Changelog
 
+- `09/04/2026`:
+    - Added cumulative population standard deviation to every persisted politics and technology sentiment sample alongside its raw FinBERT score, cumulative mean, and sample count; startup migration backfills the complete statistic sequence for existing rows.
+    - Changed normalized sentiment to the rolling z-score `(raw - mean) / standard deviation`, changed `/data/sentiment` to return today's mean across normalized samples as `dailyAverage`, and adapted the sentiment and market-trend displays to the new scale.
+    - Kept the market chart at seven calendar days while rebuilding each displayed `corr` from every completed overlapping persisted date, and clarified that full-history scope in the UI.
+    - Routed the Pipeline Python base image through the shared configurable `IMAGE_PREFIX`, defaulting to `docker.1ms.run/library`, so pipeline builds do not depend on direct Docker Hub access.
+
 - `09/03/2026`:
     - Reordered the primary navigation to 概览 / 市场情绪 / 汇率 / 美股 / 市场走势 / 更多, moved AI skill trends into the secondary More view, and reduced the ranking to five entries until expanded.
     - Removed AI skills from the Overview snapshot so its data loads only when More is opened. Breaking: `defaultPage` values were renumbered to match the new tab order without migrating previously saved preferences.

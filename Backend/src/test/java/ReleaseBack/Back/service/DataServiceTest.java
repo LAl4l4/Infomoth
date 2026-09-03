@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
@@ -142,51 +143,52 @@ class DataServiceTest {
     }
 
     @Test
-    void getSentimentScoreShouldReturnDifferenceFromPreviousAverage() {
-        SentimentAverage politics = sentiment(0.8, 0.4, 3);
-        SentimentAverage tech = sentiment(0.4, 0.25, 2);
-        when(sentimentMapper.findByDate("politics_average", LocalDate.now())).thenReturn(politics);
-        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(tech);
+    void getSentimentScoreShouldReturnCurrentAndDailyNormalizedScores() {
+        when(sentimentMapper.findSince("politics_average", LocalDate.now())).thenReturn(List.of(
+                sentiment(0.2, 0.4, 0.2, 3),
+                sentiment(1.0, 0.4, 0.2, 4)));
+        when(sentimentMapper.findSince("tech_average", LocalDate.now())).thenReturn(List.of(
+                sentiment(0.5, 0.1, 0.2, 3)));
 
         SentimentScoreDTO score = dataService.getSentimentScore();
 
-        assertEquals(0.45, score.getNormalizedScore(), 0.000001);
-        assertEquals(0.325, score.getRollingAverage(), 0.000001);
+        assertEquals(2.5, score.getNormalizedScore(), 0.000001);
+        assertEquals(4.0 / 3.0, score.getDailyAverage(), 0.000001);
     }
 
     @Test
     void getSentimentScoreShouldReturnAvailableValuesWhenOneCategoryIsMissing() {
-        SentimentAverage tech = sentiment(0.5, 0.3, 2);
-        when(sentimentMapper.findByDate("politics_average", LocalDate.now())).thenReturn(null);
-        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(tech);
+        when(sentimentMapper.findSince("politics_average", LocalDate.now())).thenReturn(List.of());
+        when(sentimentMapper.findSince("tech_average", LocalDate.now())).thenReturn(List.of(
+                sentiment(0.5, 0.3, 0.1, 2)));
 
         SentimentScoreDTO score = dataService.getSentimentScore();
 
-        assertEquals(0.4, score.getNormalizedScore(), 0.000001);
-        assertEquals(0.3, score.getRollingAverage());
+        assertEquals(2.0, score.getNormalizedScore(), 0.000001);
+        assertEquals(2.0, score.getDailyAverage(), 0.000001);
     }
 
     @Test
     void getSentimentScoreShouldNotReuseYesterdayAsTodaysScore() {
-        when(sentimentMapper.findByDate("politics_average", LocalDate.now())).thenReturn(null);
-        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(null);
+        when(sentimentMapper.findSince("politics_average", LocalDate.now())).thenReturn(List.of());
+        when(sentimentMapper.findSince("tech_average", LocalDate.now())).thenReturn(List.of());
 
         SentimentScoreDTO score = dataService.getSentimentScore();
 
         assertEquals(null, score.getNormalizedScore());
-        assertEquals(null, score.getRollingAverage());
+        assertEquals(null, score.getDailyAverage());
     }
 
     @Test
     void getSentimentScoreShouldNormalizeTheFirstSampleToZero() {
-        when(sentimentMapper.findByDate("politics_average", LocalDate.now()))
-                .thenReturn(sentiment(0.7, 0.7, 1));
-        when(sentimentMapper.findByDate("tech_average", LocalDate.now())).thenReturn(null);
+        when(sentimentMapper.findSince("politics_average", LocalDate.now())).thenReturn(List.of(
+                sentiment(0.7, 0.7, 0.0, 1)));
+        when(sentimentMapper.findSince("tech_average", LocalDate.now())).thenReturn(List.of());
 
         SentimentScoreDTO score = dataService.getSentimentScore();
 
         assertEquals(0.0, score.getNormalizedScore());
-        assertEquals(0.7, score.getRollingAverage());
+        assertEquals(0.0, score.getDailyAverage());
     }
 
     private void writeSharedFile(String fileName, String content) throws IOException {
@@ -194,12 +196,17 @@ class DataServiceTest {
         Files.writeString(sharedFile, content);
     }
 
-    private SentimentAverage sentiment(double rawScore, double rollingAverage, int sampleCount) {
+    private SentimentAverage sentiment(
+            double rawScore,
+            double rollingAverage,
+            double rollingStandardDeviation,
+            int sampleCount) {
         SentimentAverage average = new SentimentAverage();
         average.setId(1);
         average.setDate(LocalDate.now());
         average.setSentimentScore(rawScore);
         average.setRollingAverage(rollingAverage);
+        average.setRollingStandardDeviation(rollingStandardDeviation);
         average.setSampleCount(sampleCount);
         return average;
     }

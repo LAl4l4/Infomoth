@@ -52,7 +52,7 @@ describe('dataCache thunks', () => {
   });
 
   it('fetchSentimentScore stores the score and does not refetch', async () => {
-    const sentiment = { normalizedScore: 0.25, rollingAverage: 0.2 };
+    const sentiment = { normalizedScore: 0.75, dailyAverage: 0.6 };
     mockSentiment.mockResolvedValue(sentiment);
     const store = createTestStore();
 
@@ -116,7 +116,7 @@ describe('dataCache thunks', () => {
 
 describe('clearDataCache', () => {
   it('resets all cached entries', async () => {
-    mockSentiment.mockResolvedValue({ normalizedScore: 0.5, rollingAverage: 0.4 });
+    mockSentiment.mockResolvedValue({ normalizedScore: 0.5, dailyAverage: 0.4 });
     const store = createTestStore();
     await store.dispatch(fetchSentimentScore());
     expect(selectSentimentScore(store.getState() as RootState).data?.normalizedScore).toBe(0.5);

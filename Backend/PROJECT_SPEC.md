@@ -5,7 +5,7 @@
 - **Responsibilities**:
   - User authentication and profile management (`/auth/*`)
   - Exchange rate data retrieval (`/data/*`)
-  - Seven-day sentiment/US stock trend data and correlation calculation
+  - Seven-day sentiment/US stock trend data backed by full-history correlation calculation
 - **External Dependencies**: Reads `exchangeRates.json` from the `shared.directory` in `Config/app-config.json`.
 
 ## 2. Tech Stack & Frameworks
@@ -66,7 +66,8 @@
   - `POST /auth/pushProfile`: Update user profile (JSON Body: `ProfileDTO`)
   - `GET /data/currencies`: List available currencies
   - `GET /data/exchangerate?base=USD&quote=CNY`: Fetch specific exchange rate
-  - `GET /data/market-trends`: Return seven calendar days of sentiment, persisted US stock prices and captured daily percentage changes, plus per-index `corr`
+  - `GET /data/sentiment`: Return the latest normalized sentiment and today's mean across all normalized samples as `{ normalizedScore, dailyAverage }`
+  - `GET /data/market-trends`: Return seven calendar days of sentiment, persisted US stock prices and captured daily percentage changes, plus per-index full-history `corr`
   - `GET /settings/general`: Return `defaultPage`, `defaultBaseCurrency`, and `defaultQuoteCurrency`
   - `PUT /settings/general`: Persist the home tab plus both exchange-rate selector sides
 
@@ -74,8 +75,9 @@
 - User queries support both username and email (`findByNameEmail`).
 - Profile and User entities are linked via `user_id`.
 - `user_settings` stores both exchange-rate sides (`default_base_currency` and `default_quote_currency`) alongside `default_page`; missing values default to USD/CNY.
+- Each immutable sentiment row stores its raw FinBERT score, cumulative rolling mean, cumulative population standard deviation, and cumulative sample count. Normalized sentiment is the z-score `(raw - mean) / standardDeviation`, with zero standard deviation mapped to zero.
 - `us_stock_indices` stores one row per trading date. Each row contains the price and captured daily percentage change for S&P 500, Dow Jones, NASDAQ, and Russell 2000. The scheduled Backend persistence job groups the four snapshots in `Shared/us_stock_indices.json` by their source trading date and upserts that daily row.
-- Market-trend `corr` uses each persisted `change_percent` value directly; it does not derive another return from adjacent stored prices.
+- Market-trend `corr` uses every completed overlapping persisted date across the full available history and each persisted `change_percent` value directly; it is not limited to the seven dates returned for chart display and does not derive another return from adjacent stored prices.
 - Exchange rate JSON parsing uses `exchangeRateDTO` with field compatibility:
   - `base_currency` / `base`
   - `quote_currency` / `quote`

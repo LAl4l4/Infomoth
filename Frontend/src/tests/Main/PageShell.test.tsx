@@ -26,7 +26,7 @@ jest.mock('../../API/data', () => ({
   pullCurrencies: jest.fn(() => Promise.resolve(['USD', 'CNY'])),
   pullExchangeRate: jest.fn(() => Promise.resolve(7.2)),
   pullPopularAISkills: jest.fn(() => Promise.resolve([])),
-  pullSentimentScore: jest.fn(() => Promise.resolve(0.1)),
+  pullSentimentScore: jest.fn(() => Promise.resolve({ normalizedScore: 0.1, dailyAverage: 0.1 })),
   pullUsStockIndices: jest.fn(() => Promise.resolve([])),
   pullMarketTrends: jest.fn(() => Promise.resolve({ points: [], correlations: [] })),
 }));

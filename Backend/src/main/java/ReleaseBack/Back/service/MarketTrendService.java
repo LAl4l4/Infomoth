@@ -40,9 +40,7 @@ public class MarketTrendService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void initializeCorrelations() {
-        if (safeList(correlationMapper.findAll()).isEmpty()) {
-            rollingUpdateCorrelation();
-        }
+        rollingUpdateCorrelation();
     }
 
     // Recomputes Pearson correlations over completed persisted days and upserts

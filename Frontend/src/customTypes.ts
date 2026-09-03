@@ -61,12 +61,12 @@ export interface DisplaySettingsData {
   globeMarkerColor: string;
 }
 
-/** Current normalized sentiment delta and the persisted cumulative rolling average. */
+/** Current z-score sentiment and today's mean of normalized observations. */
 export interface SentimentScore {
-  /** Current raw FinBERT score minus the average before that sample was added. */
+  /** Current FinBERT score standardized by its persisted rolling mean and standard deviation. */
   normalizedScore: number | null;
-  /** Cumulative rolling average after the current sample was added. */
-  rollingAverage: number | null;
+  /** Mean of all normalized sentiment observations persisted today. */
+  dailyAverage: number | null;
 }
 
 /** One stock index's captured price and percentage change on a trading date. */
@@ -92,7 +92,7 @@ export interface MarketCorrelation {
   sampleSize: number;
 }
 
-/** Seven calendar days of trend data and the derived correlations. */
+/** Seven calendar days of trend data plus full-history persisted correlations. */
 export interface MarketTrendData {
   points: MarketTrendPoint[];
   correlations: MarketCorrelation[];

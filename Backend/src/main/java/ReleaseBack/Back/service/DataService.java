@@ -101,17 +101,42 @@ public class DataService {
 
     public SentimentScoreDTO getSentimentScore() {
         LocalDate today = LocalDate.now();
-        SentimentAverage politics = sentimentMapper.findByDate("politics_average", today);
-        SentimentAverage tech = sentimentMapper.findByDate("tech_average", today);
+        List<SentimentAverage> politics = availableSentiments(
+                sentimentMapper.findSince("politics_average", today));
+        List<SentimentAverage> tech = availableSentiments(
+                sentimentMapper.findSince("tech_average", today));
 
         Double normalizedScore = averageAvailable(
-                SentimentScoreCalculator.normalizedScore(politics),
-                SentimentScoreCalculator.normalizedScore(tech));
-        Double rollingAverage = averageAvailable(
-                SentimentScoreCalculator.rollingAverage(politics),
-                SentimentScoreCalculator.rollingAverage(tech));
+                SentimentScoreCalculator.normalizedScore(latest(politics)),
+                SentimentScoreCalculator.normalizedScore(latest(tech)));
+        Double dailyAverage = averageNormalized(politics, tech);
 
-        return new SentimentScoreDTO(normalizedScore, rollingAverage);
+        return new SentimentScoreDTO(normalizedScore, dailyAverage);
+    }
+
+    private SentimentAverage latest(List<SentimentAverage> samples) {
+        return samples.isEmpty() ? null : samples.getLast();
+    }
+
+    private Double averageNormalized(
+            List<SentimentAverage> first,
+            List<SentimentAverage> second) {
+        double total = 0;
+        int count = 0;
+        for (List<SentimentAverage> samples : List.of(first, second)) {
+            for (SentimentAverage sample : samples) {
+                Double value = SentimentScoreCalculator.normalizedScore(sample);
+                if (value != null && Double.isFinite(value)) {
+                    total += value;
+                    count++;
+                }
+            }
+        }
+        return count == 0 ? null : total / count;
+    }
+
+    private List<SentimentAverage> availableSentiments(List<SentimentAverage> samples) {
+        return samples == null ? List.of() : samples;
     }
 
     private Double averageAvailable(Double... values) {

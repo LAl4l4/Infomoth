@@ -59,7 +59,7 @@ class Mysql8SchemaIntegrationTest {
         assertEquals(0, rowCount(jdbcTemplate, "market_correlation"));
         assertEquals(2, currencyColumnCount(jdbcTemplate));
         assertEquals(4, displayColumnCount(jdbcTemplate));
-        assertEquals(4, sentimentRollingColumnCount(jdbcTemplate));
+        assertEquals(6, sentimentRollingColumnCount(jdbcTemplate));
         assertEquals(8, dailyMarketColumnCount(jdbcTemplate));
 
         try (Connection connection = dataSource.getConnection()) {
@@ -103,17 +103,21 @@ class Mysql8SchemaIntegrationTest {
             migration.migrate();
             migration.migrate();
 
-            assertEquals(4, sentimentRollingColumnCount(jdbcTemplate));
+            assertEquals(6, sentimentRollingColumnCount(jdbcTemplate));
             assertEquals(1, jdbcTemplate.queryForObject(
                     "SELECT sampleCount FROM politics_average WHERE ID = 1",
                     Integer.class));
             assertEquals(0.25, jdbcTemplate.queryForObject(
                     "SELECT rollingAverage FROM politics_average WHERE ID = 1",
                     Double.class));
+            assertEquals(0.0, jdbcTemplate.queryForObject(
+                    "SELECT rollingStandardDeviation FROM politics_average WHERE ID = 1",
+                    Double.class));
             jdbcTemplate.update(
                     "INSERT INTO politics_average "
-                            + "(ID, date, sentimentScore, rollingAverage, sampleCount) "
-                            + "VALUES (2, '2026-08-11', 0.5, 0.375, 2)");
+                            + "(ID, date, sentimentScore, rollingAverage, "
+                            + "rollingStandardDeviation, sampleCount) "
+                            + "VALUES (2, '2026-08-11', 0.5, 0.375, 0.125, 2)");
         } finally {
             jdbcTemplate.execute("DROP TABLE IF EXISTS politics_average");
             jdbcTemplate.execute("DROP TABLE IF EXISTS tech_average");
@@ -222,7 +226,11 @@ class Mysql8SchemaIntegrationTest {
                 SELECT COUNT(*) FROM information_schema.columns
                 WHERE table_schema = DATABASE()
                     AND table_name IN ('politics_average', 'tech_average')
-                    AND column_name IN ('sampleCount', 'rollingAverage')
+                    AND column_name IN (
+                        'sampleCount',
+                        'rollingAverage',
+                        'rollingStandardDeviation'
+                    )
                 """,
                 Integer.class));
     }

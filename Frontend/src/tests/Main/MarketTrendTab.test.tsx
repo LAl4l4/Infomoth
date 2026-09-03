@@ -74,7 +74,8 @@ describe('MarketTrendTab', () => {
 
     expect(await screen.findByText('7日市场走势')).toBeInTheDocument();
     expect(screen.getByText(/交易时段使用 5 分钟行情并自动刷新/)).toBeInTheDocument();
-    expect(await screen.findByText('市场情绪 × 10')).toBeInTheDocument();
+    expect(screen.getByText(/全部已完成交易日的历史持久化数据/)).toBeInTheDocument();
+    expect(await screen.findByText('市场情绪指数')).toBeInTheDocument();
     expect(await screen.findByText('corr = 1.0000')).toBeInTheDocument();
     expect(screen.getByText('^GSPC · 3 个交易日样本')).toBeInTheDocument();
     expect(screen.getAllByText('Weekend')).toHaveLength(2);

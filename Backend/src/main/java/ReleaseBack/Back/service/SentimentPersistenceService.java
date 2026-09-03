@@ -84,14 +84,21 @@ public class SentimentPersistenceService {
             double rawScore = average.getAsDouble();
             SentimentAverage previous = sentimentMapper.findLatestByTable(tableName);
             int sampleCount = nextSampleCount(previous);
-            double rollingAverage = nextRollingAverage(previous, rawScore, sampleCount);
+            RollingStatistics statistics = nextRollingStatistics(previous, rawScore, sampleCount);
 
-            writer.write(LocalDate.now(), rawScore, rollingAverage, sampleCount);
+            writer.write(
+                    LocalDate.now(),
+                    rawScore,
+                    statistics.average(),
+                    statistics.standardDeviation(),
+                    sampleCount);
             log.info(
-                    "Persisted {} sentiment sample: raw={}, rollingAverage={}, sampleCount={}",
+                    "Persisted {} sentiment sample: raw={}, rollingAverage={}, "
+                            + "rollingStandardDeviation={}, sampleCount={}",
                     category,
                     rawScore,
-                    rollingAverage,
+                    statistics.average(),
+                    statistics.standardDeviation(),
                     sampleCount);
         } catch (IOException e) {
             log.warn("Cannot read {} sentiment data; it will be retried on the next run", category, e);
@@ -105,19 +112,39 @@ public class SentimentPersistenceService {
         return previous.getSampleCount() + 1;
     }
 
-    private double nextRollingAverage(
+    private RollingStatistics nextRollingStatistics(
             SentimentAverage previous,
             double rawScore,
             int sampleCount) {
         if (previous == null || previous.getRollingAverage() == null
-                || !Double.isFinite(previous.getRollingAverage()) || sampleCount == 1) {
-            return rawScore;
+                || !Double.isFinite(previous.getRollingAverage())
+                || previous.getRollingStandardDeviation() == null
+                || !Double.isFinite(previous.getRollingStandardDeviation())
+                || previous.getRollingStandardDeviation() < 0
+                || sampleCount == 1) {
+            return new RollingStatistics(rawScore, 0.0);
         }
-        return ((previous.getRollingAverage() * (sampleCount - 1)) + rawScore) / sampleCount;
+
+        int previousCount = sampleCount - 1;
+        double previousAverage = previous.getRollingAverage();
+        double delta = rawScore - previousAverage;
+        double nextAverage = previousAverage + delta / sampleCount;
+        double previousM2 = Math.pow(previous.getRollingStandardDeviation(), 2) * previousCount;
+        double nextM2 = previousM2 + delta * (rawScore - nextAverage);
+        double nextVariance = Math.max(0.0, nextM2 / sampleCount);
+        return new RollingStatistics(nextAverage, Math.sqrt(nextVariance));
     }
 
     @FunctionalInterface
     private interface AverageWriter {
-        void write(LocalDate date, double score, double rollingAverage, int sampleCount);
+        void write(
+                LocalDate date,
+                double score,
+                double rollingAverage,
+                double rollingStandardDeviation,
+                int sampleCount);
+    }
+
+    private record RollingStatistics(double average, double standardDeviation) {
     }
 }

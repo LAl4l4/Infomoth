@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SentimentScoreDTO {
     private Double normalizedScore;
-    private Double rollingAverage;
+    private Double dailyAverage;
 }

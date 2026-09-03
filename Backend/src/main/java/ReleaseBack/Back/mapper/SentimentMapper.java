@@ -27,11 +27,13 @@ public interface SentimentMapper {
             @Param("date") LocalDate date,
             @Param("sentimentScore") double sentimentScore,
             @Param("rollingAverage") double rollingAverage,
+            @Param("rollingStandardDeviation") double rollingStandardDeviation,
             @Param("sampleCount") int sampleCount);
 
     int insertTechAverage(
             @Param("date") LocalDate date,
             @Param("sentimentScore") double sentimentScore,
             @Param("rollingAverage") double rollingAverage,
+            @Param("rollingStandardDeviation") double rollingStandardDeviation,
             @Param("sampleCount") int sampleCount);
 }

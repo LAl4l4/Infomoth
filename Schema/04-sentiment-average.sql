@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS politics_average (
     date DATE NOT NULL,
     sentimentScore DOUBLE NOT NULL,
     rollingAverage DOUBLE NOT NULL,
+    rollingStandardDeviation DOUBLE NOT NULL DEFAULT 0,
     sampleCount INT NOT NULL DEFAULT 1
 );
 
@@ -11,5 +12,6 @@ CREATE TABLE IF NOT EXISTS tech_average (
     date DATE NOT NULL,
     sentimentScore DOUBLE NOT NULL,
     rollingAverage DOUBLE NOT NULL,
+    rollingStandardDeviation DOUBLE NOT NULL DEFAULT 0,
     sampleCount INT NOT NULL DEFAULT 1
 );

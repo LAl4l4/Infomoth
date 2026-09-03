@@ -46,7 +46,8 @@
   - `POST /auth/pushProfile`: Update profile (JSON body)
   - `GET /data/currencies`: List currencies
   - `GET /data/exchangerate?base=&quote=`: Fetch specific rate
-  - `GET /data/market-trends`: Fetch seven calendar days of sentiment, persisted stock prices, captured daily percentage changes, and `corr` values. Price lines bridge missing weekend points while the axis labels those dates as `Weekend`; correlation uses only actual trading-day observations.
+  - `GET /data/sentiment`: Fetch the latest rolling-standard-deviation z-score plus today's mean across normalized samples as `{ normalizedScore, dailyAverage }`
+  - `GET /data/market-trends`: Fetch seven calendar days of sentiment, persisted stock prices, captured daily percentage changes, and `corr` values. Price lines bridge missing weekend points while the axis labels those dates as `Weekend`; correlation uses all completed persisted history but only actual trading-day observations.
   - `GET /settings/general` / `PUT /settings/general`: Read and save the default tab plus both exchange-rate selector currencies
 
 ## 6. State Management Conventions

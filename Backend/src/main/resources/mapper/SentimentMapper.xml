@@ -5,14 +5,16 @@
 <mapper namespace="ReleaseBack.Back.mapper.SentimentMapper">
 
     <select id="findLatestByTable" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage,
+               rollingStandardDeviation, sampleCount
         FROM ${table}
         ORDER BY ID DESC
         LIMIT 1
     </select>
 
     <select id="findByDate" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage,
+               rollingStandardDeviation, sampleCount
         FROM ${table}
         WHERE date = #{date}
         ORDER BY ID DESC
@@ -20,26 +22,38 @@
     </select>
 
     <select id="findSince" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage,
+               rollingStandardDeviation, sampleCount
         FROM ${table}
         WHERE date &gt;= #{fromDate}
         ORDER BY date ASC, ID ASC
     </select>
 
     <select id="findAllByTable" resultType="ReleaseBack.Back.entity.SentimentAverage">
-        SELECT ID as id, date, sentimentScore, rollingAverage, sampleCount
+        SELECT ID as id, date, sentimentScore, rollingAverage,
+               rollingStandardDeviation, sampleCount
         FROM ${table}
         ORDER BY ID ASC
     </select>
 
     <insert id="insertPoliticsAverage">
-        INSERT INTO politics_average (date, sentimentScore, rollingAverage, sampleCount)
-        VALUES (#{date}, #{sentimentScore}, #{rollingAverage}, #{sampleCount})
+        INSERT INTO politics_average (
+            date, sentimentScore, rollingAverage, rollingStandardDeviation, sampleCount
+        )
+        VALUES (
+            #{date}, #{sentimentScore}, #{rollingAverage},
+            #{rollingStandardDeviation}, #{sampleCount}
+        )
     </insert>
 
     <insert id="insertTechAverage">
-        INSERT INTO tech_average (date, sentimentScore, rollingAverage, sampleCount)
-        VALUES (#{date}, #{sentimentScore}, #{rollingAverage}, #{sampleCount})
+        INSERT INTO tech_average (
+            date, sentimentScore, rollingAverage, rollingStandardDeviation, sampleCount
+        )
+        VALUES (
+            #{date}, #{sentimentScore}, #{rollingAverage},
+            #{rollingStandardDeviation}, #{sampleCount}
+        )
     </insert>
 
 </mapper>
