@@ -65,6 +65,12 @@ describe('data API', () => {
     expect(mockGet).toHaveBeenCalledWith('/data/sentiment');
   });
 
+  it('pullSentimentScore accepts missing observations as null', async () => {
+    const sentiment = { normalizedScore: null, dailyAverage: null };
+    mockGet.mockResolvedValue({ data: sentiment });
+    await expect(pullSentimentScore()).resolves.toEqual(sentiment);
+  });
+
   it('pullSentimentScore rejects on non-number response', async () => {
     mockGet.mockResolvedValue({ data: { normalizedScore: 'bad', dailyAverage: 0.1 } });
     await expect(pullSentimentScore()).rejects.toThrow('Invalid sentiment response');

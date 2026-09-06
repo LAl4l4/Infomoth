@@ -108,11 +108,12 @@ package-pipe: ## Package the pipeline image into a gzip archive
 	@docker save infomoth-pipeline:latest | gzip > $(PIPELINE_ARCHIVE)
 
 submit-app: ## Upload the application archive and compose file
-	@ssh $(APP_HOST) 'mkdir -p $(APP_REMOTE_DIR)/Config $(APP_REMOTE_DIR)/Shared'
+	@ssh $(APP_HOST) 'mkdir -p $(APP_REMOTE_DIR)/Config $(APP_REMOTE_DIR)/Shared $(APP_REMOTE_DIR)/scripts'
 	@scp $(APP_ARCHIVE) $(APP_COMPOSE) $(APP_HOST):$(APP_REMOTE_DIR)/
 # Config and database schemas are runtime files and are uploaded separately.
 	@scp $(APP_CONFIG) $(APP_HOST):$(APP_REMOTE_DIR)/Config/deploy-config.json
 	@scp -r $(DATABASE_SCHEMA_DIR) $(APP_HOST):$(APP_REMOTE_DIR)/
+	@scp scripts/fix_sentiment_duplicates.sql $(APP_HOST):$(APP_REMOTE_DIR)/scripts/
 
 start-app: ## Load and start the uploaded application images on the App VM
 	@ssh $(APP_HOST) 'cd $(APP_REMOTE_DIR) && gzip -dc $(APP_ARCHIVE) | docker load && docker compose -f $(APP_COMPOSE) up -d --no-build && docker compose -f $(APP_COMPOSE) ps'
@@ -128,4 +129,4 @@ submit-models: ## Incrementally upload local FinBERT models to the Pipeline VM
 	@rsync -az --partial --progress models/ $(PIPELINE_HOST):$(PIPELINE_REMOTE_DIR)/models/
 
 start-pipe: ## Load and start the uploaded pipeline image on the Pipeline VM
-	@ssh $(PIPELINE_HOST) 'cd $(PIPELINE_REMOTE_DIR) && gzip -dc $(PIPELINE_ARCHIVE) | docker load && docker compose -f $(PIPELINE_COMPOSE) up -d --no-build pipeline && docker compose -f $(PIPELINE_COMPOSE) ps pipeline'
+	@ssh $(PIPELINE_HOST) 'cd $(PIPELINE_REMOTE_DIR) && gzip -dc $(PIPELINE_ARCHIVE) | docker load -i infomoth-pipeline-image.tar.gz && docker compose -f $(PIPELINE_COMPOSE) up -d --no-build pipeline && docker compose -f $(PIPELINE_COMPOSE) ps pipeline'

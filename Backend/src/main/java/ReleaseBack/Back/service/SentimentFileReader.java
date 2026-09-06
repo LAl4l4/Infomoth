@@ -1,7 +1,11 @@
 package ReleaseBack.Back.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.OptionalDouble;
 
 import org.springframework.stereotype.Component;
@@ -18,7 +22,12 @@ public class SentimentFileReader {
     }
 
     public OptionalDouble readAverage(Path file) throws IOException {
-        JsonNode items = objectMapper.readTree(file.toFile());
+        return readSnapshot(file).average();
+    }
+
+    public Snapshot readSnapshot(Path file) throws IOException {
+        byte[] contents = Files.readAllBytes(file);
+        JsonNode items = objectMapper.readTree(contents);
         if (items == null || !items.isArray()) {
             throw new IOException(file.getFileName() + " must contain a JSON array");
         }
@@ -32,6 +41,18 @@ public class SentimentFileReader {
                 count++;
             }
         }
-        return count == 0 ? OptionalDouble.empty() : OptionalDouble.of(total / count);
+        OptionalDouble average = count == 0 ? OptionalDouble.empty() : OptionalDouble.of(total / count);
+        return new Snapshot(average, fingerprint(contents));
+    }
+
+    private String fingerprint(byte[] contents) throws IOException {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException("Cannot fingerprint sentiment file", e);
+        }
+    }
+
+    public record Snapshot(OptionalDouble average, String fingerprint) {
     }
 }

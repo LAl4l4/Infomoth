@@ -16,6 +16,7 @@ spring:
         - file:../Schema/04-sentiment-average.sql
         - file:../Schema/05-us-stock-indices.sql
         - file:../Schema/07-market-correlation.sql
+        - file:../Schema/08-sentiment-file-state.sql
   
   
 server:

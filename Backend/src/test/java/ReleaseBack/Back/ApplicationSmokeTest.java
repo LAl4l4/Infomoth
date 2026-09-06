@@ -99,17 +99,14 @@ class ApplicationSmokeTest {
 
     @Test
     void smokeAuthRegister() {
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "/auth/register?username={username}&pass={pass}&email={email}",
-                null,
-                String.class,
-                "smoke-user",
-                "smoke-pass",
-                "smoke@example.com"
+        ResponseEntity<TokenVO> response = restTemplate.postForEntity(
+                "/auth/register",
+                java.util.Map.of("username", "smoke-user", "pass", "smoke-pass", "email", "smoke@example.com"),
+                TokenVO.class
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("注册成功", response.getBody());
+        assertTrue(response.getBody().isSuccess());
     }
 
     @Test
@@ -242,20 +239,15 @@ class ApplicationSmokeTest {
 
     private String registerAndLogin(String username, String password) {
         restTemplate.postForEntity(
-                "/auth/register?username={username}&pass={pass}&email={email}",
-                null,
-                String.class,
-                username,
-                password,
-                username + "@example.com"
+                "/auth/register",
+                java.util.Map.of("username", username, "pass", password, "email", username + "@example.com"),
+                TokenVO.class
         );
 
         ResponseEntity<TokenVO> loginResponse = restTemplate.postForEntity(
-                "/auth/login?username={username}&pass={pass}",
-                null,
-                TokenVO.class,
-                username,
-                password
+                "/auth/login",
+                java.util.Map.of("username", username, "pass", password),
+                TokenVO.class
         );
 
         TokenVO tokenVO = loginResponse.getBody();

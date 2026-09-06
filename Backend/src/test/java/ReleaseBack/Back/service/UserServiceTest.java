@@ -69,7 +69,7 @@ class UserServiceTest {
         verify(userMapper).saveUser(userCaptor.capture());
         User savedUser = userCaptor.getValue();
         assertEquals("new-user", savedUser.getUsername());
-        assertEquals("pw", savedUser.getPassword());
+        org.junit.jupiter.api.Assertions.assertTrue(new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().matches("pw", savedUser.getPassword()));
         assertEquals("new@example.com", savedUser.getEmail());
 
         ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
@@ -128,5 +128,31 @@ class UserServiceTest {
         verify(userMapper).createProfile(profile);
         assertNotNull(loaded);
         assertEquals(1, loaded.getId());
+    }
+
+    @Test
+    void legacyPasswordIsUpgradedOnlyAfterSuccessfulLogin() {
+        User user = new User();
+        user.setId(3);
+        user.setPassword("legacy-password");
+        when(userMapper.findByUsername("legacy")).thenReturn(user);
+        org.junit.jupiter.api.Assertions.assertNull(userService.authenticate("legacy", "wrong"));
+        verify(userMapper, never()).updatePassword(any(), any());
+        assertEquals(user, userService.authenticate("legacy", "legacy-password"));
+        ArgumentCaptor<String> hash = ArgumentCaptor.forClass(String.class);
+        verify(userMapper).updatePassword(org.mockito.ArgumentMatchers.eq(3), hash.capture());
+        org.junit.jupiter.api.Assertions.assertTrue(
+                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().matches("legacy-password", hash.getValue()));
+        user.setPassword(hash.getValue());
+        assertEquals(user, userService.authenticate("legacy", "legacy-password"));
+        org.junit.jupiter.api.Assertions.assertNull(userService.authenticate("legacy", "wrong"));
+        verify(userMapper, org.mockito.Mockito.times(1)).updatePassword(any(), any());
+    }
+
+    @Test
+    void invalidLoginDoesNotQueryDatabase() {
+        org.junit.jupiter.api.Assertions.assertNull(userService.authenticate(null, "pw"));
+        org.junit.jupiter.api.Assertions.assertNull(userService.authenticate("alice", null));
+        org.mockito.Mockito.verifyNoInteractions(userMapper);
     }
 }

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, act, fireEvent } from '@testing-library/react';
 import UsStockTab from '../../Main/Contents/UsStockTab';
 import { renderWithProviders } from '../testUtils';
 import { pullUsStockIndices } from '../../API/data';
@@ -57,4 +57,26 @@ describe('UsStockTab', () => {
 
     expect(await screen.findByText('加载失败')).toBeInTheDocument();
   });
+});
+
+
+it('polls, retains old cards on refresh failure, and clears the timer on unmount', async () => {
+  jest.useFakeTimers();
+  try {
+    mockPull.mockResolvedValueOnce(INDICES).mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce([{ ...INDICES[0], price: 6100 }]);
+    const view = renderWithProviders(<UsStockTab />);
+    await act(async () => {});
+    await act(async () => { jest.advanceTimersByTime(300001); });
+    expect(mockPull).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('6,023.45')).toBeInTheDocument();
+    expect(screen.getByText(/offline.*显示上次结果/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: '刷新数据' })); });
+    expect(screen.getByText('6,100.00')).toBeInTheDocument();
+    view.unmount();
+    await act(async () => { jest.advanceTimersByTime(600000); });
+    expect(mockPull).toHaveBeenCalledTimes(3);
+  } finally {
+    jest.useRealTimers();
+  }
 });

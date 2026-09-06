@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 import logging
 import sys
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from infomoth import (
     PoliticsNewsScraper,
@@ -19,8 +21,16 @@ from infomoth.runtime_config import load_shared_directory
 
 def save_json(path: Path, payload: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as file:
-        json.dump(payload, file, ensure_ascii=False, indent=2)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as file:
+            temporary = Path(file.name)
+            json.dump(payload, file, ensure_ascii=False, indent=2)
+        temporary.chmod(path.stat().st_mode & 0o777 if path.exists() else 0o644)
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def save_us_stock_indices(path: Path, payload: list[dict[str, Any]]) -> None:
@@ -44,14 +54,18 @@ def save_exchange_rates(path: Path, payload: list[dict[str, Any]]) -> None:
         except (OSError, json.JSONDecodeError):
             existing_payload = None
 
-        if isinstance(existing_payload, list) and existing_payload and len(payload) < len(existing_payload):
-            logging.warning(
-                "Fetched %s exchange rate pairs; keeping the more complete %s-pair payload in %s",
-                len(payload),
-                len(existing_payload),
-                path.name,
-            )
-            return
+        if isinstance(existing_payload, list) and existing_payload:
+            # Update only captured directions; retain missing pairs with their original dates.
+            def key(item):
+                return (item.get("base_currency", item.get("base")),
+                        item.get("quote_currency", item.get("quote")))
+
+            merged = {key(item): item for item in existing_payload}
+            for item in payload:
+                previous = merged.get(key(item))
+                if previous is None or item.get("date", "") >= previous.get("date", ""):
+                    merged[key(item)] = item
+            payload = list(merged.values())
 
     save_json(path, payload)
 
@@ -81,30 +95,31 @@ def run() -> None:
     ai_skills_scraper = AISkillsScraper()
     us_stock_index_scraper = USStockIndexScraper()
 
+    jobs = {
+        "tech": (tech_scraper, save_json),
+        "politics": (politics_scraper, save_json),
+        "exchange": (exchange_rate_scraper, save_exchange_rates),
+        "ai_skills": (ai_skills_scraper, save_json),
+        "indices": (us_stock_index_scraper, save_us_stock_indices),
+    }
+    failures = []
     with ThreadPoolExecutor(max_workers=5) as executor:
-        tech_future = executor.submit(tech_scraper.scrape)
-        politics_future = executor.submit(politics_scraper.scrape)
-        exchange_future = executor.submit(exchange_rate_scraper.scrape)
-        ai_future = executor.submit(ai_skills_scraper.scrape)
-        index_future = executor.submit(us_stock_index_scraper.scrape)
-
-        tech_results = tech_future.result()
-        politics_results = politics_future.result()
-        exchange_rate_results = exchange_future.result()
-        ai_skills_results = ai_future.result()
-        us_stock_indices_results = index_future.result()
-
-    save_json(outputs["tech"], tech_results)
-    save_json(outputs["politics"], politics_results)
-    save_exchange_rates(outputs["exchange"], exchange_rate_results)
-    save_json(outputs["ai_skills"], ai_skills_results)
-    save_us_stock_indices(outputs["indices"], us_stock_indices_results)
-
-    logging.info("Saved %s technology stories to %s", len(tech_results), outputs["tech"].name)
-    logging.info("Saved %s global politics stories to %s", len(politics_results), outputs["politics"].name)
-    logging.info("Saved %s exchange rate pairs to %s", len(exchange_rate_results), outputs["exchange"].name)
-    logging.info("Saved %s AI skills to %s", len(ai_skills_results), outputs["ai_skills"].name)
-    logging.info("Saved %s US stock indices to %s", len(us_stock_indices_results), outputs["indices"].name)
+        futures = {executor.submit(scraper.scrape): name for name, (scraper, _) in jobs.items()}
+        for future in as_completed(futures):
+            name = futures[future]
+            try:
+                payload = future.result()
+                if not payload:
+                    raise ValueError("No records fetched")
+                jobs[name][1](outputs[name], payload)
+                logging.info("Updated %s: %s records", name, len(payload))
+            except Exception:
+                failures.append(name)
+                logging.exception("Cannot update %s; retaining previous snapshot", name)
+    if failures:
+        logging.warning("Partial crawler cycle; failed sources: %s", ", ".join(sorted(failures)))
+    if len(failures) == len(jobs):
+        raise RuntimeError("All crawler sources failed")
 
 
 if __name__ == "__main__":

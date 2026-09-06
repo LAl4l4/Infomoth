@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class TokenVO {
     private String result;
+    private boolean success;
 }

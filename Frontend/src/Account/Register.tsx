@@ -22,7 +22,6 @@ interface RegisterSuccess {
   message: string;
 }
 
-// Front-end only shell. Replace the endpoint/params to match your backend contract.
 async function createAccount({ email, password, username }: AccountInput): Promise<RegisterSuccess> {
   try {
     const params = {
@@ -33,16 +32,7 @@ async function createAccount({ email, password, username }: AccountInput): Promi
 
     const res = await register(params.email, params.pass, params.username);
 
-    if (res.data === '用户名已存在') {
-      return { success: false, message: res.data };
-    }
-
-    if (res.data === '注册成功') {
-      return { success: true, message: res.data };
-    }
-
-    // Default message when backend returns something else but the call succeeds
-    return { success: false, message: res.data || '注册失败' };
+    return { success: res.data.success, message: res.data.result };
   } catch (err) {
     console.error('注册请求失败', err);
     return { success: false, message: '网络错误' };

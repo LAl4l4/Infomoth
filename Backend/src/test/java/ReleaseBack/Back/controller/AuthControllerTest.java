@@ -53,10 +53,10 @@ class AuthControllerTest {
         User user = new User();
         user.setId(7);
         user.setPassword("pw");
-        when(userService.findByNameEmail("alice")).thenReturn(user);
+        when(userService.authenticate("alice", "pw")).thenReturn(user);
         when(jwtUtil.generateToken(7)).thenReturn("jwt-token");
 
-        TokenVO result = authController.login("alice", "pw", response);
+        TokenVO result = authController.login(new AuthController.Credentials("alice", "pw", null), response);
 
         assertEquals("登录成功", result.getResult());
         ArgumentCaptor<String> cookieCaptor = ArgumentCaptor.forClass(String.class);
@@ -72,9 +72,9 @@ class AuthControllerTest {
         User user = new User();
         user.setId(7);
         user.setPassword("correct");
-        when(userService.findByNameEmail("alice")).thenReturn(user);
+        when(userService.authenticate("alice", "wrong")).thenReturn(null);
 
-        TokenVO result = authController.login("alice", "wrong", response);
+        TokenVO result = authController.login(new AuthController.Credentials("alice", "wrong", null), response);
 
         assertEquals("用户名/邮箱或密码错误", result.getResult());
         verifyNoInteractions(response);
@@ -103,18 +103,18 @@ class AuthControllerTest {
     void registerShouldReturnExistsWhenUserAlreadyFound() {
         when(userService.findByNameEmail("alice")).thenReturn(new User());
 
-        String result = authController.register("alice", "pw", "alice@example.com");
+        TokenVO result = authController.register(new AuthController.Credentials("alice", "pw", "alice@example.com"));
 
-        assertEquals("用户名已存在", result);
+        assertEquals("用户名已存在", result.getResult());
     }
 
     @Test
     void registerShouldCreateUserWhenNameAvailable() {
         when(userService.findByNameEmail("alice")).thenReturn(null);
 
-        String result = authController.register("alice", "pw", "alice@example.com");
+        TokenVO result = authController.register(new AuthController.Credentials("alice", "pw", "alice@example.com"));
 
-        assertEquals("注册成功", result);
+        assertEquals("注册成功", result.getResult());
         verify(userService).createUserWithProfile("alice", "pw", "alice@example.com");
     }
 
@@ -124,9 +124,9 @@ class AuthControllerTest {
         org.mockito.Mockito.doThrow(new RuntimeException("db down"))
                 .when(userService).createUserWithProfile(any(), any(), any());
 
-        String result = authController.register("alice", "pw", "alice@example.com");
+        TokenVO result = authController.register(new AuthController.Credentials("alice", "pw", "alice@example.com"));
 
-        assertEquals("服务器发生异常", result);
+        assertEquals("服务器发生异常", result.getResult());
     }
 
     @Test

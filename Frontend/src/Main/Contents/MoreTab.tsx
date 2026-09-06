@@ -1,4 +1,5 @@
 import './IntroPage.css';
+import RefreshStatus from './RefreshStatus';
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchAISkills, selectAISkills } from '../../Variable/dataCache';
@@ -8,11 +9,13 @@ const COLLAPSED_SKILL_COUNT = 5;
 
 export default function MoreTab() {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: skills, loading, error } = useSelector(selectAISkills);
+  const { data: skills, loading, error, updatedAt } = useSelector(selectAISkills);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAISkills());
+    const timer = window.setInterval(() => dispatch(fetchAISkills()), 5 * 60 * 1000);
+    return () => window.clearInterval(timer);
   }, [dispatch]);
 
   const visibleSkills = expanded ? skills : skills?.slice(0, COLLAPSED_SKILL_COUNT);
@@ -40,11 +43,11 @@ export default function MoreTab() {
         </div>
 
         {loading && <p className="state-text">加载中…</p>}
-        {!loading && error && <p className="exchange-error">{error}</p>}
-        {!loading && !error && (!skills || skills.length === 0) && (
+        {!loading && error && <p className="exchange-error">{error}{skills !== null ? '（显示上次结果）' : ''}</p>}
+        {!loading && (!error || skills !== null) && (!skills || skills.length === 0) && (
           <p className="state-text">今天暂无可用数据。</p>
         )}
-        {!loading && !error && visibleSkills && visibleSkills.length > 0 && (
+        {!loading && (!error || skills !== null) && visibleSkills && visibleSkills.length > 0 && (
           <>
             <ol className="skill-list">
               {visibleSkills.map((item) => (
@@ -68,6 +71,7 @@ export default function MoreTab() {
           </>
         )}
       </div>
+      <RefreshStatus updatedAt={updatedAt} onRefresh={() => { dispatch(fetchAISkills({ force: true })); }} />
     </section>
   );
 }

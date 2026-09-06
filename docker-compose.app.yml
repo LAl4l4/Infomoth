@@ -25,6 +25,8 @@ services:
       args:
         IMAGE_PREFIX: ${IMAGE_PREFIX:-docker.1ms.run/library}
     environment:
+      - JWT_SECRET=${JWT_SECRET:-}
+      - AUTH_REQUIRE_SECRET=true
       - JAVA_OPTS=-Xmx384m -Xms256m
       - SENTIMENT_PERSISTENCE_ENABLED=true
       - STOCK_PERSISTENCE_ENABLED=true

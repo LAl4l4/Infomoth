@@ -48,7 +48,7 @@ describe('OverviewTab', () => {
 
     expect(await screen.findByText('+0.1234')).toBeInTheDocument();
     expect(screen.getByText('1 USD = 7.2 CNY')).toBeInTheDocument();
-    expect(screen.getByText('6,023.45 (+0.17%)')).toBeInTheDocument();
+    expect(screen.getByText('6,023.45 (+0.17%) · 2026-07-30')).toBeInTheDocument();
     expect(mockSkills).not.toHaveBeenCalled();
     expect(mockSettings).not.toHaveBeenCalled();
   });

@@ -50,7 +50,7 @@ const mockCheckSession = checkSession as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
+  mockCheckSession.mockResolvedValue({ data: { success: true, result: '登录有效' } });
   mockPullSettings.mockResolvedValue({
     defaultPage: 0,
     defaultBaseCurrency: 'USD',
@@ -95,7 +95,7 @@ describe('PageShell', () => {
   });
 
   it('loads the account default page when the session cookie is valid', async () => {
-    mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
+    mockCheckSession.mockResolvedValue({ data: { success: true, result: '登录有效' } });
     mockPullSettings.mockResolvedValue({
       defaultPage: 5,
       defaultBaseCurrency: 'USD',
@@ -128,7 +128,7 @@ describe('PageShell', () => {
   });
 
   it('keeps the overview tab when settings fail to load', async () => {
-    mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
+    mockCheckSession.mockResolvedValue({ data: { success: true, result: '登录有效' } });
     mockPullSettings.mockRejectedValue(new Error('未登录'));
 
     renderWithProviders(<PageShell />);

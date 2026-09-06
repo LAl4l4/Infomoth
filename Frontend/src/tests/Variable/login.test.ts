@@ -58,7 +58,7 @@ describe('checkLoginThunk', () => {
 
   it('fulfills and marks the session as logged in', async () => {
     mockCheckLogin.mockResolvedValue({
-      data: { result: '登录成功' },
+      data: { success: true, result: '登录成功' },
     } as never);
 
     const store = createTestStore();
@@ -96,7 +96,7 @@ describe('checkLoginThunk', () => {
 
   it('restores the logged-in state from the server cookie', async () => {
     mockCheckSession.mockResolvedValue({
-      data: { result: '登录有效' },
+      data: { success: true, result: '登录有效' },
     } as never);
 
     const store = createTestStore();

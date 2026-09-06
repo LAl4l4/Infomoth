@@ -1,7 +1,19 @@
 # Changelog
 
+- `09/07/2026`:
+    - Hardened authentication: login and registration now accept JSON bodies, return a stable `success` field, hash new passwords with BCrypt, upgrade legacy plaintext passwords after successful login, and load the deployed JWT signing key from `JWT_SECRET`.
+    - Added five-minute frontend data expiry, mounted-tab refresh polling, manual refresh controls, last-success timestamps, stale-value retention after failed refreshes, and retryable runtime configuration loading.
+    - Made crawler snapshots resilient to partial source failures and interrupted writes with per-source saves, atomic JSON replacement, and date-aware exchange-rate merging that preserves missing pairs without redating them.
+    - Reused one batched FinBERT analyser across both news sources, continued processing after one source fails, and expanded regression coverage for authentication, caching, refresh failures, partial crawls, and atomic writes.
+    - Updated frontend terminology and documentation to describe rolling sentiment z-scores as 标准化 while retaining the existing API field names for compatibility.
+
+- `09/05/2026`:
+    - Persisted the latest politics and technology sentiment JSON SHA-256 fingerprints in a single-row `sentiment_file_state` checkpoint, so unchanged pipeline output is skipped across Backend restarts while storage stays O(1).
+    - Added `scripts/fix_sentiment_duplicates.sql` to remove historical consecutive duplicate sentiment samples and rebuild their cumulative means, Bessel-corrected sample standard deviations, and counts.
+    - Documented the repair procedure in `FIXES.md`.
+
 - `09/04/2026`:
-    - Added cumulative population standard deviation to every persisted politics and technology sentiment sample alongside its raw FinBERT score, cumulative mean, and sample count; startup migration backfills the complete statistic sequence for existing rows.
+    - Added cumulative Bessel-corrected sample standard deviation to every persisted politics and technology sentiment sample alongside its raw FinBERT score, cumulative mean, and sample count; startup migration backfills the complete statistic sequence for existing rows.
     - Changed normalized sentiment to the rolling z-score `(raw - mean) / standard deviation`, changed `/data/sentiment` to return today's mean across normalized samples as `dailyAverage`, and adapted the sentiment and market-trend displays to the new scale.
     - Kept the market chart at seven calendar days while rebuilding each displayed `corr` from every completed overlapping persisted date, and clarified that full-history scope in the UI.
     - Routed the Pipeline Python base image through the shared configurable `IMAGE_PREFIX`, defaulting to `docker.1ms.run/library`, so pipeline builds do not depend on direct Docker Hub access.

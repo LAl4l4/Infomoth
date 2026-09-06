@@ -81,7 +81,7 @@ describe('Register page', () => {
   });
 
   it('registers successfully and navigates home', async () => {
-    mockRegister.mockResolvedValue({ data: '注册成功' });
+    mockRegister.mockResolvedValue({ data: { success: true, result: '注册成功' } });
     renderRegister();
     fillForm();
     fireEvent.click(screen.getByRole('button', { name: '创建账户' }));
@@ -91,7 +91,7 @@ describe('Register page', () => {
   });
 
   it('shows backend message when the username already exists', async () => {
-    mockRegister.mockResolvedValue({ data: '用户名已存在' });
+    mockRegister.mockResolvedValue({ data: { success: false, result: '用户名已存在' } });
     renderRegister();
     fillForm();
     fireEvent.click(screen.getByRole('button', { name: '创建账户' }));

@@ -23,6 +23,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import ReleaseBack.Back.config.UserSettingsSchemaMigration;
 import ReleaseBack.Back.config.UsStockIndexSchemaMigration;
+import ReleaseBack.Back.config.SentimentFileStateSchemaMigration;
 import ReleaseBack.Back.config.SentimentSchemaMigration;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -33,7 +34,8 @@ class Mysql8SchemaIntegrationTest {
             "03-user-settings.sql",
             "04-sentiment-average.sql",
             "05-us-stock-indices.sql",
-            "07-market-correlation.sql");
+            "07-market-correlation.sql",
+            "08-sentiment-file-state.sql");
 
     @Container
     @SuppressWarnings("resource") // The JUnit Testcontainers extension stops this container.
@@ -48,6 +50,9 @@ class Mysql8SchemaIntegrationTest {
 
         executeProductionSchema(dataSource);
         executeProductionSchema(dataSource);
+        SentimentFileStateSchemaMigration stateMigration = new SentimentFileStateSchemaMigration(dataSource);
+        stateMigration.ensureRow();
+        stateMigration.ensureRow();
 
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         assertEquals(0, rowCount(jdbcTemplate, "user"));
@@ -57,6 +62,7 @@ class Mysql8SchemaIntegrationTest {
         assertEquals(0, rowCount(jdbcTemplate, "tech_average"));
         assertEquals(0, rowCount(jdbcTemplate, "us_stock_indices"));
         assertEquals(0, rowCount(jdbcTemplate, "market_correlation"));
+        assertEquals(1, rowCount(jdbcTemplate, "sentiment_file_state"));
         assertEquals(2, currencyColumnCount(jdbcTemplate));
         assertEquals(4, displayColumnCount(jdbcTemplate));
         assertEquals(6, sentimentRollingColumnCount(jdbcTemplate));

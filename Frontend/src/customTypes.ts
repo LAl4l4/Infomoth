@@ -43,6 +43,7 @@ export interface ProfileData {
 
 /** Auth endpoint response contract. */
 export interface AuthResponse {
+  success: boolean;
   result: string;
 }
 
@@ -61,11 +62,11 @@ export interface DisplaySettingsData {
   globeMarkerColor: string;
 }
 
-/** Current z-score sentiment and today's mean of normalized observations. */
+/** Current z-score sentiment and today's mean of standardized observations. */
 export interface SentimentScore {
   /** Current FinBERT score standardized by its persisted rolling mean and standard deviation. */
   normalizedScore: number | null;
-  /** Mean of all normalized sentiment observations persisted today. */
+  /** Mean of all standardized sentiment observations persisted today. */
   dailyAverage: number | null;
 }
 

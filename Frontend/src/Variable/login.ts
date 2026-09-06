@@ -29,7 +29,7 @@ export const checkLoginThunk = createAsyncThunk<
   try {
     const res = await checkLogin(email, password);
 
-    if (res.data.result === '登录成功') {
+    if (res.data.success) {
       return;
     } else {
       return rejectWithValue(res.data.result);
@@ -44,7 +44,7 @@ export const restoreSessionThunk = createAsyncThunk<boolean, void, { rejectValue
   async (_, { rejectWithValue }) => {
     try {
       const res = await checkSession();
-      return res.data.result === '登录有效';
+      return res.data.success;
     } catch (err) {
       return rejectWithValue('网络错误');
     }

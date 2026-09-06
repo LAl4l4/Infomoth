@@ -14,7 +14,10 @@ async function ensureBaseUrl(): Promise<string> {
   }
 
   if (!apiBaseUrlPromise) {
-    apiBaseUrlPromise = loadApiBaseUrl();
+    apiBaseUrlPromise = loadApiBaseUrl().catch((error) => {
+      apiBaseUrlPromise = null;
+      throw error;
+    });
   }
 
   const apiBaseUrl = await apiBaseUrlPromise;

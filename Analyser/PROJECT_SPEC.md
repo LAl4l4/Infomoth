@@ -13,7 +13,7 @@
   - `transformers`: model loading and inference pipeline
   - `torch`: runtime backend for transformer inference
   - `json` (stdlib): local JSON read/write
-  - `ThreadPoolExecutor` (stdlib): concurrent processing of multiple news files
+  - Single shared FinBERT pipeline: sequential source processing with batches of eight titles
 - **Primary Model**:
   - `ProsusAI/finbert`
 
@@ -55,3 +55,7 @@
 - Keep read/write paths aligned with `shared.directory`.
 - Keep database persistence out of Analyser; Backend owns database writes.
 - Prefer updating `finance.py` for analysis logic changes; avoid hardcoding model behavior in `main.py`.
+
+## Model reuse and failure handling
+- One FinBERT instance processes both source files sequentially, using batches of eight titles and truncation to the model input limit. Both sources are attempted even if one fails; the process raises after completing the attempts so Pipeline can report analysis failure and still sync available output.
+- JSON output replaces the prior snapshot atomically only after inference and serialization complete. Failed analysis preserves the input file.

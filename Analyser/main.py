@@ -1,6 +1,6 @@
 from analyser import FinanceAnalyser
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
+import logging
 import json
 
 
@@ -18,20 +18,17 @@ def resolve_shared_directory(config):
 
 
 def main():
-    financeAnalyserPolitic = FinanceAnalyser()
-    financeAnalyserTech = FinanceAnalyser()
-    config = load_config()
-    shared_directory = resolve_shared_directory(config)
-    politic_path = shared_directory / "politics_news.json"
-    tech_path = shared_directory / "tech_news.json"
-    
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = [
-            executor.submit(financeAnalyserPolitic.analyse, politic_path),
-            executor.submit(financeAnalyserTech.analyse, tech_path),
-        ]
-        for future in futures:
-            future.result()
+    analyser = FinanceAnalyser()
+    shared_directory = resolve_shared_directory(load_config())
+    failures = []
+    for name in ("politics_news.json", "tech_news.json"):
+        try:
+            analyser.analyse(shared_directory / name)
+        except Exception as error:
+            logging.exception("Cannot analyse %s; continuing with other sources", name)
+            failures.append(error)
+    if failures:
+        raise RuntimeError("analysis failed") from failures[0]
 
     print("Analyser executed")
 

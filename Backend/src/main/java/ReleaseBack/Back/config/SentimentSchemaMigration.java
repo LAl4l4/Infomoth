@@ -41,6 +41,7 @@ public class SentimentSchemaMigration implements InitializingBean {
                 addColumnIfMissing(connection, tableName, "sampleCount", "INT NOT NULL DEFAULT 1");
                 addColumnIfMissing(connection, tableName, "rollingAverage", "DOUBLE");
                 addColumnIfMissing(connection, tableName, "rollingStandardDeviation", "DOUBLE");
+                addColumnIfMissing(connection, tableName, "sampleVarianceCorrected", "BOOLEAN NOT NULL DEFAULT FALSE");
                 initializeRollingValues(connection, tableName);
                 dropDateUniqueness(connection, tableName);
             }
@@ -63,7 +64,8 @@ public class SentimentSchemaMigration implements InitializingBean {
     }
 
     private void initializeRollingValues(Connection connection, String tableName) throws SQLException {
-        if (!hasNullRollingStatistics(connection, tableName)) {
+        if (!hasNullRollingStatistics(connection, tableName)
+                && !hasUncorrectedSampleVariance(connection, tableName)) {
             return;
         }
 
@@ -83,14 +85,16 @@ public class SentimentSchemaMigration implements InitializingBean {
         double rollingM2 = 0;
         try (PreparedStatement update = connection.prepareStatement(
                 "UPDATE " + tableName + " SET rollingAverage = ?, "
-                        + "rollingStandardDeviation = ?, sampleCount = ? WHERE ID = ?")) {
+                        + "rollingStandardDeviation = ?, sampleCount = ?, "
+                        + "sampleVarianceCorrected = TRUE WHERE ID = ?")) {
             for (LegacySentimentRow row : rows) {
                 cumulativeCount++;
                 double delta = row.sentimentScore() - rollingAverage;
                 rollingAverage += delta / cumulativeCount;
                 rollingM2 += delta * (row.sentimentScore() - rollingAverage);
-                double rollingStandardDeviation = Math.sqrt(
-                        Math.max(0.0, rollingM2 / cumulativeCount));
+                double rollingStandardDeviation = cumulativeCount <= 1
+                        ? 0.0
+                        : Math.sqrt(Math.max(0.0, rollingM2 / (cumulativeCount - 1)));
 
                 update.setDouble(1, rollingAverage);
                 update.setDouble(2, rollingStandardDeviation);
@@ -108,6 +112,16 @@ public class SentimentSchemaMigration implements InitializingBean {
                         "SELECT COUNT(*) FROM " + tableName
                                 + " WHERE rollingAverage IS NULL "
                                 + "OR rollingStandardDeviation IS NULL")) {
+            result.next();
+            return result.getInt(1) > 0;
+        }
+    }
+
+    private boolean hasUncorrectedSampleVariance(Connection connection, String tableName) throws SQLException {
+        try (Statement statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(
+                        "SELECT COUNT(*) FROM " + tableName
+                                + " WHERE sampleVarianceCorrected = FALSE")) {
             result.next();
             return result.getInt(1) > 0;
         }

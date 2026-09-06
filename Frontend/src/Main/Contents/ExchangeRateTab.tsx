@@ -1,4 +1,5 @@
 import './IntroPage.css';
+import RefreshStatus from './RefreshStatus';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -15,7 +16,7 @@ export default function ExchangeRateTab() {
   const dispatch = useDispatch<AppDispatch>();
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const { data: currencies, loading: curLoading, error: curError } = useSelector(selectCurrencies);
-  const { data: rates, loading: rateLoading, error: rateError } = useSelector(selectExchangeRates);
+  const { data: rates, loading: rateLoading, error: rateError, updatedAt } = useSelector(selectExchangeRates);
 
   const [base, setBase] = useState('USD');
   const [quote, setQuote] = useState('CNY');
@@ -64,11 +65,10 @@ export default function ExchangeRateTab() {
 
   useEffect(() => {
     if (!canQuery) return;
-    const key = `${base}-${quote}`;
-    if (!(key in rates)) {
-      dispatch(fetchExchangeRate({ base, quote }));
-    }
-  }, [base, quote, canQuery, rates, dispatch]);
+    dispatch(fetchExchangeRate({ base, quote }));
+    const timer = window.setInterval(() => dispatch(fetchExchangeRate({ base, quote })), 5 * 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, [base, quote, canQuery, dispatch]);
 
   const rate = canQuery ? rates[`${base}-${quote}`] : null;
   const loading = curLoading || rateLoading;
@@ -84,7 +84,7 @@ export default function ExchangeRateTab() {
       <p className="eyebrow">Exchange Rate</p>
       <h2 className="panel-title">汇率查询</h2>
       <p className="panel-lead">
-        选择基础货币与目标货币，实时换算今日汇率。
+        选择基础货币与目标货币，查询来源提供的汇率。
       </p>
 
       <div className="exchange-widget">
@@ -120,20 +120,24 @@ export default function ExchangeRateTab() {
 
         <div className="exchange-result">
           {loading && <p className="state-text">加载中…</p>}
-          {!loading && error && <p className="exchange-error">{error}</p>}
+          {!loading && error && <p className="exchange-error">{error}{rate != null ? '（显示上次结果）' : ''}</p>}
           {!loading && !error && !canQuery && (
             <p className="state-text">请选择两个不同的货币。</p>
           )}
-          {!loading && !error && canQuery && rate !== undefined && rate !== null && (
+          {!loading && canQuery && rate !== undefined && rate !== null && (
             <>
               <p className="exchange-rate-xl">
                 1 {base} = {rate} {quote}
               </p>
-              <p className="exchange-rate-sub">基于今日最新数据</p>
+              <p className="exchange-rate-sub">以来源最近发布的数据为准</p>
             </>
           )}
         </div>
       </div>
+      <RefreshStatus updatedAt={updatedAt?.[`${base}-${quote}`]} onRefresh={() => {
+        dispatch(fetchCurrencies({ force: true }));
+        if (canQuery) dispatch(fetchExchangeRate({ base, quote, force: true }));
+      }} />
     </section>
   );
 }

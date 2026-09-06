@@ -86,6 +86,9 @@
         SET gender = #{gender}
         WHERE user_id = #{userid}
     </update>    
+    <update id="updatePassword">
+        UPDATE user SET password = #{password} WHERE id = #{userid}
+    </update>
 </mapper>
 
 

@@ -15,19 +15,17 @@ beforeEach(() => {
 });
 
 describe('checkLogin', () => {
-  it('posts to /auth/login with username/pass params', async () => {
-    mockPost.mockResolvedValue({ data: { result: '登录成功', token: 'tok' } });
+  it('posts to /auth/login with username/pass in JSON body', async () => {
+    mockPost.mockResolvedValue({ data: { success: true, result: '登录成功', token: 'tok' } });
 
     const res = await checkLogin('a@b.com', 'pw');
 
-    expect(mockPost).toHaveBeenCalledWith('/auth/login', null, {
-      params: { username: 'a@b.com', pass: 'pw' },
-    });
+    expect(mockPost).toHaveBeenCalledWith('/auth/login', { username: 'a@b.com', pass: 'pw' });
     expect(res.data.result).toBe('登录成功');
   });
 
   it('does not expose or store a token on success', async () => {
-    mockPost.mockResolvedValue({ data: { result: '登录成功', token: 'tok' } });
+    mockPost.mockResolvedValue({ data: { success: true, result: '登录成功', token: 'tok' } });
     await checkLogin('a@b.com', 'pw');
     expect(localStorage.getItem('authToken')).toBeNull();
   });
@@ -40,23 +38,21 @@ describe('checkLogin', () => {
 });
 
 describe('register', () => {
-  it('posts to /auth/register with username/pass/email params', async () => {
-    mockPost.mockResolvedValue({ data: '注册成功' });
+  it('posts to /auth/register with username/pass/email in JSON body', async () => {
+    mockPost.mockResolvedValue({ data: { success: true, result: '注册成功' } });
 
     const res = await register('a@b.com', 'pw', 'nick');
 
-    expect(mockPost).toHaveBeenCalledWith('/auth/register', null, {
-      params: { username: 'nick', pass: 'pw', email: 'a@b.com' },
-    });
-    expect(res.data).toBe('注册成功');
+    expect(mockPost).toHaveBeenCalledWith('/auth/register', { username: 'nick', pass: 'pw', email: 'a@b.com' });
+    expect(res.data).toEqual({ success: true, result: '注册成功' });
   });
 });
 
 describe('checkSession', () => {
   it('checks the server-managed session cookie', async () => {
-    mockGet.mockResolvedValue({ data: { result: '登录有效' } });
+    mockGet.mockResolvedValue({ data: { success: true, result: '登录有效' } });
 
-    await expect(checkSession()).resolves.toMatchObject({ data: { result: '登录有效' } });
+    await expect(checkSession()).resolves.toMatchObject({ data: { success: true, result: '登录有效' } });
     expect(mockGet).toHaveBeenCalledWith('/auth/session');
   });
 });

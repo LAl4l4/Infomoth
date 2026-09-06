@@ -80,7 +80,7 @@ describe('ExchangeRateTab', () => {
     mockCurrencies.mockRejectedValue(new Error('加载失败'));
     renderWithProviders(<ExchangeRateTab />);
 
-    expect(await screen.findByText('加载失败')).toBeInTheDocument();
+    expect(await screen.findByText(/加载失败/)).toBeInTheDocument();
   });
 
   it('applies both saved default currency sides', async () => {

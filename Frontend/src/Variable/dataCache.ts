@@ -8,13 +8,17 @@ import {
 } from "../API/data";
 import type { RootState, AISkill, UsStockIndex, CurrencyCode, SentimentScore } from "../customTypes";
 
+export const DATA_REFRESH_MS = 5 * 60 * 1000;
+
 interface CacheEntry<T> {
+  updatedAt?: number;
   data: T | null;
   loading: boolean;
   error: string | null;
 }
 
 interface ExchangeRateCache {
+  updatedAt?: Record<string, number>;
   data: Record<string, number>;
   loading: boolean;
   error: string | null;
@@ -44,54 +48,64 @@ const initialState: DataCacheState = {
 
 export const fetchAISkills = createAsyncThunk<
   AISkill[],
-  void,
+  { force?: boolean } | void,
   { state: RootState }
->("dataCache/fetchAISkills", async (_, { getState }) => {
-  const cached = getState().dataCache.aiSkills;
-  if (cached.data) return cached.data;
-  return await pullPopularAISkills();
+>("dataCache/fetchAISkills", async () => pullPopularAISkills(), {
+  condition: (options, { getState }) => {
+    const cached = getState().dataCache.aiSkills;
+    return !cached.loading && (options?.force || !cached.updatedAt
+      || Date.now() - cached.updatedAt >= DATA_REFRESH_MS);
+  },
 });
 
 export const fetchSentimentScore = createAsyncThunk<
   SentimentScore,
-  void,
+  { force?: boolean } | void,
   { state: RootState }
->("dataCache/fetchSentimentScore", async (_, { getState }) => {
-  const cached = getState().dataCache.sentimentScore;
-  if (cached.data !== null) return cached.data;
-  return await pullSentimentScore();
+>("dataCache/fetchSentimentScore", async () => pullSentimentScore(), {
+  condition: (options, { getState }) => {
+    const cached = getState().dataCache.sentimentScore;
+    return !cached.loading && (options?.force || !cached.updatedAt
+      || Date.now() - cached.updatedAt >= DATA_REFRESH_MS);
+  },
 });
 
 export const fetchCurrencies = createAsyncThunk<
   CurrencyCode[],
-  void,
+  { force?: boolean } | void,
   { state: RootState }
->("dataCache/fetchCurrencies", async (_, { getState }) => {
-  const cached = getState().dataCache.currencies;
-  if (cached.data) return cached.data;
-  return await pullCurrencies();
+>("dataCache/fetchCurrencies", async () => pullCurrencies(), {
+  condition: (options, { getState }) => {
+    const cached = getState().dataCache.currencies;
+    return !cached.loading && (options?.force || !cached.updatedAt
+      || Date.now() - cached.updatedAt >= DATA_REFRESH_MS);
+  },
 });
 
 export const fetchExchangeRate = createAsyncThunk<
   { key: string; rate: number },
-  { base: CurrencyCode; quote: CurrencyCode },
+  { base: CurrencyCode; quote: CurrencyCode; force?: boolean },
   { state: RootState }
->("dataCache/fetchExchangeRate", async ({ base, quote }, { getState }) => {
-  const key = `${base}-${quote}`;
-  const cached = getState().dataCache.exchangeRates;
-  if (key in cached.data) return { key, rate: cached.data[key] };
-  const rate = await pullExchangeRate(base, quote);
-  return { key, rate };
+>("dataCache/fetchExchangeRate", async ({ base, quote }) => ({
+  key: `${base}-${quote}`,
+  rate: await pullExchangeRate(base, quote),
+}), {
+  condition: ({ base, quote, force }, { getState }) => {
+    const updatedAt = getState().dataCache.exchangeRates.updatedAt?.[`${base}-${quote}`];
+    return force || !updatedAt || Date.now() - updatedAt >= DATA_REFRESH_MS;
+  },
 });
 
 export const fetchUsStockIndices = createAsyncThunk<
   UsStockIndex[],
-  void,
+  { force?: boolean } | void,
   { state: RootState }
->("dataCache/fetchUsStockIndices", async (_, { getState }) => {
-  const cached = getState().dataCache.usStockIndices;
-  if (cached.data) return cached.data;
-  return await pullUsStockIndices();
+>("dataCache/fetchUsStockIndices", async () => pullUsStockIndices(), {
+  condition: (options, { getState }) => {
+    const cached = getState().dataCache.usStockIndices;
+    return !cached.loading && (options?.force || !cached.updatedAt
+      || Date.now() - cached.updatedAt >= DATA_REFRESH_MS);
+  },
 });
 
 const dataCacheSlice = createSlice({
@@ -114,6 +128,7 @@ const dataCacheSlice = createSlice({
       })
       .addCase(fetchAISkills.fulfilled, (state, action) => {
         state.aiSkills.data = action.payload;
+        state.aiSkills.updatedAt = Date.now();
         state.aiSkills.loading = false;
         state.aiSkills.error = null;
       })
@@ -129,6 +144,7 @@ const dataCacheSlice = createSlice({
       })
       .addCase(fetchSentimentScore.fulfilled, (state, action) => {
         state.sentimentScore.data = action.payload;
+        state.sentimentScore.updatedAt = Date.now();
         state.sentimentScore.loading = false;
         state.sentimentScore.error = null;
       })
@@ -144,6 +160,7 @@ const dataCacheSlice = createSlice({
       })
       .addCase(fetchCurrencies.fulfilled, (state, action) => {
         state.currencies.data = action.payload;
+        state.currencies.updatedAt = Date.now();
         state.currencies.loading = false;
         state.currencies.error = null;
       })
@@ -159,6 +176,8 @@ const dataCacheSlice = createSlice({
       })
       .addCase(fetchExchangeRate.fulfilled, (state, action) => {
         state.exchangeRates.data[action.payload.key] = action.payload.rate;
+        state.exchangeRates.updatedAt ??= {};
+        state.exchangeRates.updatedAt[action.payload.key] = Date.now();
         state.exchangeRates.loading = false;
         state.exchangeRates.error = null;
       })
@@ -174,6 +193,7 @@ const dataCacheSlice = createSlice({
       })
       .addCase(fetchUsStockIndices.fulfilled, (state, action) => {
         state.usStockIndices.data = action.payload;
+        state.usStockIndices.updatedAt = Date.now();
         state.usStockIndices.loading = false;
         state.usStockIndices.error = null;
       })

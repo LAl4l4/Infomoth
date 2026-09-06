@@ -2,6 +2,9 @@ package ReleaseBack.Back.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 import java.util.Set;
@@ -12,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import ReleaseBack.Back.DTO.aiSkillDTO;
 import ReleaseBack.Back.DTO.MarketTrendDTO;
@@ -66,6 +70,26 @@ class DataControllerTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals(expected, response.getBody());
+    }
+
+    @Test
+    void sentimentHttpResponseShouldMatchFrontendFields() throws Exception {
+        when(dataService.getSentimentScore()).thenReturn(new SentimentScoreDTO(0.42, 0.31));
+
+        MockMvcBuilders.standaloneSetup(dataController).build()
+                .perform(get("/data/sentiment"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"normalizedScore\":0.42,\"dailyAverage\":0.31}", true));
+    }
+
+    @Test
+    void sentimentHttpResponseShouldPreserveNullFields() throws Exception {
+        when(dataService.getSentimentScore()).thenReturn(new SentimentScoreDTO(null, null));
+
+        MockMvcBuilders.standaloneSetup(dataController).build()
+                .perform(get("/data/sentiment"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"normalizedScore\":null,\"dailyAverage\":null}", true));
     }
 
     @Test

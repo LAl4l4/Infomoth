@@ -39,6 +39,12 @@ class SchemaInitializationTest {
                 Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM politics_average", Integer.class));
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM tech_average", Integer.class));
+        assertEquals(1, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM sentiment_file_state", Integer.class));
+        assertEquals(2, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                        + "WHERE TABLE_NAME = 'SENTIMENT_FILE_STATE' "
+                        + "AND COLUMN_NAME IN ('POLITICSSHA256', 'TECHSHA256')",
+                Integer.class));
         assertEquals(6, jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS

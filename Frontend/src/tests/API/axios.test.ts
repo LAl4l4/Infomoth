@@ -60,6 +60,13 @@ beforeEach(() => {
 });
 
 describe('request interceptor', () => {
+  it('retries configuration after a transient failure', async () => {
+    mockLoadApiBaseUrl.mockRejectedValueOnce(new Error('offline'));
+    await expect(reqFulfilled({ headers: {} })).rejects.toThrow('offline');
+    await expect(reqFulfilled({ headers: {} })).resolves.toEqual({ headers: {} });
+    expect(mockInstance.defaults.baseURL).toBe('http://api.test');
+  });
+
   it('resolves and caches the base URL', async () => {
     const config = await reqFulfilled({ headers: {} });
     expect(mockInstance.defaults.baseURL).toBe('http://api.test');

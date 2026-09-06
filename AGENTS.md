@@ -159,7 +159,7 @@ The pipeline must run Crawler before Analyser. The Analyser mutates source JSON 
 - **Backend persistence style is MyBatis XML-first**: SQL is defined in `src/main/resources/mapper/*.xml`, with mapper interfaces in `mapper/`. Do not assume JPA annotations drive persistence behavior.
 - **SentimentMapper uses dynamic table names**: `${table}` in `SentimentMapper.xml` is string interpolation (not a prepared-statement parameter). Callers control the table name — sanitize if ever exposing to user input.
 - **Backend API layering is strict**: controller -> service -> mapper; DTO/VO classes are used for request/response shaping (`DTO/`, `VO/`).
-- **Auth endpoints expect query params, not JSON body** for login/register (`@RequestParam` in `AuthController`), and frontend API helpers follow that contract.
+- **Auth endpoints accept JSON request bodies** for login/register (`@RequestBody` in `AuthController`); credentials must never enter URL query parameters. Responses expose `success` for logic and `result` for display.
 - **Exchange-rate JSON schema is compatibility-sensitive**: backend `exchangeRateDTO` supports aliases (`base_currency`/`base`, `quote_currency`/`quote`). Keep scraper output backward-compatible when changing fields.
 - **Market trend contract**: `/data/market-trends` returns seven calendar days, daily sentiment, each available US stock price, and one Pearson `corr` per stock. The chart may normalize display values, but correlation uses the stored raw daily values.
 - **Frontend state flow**: API calls are wrapped in `src/API/`, then consumed by Redux Toolkit thunks/slices under `src/Variable/`; components generally interact with state/actions, not raw Axios.

@@ -9,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ReleaseBack.Back.config.AppConfigProvider;
 import ReleaseBack.Back.entity.SentimentAverage;
+import ReleaseBack.Back.entity.SentimentFileState;
+import ReleaseBack.Back.mapper.SentimentFileStateMapper;
 import ReleaseBack.Back.mapper.SentimentMapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +24,7 @@ public class SentimentPersistenceService {
     private static final String TECH_FILE = "tech_news.json";
 
     private final SentimentMapper sentimentMapper;
+    private final SentimentFileStateMapper sentimentFileStateMapper;
     private final SentimentFileReader sentimentFileReader;
     private final Path sharedDir;
 
@@ -30,52 +32,69 @@ public class SentimentPersistenceService {
     public SentimentPersistenceService(
             AppConfigProvider appConfigProvider,
             SentimentMapper sentimentMapper,
-            SentimentFileReader sentimentFileReader) {
-        this(appConfigProvider.getSharedDirectory(), sentimentMapper, sentimentFileReader);
-    }
-
-    SentimentPersistenceService(Path sharedDir, SentimentMapper sentimentMapper) {
-        this(sharedDir, sentimentMapper, new SentimentFileReader(new ObjectMapper()));
+            SentimentFileReader sentimentFileReader,
+            SentimentFileStateMapper sentimentFileStateMapper) {
+        this(
+                appConfigProvider.getSharedDirectory(),
+                sentimentMapper,
+                sentimentFileReader,
+                sentimentFileStateMapper);
     }
 
     SentimentPersistenceService(
             Path sharedDir,
             SentimentMapper sentimentMapper,
-            SentimentFileReader sentimentFileReader) {
+            SentimentFileReader sentimentFileReader,
+            SentimentFileStateMapper sentimentFileStateMapper) {
         this.sentimentMapper = sentimentMapper;
+        this.sentimentFileStateMapper = sentimentFileStateMapper;
         this.sentimentFileReader = sentimentFileReader;
         this.sharedDir = sharedDir;
     }
 
     @Transactional
     public void persistTodayAverages() {
-        persistPoliticsAverage();
-        persistTechAverage();
-    }
-
-    private void persistPoliticsAverage() {
+        SentimentFileState state = sentimentFileStateMapper.find();
+        if (state == null) {
+            sentimentFileStateMapper.insert();
+            state = new SentimentFileState();
+            state.setId(1);
+        }
         persistAverage(
                 POLITICS_FILE,
                 "politics",
                 "politics_average",
-                sentimentMapper::insertPoliticsAverage);
-    }
-
-    private void persistTechAverage() {
+                state.getPoliticsSha256(),
+                sentimentMapper::insertPoliticsAverage,
+                sentimentFileStateMapper::updatePoliticsSha256,
+                state::setPoliticsSha256);
         persistAverage(
                 TECH_FILE,
                 "tech",
                 "tech_average",
-                sentimentMapper::insertTechAverage);
+                state.getTechSha256(),
+                sentimentMapper::insertTechAverage,
+                sentimentFileStateMapper::updateTechSha256,
+                state::setTechSha256);
     }
 
     private void persistAverage(
             String fileName,
             String category,
             String tableName,
-            AverageWriter writer) {
+            String previousFingerprint,
+            AverageWriter writer,
+            FingerprintWriter fingerprintWriter,
+            FingerprintStateUpdater stateUpdater) {
         try {
-            OptionalDouble average = sentimentFileReader.readAverage(sharedDir.resolve(fileName));
+            SentimentFileReader.Snapshot snapshot =
+                    sentimentFileReader.readSnapshot(sharedDir.resolve(fileName));
+            if (snapshot.fingerprint().equals(previousFingerprint)) {
+                log.debug("Skipping unchanged {} sentiment file", category);
+                return;
+            }
+
+            OptionalDouble average = snapshot.average();
             if (average.isEmpty()) {
                 log.warn("No valid sentiment scores in {}; skipping the {} sample", fileName, category);
                 return;
@@ -86,12 +105,18 @@ public class SentimentPersistenceService {
             int sampleCount = nextSampleCount(previous);
             RollingStatistics statistics = nextRollingStatistics(previous, rawScore, sampleCount);
 
-            writer.write(
+            if (writer.write(
                     LocalDate.now(),
                     rawScore,
                     statistics.average(),
                     statistics.standardDeviation(),
-                    sampleCount);
+                    sampleCount) != 1) {
+                throw new IllegalStateException("Sentiment sample insert did not affect one row");
+            }
+            if (fingerprintWriter.write(snapshot.fingerprint()) != 1) {
+                throw new IllegalStateException("Sentiment file state row is missing");
+            }
+            stateUpdater.update(snapshot.fingerprint());
             log.info(
                     "Persisted {} sentiment sample: raw={}, rollingAverage={}, "
                             + "rollingStandardDeviation={}, sampleCount={}",
@@ -129,15 +154,17 @@ public class SentimentPersistenceService {
         double previousAverage = previous.getRollingAverage();
         double delta = rawScore - previousAverage;
         double nextAverage = previousAverage + delta / sampleCount;
-        double previousM2 = Math.pow(previous.getRollingStandardDeviation(), 2) * previousCount;
+        double previousM2 = previousCount <= 1
+                ? 0.0
+                : Math.pow(previous.getRollingStandardDeviation(), 2) * (previousCount - 1);
         double nextM2 = previousM2 + delta * (rawScore - nextAverage);
-        double nextVariance = Math.max(0.0, nextM2 / sampleCount);
+        double nextVariance = Math.max(0.0, nextM2 / (sampleCount - 1));
         return new RollingStatistics(nextAverage, Math.sqrt(nextVariance));
     }
 
     @FunctionalInterface
     private interface AverageWriter {
-        void write(
+        int write(
                 LocalDate date,
                 double score,
                 double rollingAverage,
@@ -145,6 +172,17 @@ public class SentimentPersistenceService {
                 int sampleCount);
     }
 
+    @FunctionalInterface
+    private interface FingerprintWriter {
+        int write(String sha256);
+    }
+
+    @FunctionalInterface
+    private interface FingerprintStateUpdater {
+        void update(String sha256);
+    }
+
     private record RollingStatistics(double average, double standardDeviation) {
     }
+
 }

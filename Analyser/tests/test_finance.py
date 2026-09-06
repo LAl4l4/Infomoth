@@ -27,7 +27,7 @@ class TestFinanceAnalyser:
             json.dumps([{"title": "good news", "url": "one"}, {"title": "bad news"}]),
             encoding="utf-8",
         )
-        mock_pipeline.return_value.side_effect = [
+        mock_pipeline.return_value.return_value = [
             [
                 {"label": "positive", "score": 0.8},
                 {"label": "neutral", "score": 0.1},
@@ -66,8 +66,7 @@ class TestFinanceAnalyser:
             },
         ]
         assert mock_pipeline.return_value.call_args_list == [
-            call("good news", top_k=3),
-            call("bad news", top_k=3),
+            call(["good news", "bad news"], top_k=3, batch_size=8, truncation=True),
         ]
 
     @patch("analyser.finance.pipeline")

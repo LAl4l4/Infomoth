@@ -1,5 +1,9 @@
 package ReleaseBack.Back.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +17,27 @@ import ReleaseBack.Back.entity.Profile;
 public class UserService {
     
     private final UserMapper userMapper;
+    private final BCryptPasswordEncoder passwords =
+            new BCryptPasswordEncoder(12);
+
+    @Transactional
+    public User authenticate(String username, String password) {
+        if (username == null || username.isBlank() || password == null
+                || password.getBytes(StandardCharsets.UTF_8).length > 72) return null;
+        User user = findByNameEmail(username);
+        if (user == null || user.getPassword() == null) return null;
+        String stored = user.getPassword();
+        if (stored.startsWith("$2")) {
+            return passwords.matches(password, stored) ? user : null;
+        }
+        // Upgrade legacy plaintext only after successful verification.
+        if (!MessageDigest.isEqual(
+                stored.getBytes(StandardCharsets.UTF_8),
+                password.getBytes(StandardCharsets.UTF_8))) return null;
+        userMapper.updatePassword(user.getId(), passwords.encode(password));
+        return user;
+    }
+
 
     public User findByNameEmail(String username) {
         if (username.contains("@")){
@@ -30,7 +55,7 @@ public class UserService {
     ) {
         User newUser = new User();
         newUser.setUsername(username);
-        newUser.setPassword(password);
+        newUser.setPassword(passwords.encode(password));
         newUser.setEmail(email);
 
         userMapper.saveUser(newUser);

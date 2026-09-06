@@ -100,3 +100,8 @@
 - Chinese-specific sources and language-specific parsing have been removed.
 - HTTP calls use rotating custom User-Agents and explicit timeout handling.
 - 403 responses are handled with retries using alternate User-Agents.
+
+## Partial cycles and snapshot writes
+- Each source is saved independently. Exceptions and empty scrape results retain that source's previous snapshot; other successful sources are still written and synced. Only a cycle where all sources fail raises a fatal crawler error.
+- JSON saves use a temporary file in the destination directory and atomic replacement, preserving existing file permissions.
+- Exchange-rate updates merge actual captured base/quote directions, retaining missing pairs with their original source dates and rejecting older observations for the same pair. No reverse or cross rates are synthesized.

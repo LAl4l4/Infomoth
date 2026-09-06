@@ -1,6 +1,5 @@
 package ReleaseBack.Back.controller;
 
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
@@ -31,19 +30,26 @@ public class AuthController {
     
     private final JwtUtil jwtUtil;
 
-    //测试账号 admin@admin.com/admin1/admin1
+    public record Credentials(String username, String pass, String email) {}
+
+    private TokenVO authResult(boolean success, String message) {
+        TokenVO result = new TokenVO();
+        result.setSuccess(success);
+        result.setResult(message);
+        return result;
+    }
 
     @PostMapping("/login")
     public TokenVO login(
-        @RequestParam String username, //可能是email或username
-        @RequestParam String pass,
+        @RequestBody Credentials credentials,
         HttpServletResponse response
     ) {
-        User foundUser = userService.findByNameEmail(username);
+        User foundUser = userService.authenticate(credentials.username(), credentials.pass());
         TokenVO tokenVO = new TokenVO();
-        if (foundUser != null && foundUser.getPassword().equals(pass)) {
+        if (foundUser != null) {
             String token = jwtUtil.generateToken(foundUser.getId());
             response.addHeader(HttpHeaders.SET_COOKIE, buildAuthCookie(token, AUTH_COOKIE_MAX_AGE).toString());
+            tokenVO.setSuccess(true);
             tokenVO.setResult("登录成功");
             return tokenVO;
         }
@@ -57,6 +63,7 @@ public class AuthController {
         if (token != null && !token.isBlank()) {
             try {
                 jwtUtil.parseId(token);
+                response.setSuccess(true);
                 response.setResult("登录有效");
                 return response;
             } catch (JwtException | IllegalArgumentException ignored) {
@@ -74,26 +81,28 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    @Transactional
-    public String register(
-        @RequestParam String username, 
-        @RequestParam String pass,
-        @RequestParam String email
-    ) {
+    public TokenVO register(@RequestBody Credentials credentials) {
+        String username = credentials.username();
+        String pass = credentials.pass();
+        String email = credentials.email();
+        if (username == null || username.isBlank() || username.contains("@")
+                || pass == null || pass.isBlank() || pass.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72 || email == null || email.isBlank()) {
+            return authResult(false, "请完整填写有效的注册信息");
+        }
         User foundUser = userService.findByNameEmail(username);
 
         if (foundUser != null) {
-            return "用户名已存在";
+            return authResult(false, "用户名已存在");
         }
 
         try {
             userService.createUserWithProfile(username, pass, email);
         } catch (Exception e) {
             e.printStackTrace();
-            return "服务器发生异常";
+            return authResult(false, "服务器发生异常");
         }
         
-        return "注册成功";
+        return authResult(true, "注册成功");
     }
 
     

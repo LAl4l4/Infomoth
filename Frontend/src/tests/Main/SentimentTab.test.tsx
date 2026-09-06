@@ -24,8 +24,8 @@ describe('SentimentTab', () => {
 
     expect(await screen.findByText('+0.8000')).toBeInTheDocument();
     expect(screen.getByText('+0.6000')).toBeInTheDocument();
-    expect(screen.getByText('归一化情绪')).toBeInTheDocument();
-    expect(screen.getByText('今日归一化均值')).toBeInTheDocument();
+    expect(screen.getByText('标准化情绪')).toBeInTheDocument();
+    expect(screen.getByText('今日标准化均值')).toBeInTheDocument();
     expect(screen.getAllByText('偏乐观')).toHaveLength(2);
     expect(screen.getByText('(原始分数 − 滚动平均) ÷ 滚动标准差')).toBeInTheDocument();
     expect(screen.getByText(/市场整体情绪偏向乐观/)).toBeInTheDocument();

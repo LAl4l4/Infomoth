@@ -119,3 +119,40 @@ class TestRun:
 
         output = tmp_path / "us_stock_indices.json"
         assert json.loads(output.read_text(encoding="utf-8")) == payload
+
+
+def test_partial_crawl_saves_successes_and_keeps_failed_source(tmp_path):
+    from main import run
+    old = [{"title": "previous"}]
+    (tmp_path / "tech_news.json").write_text(json.dumps(old))
+    with patch("main.load_shared_directory", return_value=tmp_path), \
+         patch("main.TechNewsScraper.scrape", side_effect=RuntimeError("offline")), \
+         patch("main.PoliticsNewsScraper.scrape", return_value=[{"title": "new"}]), \
+         patch("main.ExchangeRateScraper.scrape", return_value=[]), \
+         patch("main.AISkillsScraper.scrape", return_value=[]), \
+         patch("main.USStockIndexScraper.scrape", return_value=[]):
+        run()
+    assert json.loads((tmp_path / "tech_news.json").read_text()) == old
+    assert json.loads((tmp_path / "politics_news.json").read_text()) == [{"title": "new"}]
+
+
+def test_partial_rates_update_available_pairs_without_redating_missing_pairs(tmp_path):
+    target = tmp_path / "exchangeRates.json"
+    old = [
+        {"base_currency": "USD", "quote_currency": "CNY", "rate": "7", "date": "2026-09-01"},
+        {"base_currency": "CNY", "quote_currency": "USD", "rate": ".14", "date": "2026-09-01"}]
+    save_json(target, old)
+    fresh = {**old[0], "rate": "7.1", "date": "2026-09-02"}
+    save_exchange_rates(target, [fresh])
+    assert json.loads(target.read_text()) == [fresh, old[1]]
+    save_exchange_rates(target, [old[0]])
+    assert json.loads(target.read_text()) == [fresh, old[1]]
+
+
+def test_failed_json_serialization_does_not_truncate_previous_snapshot(tmp_path):
+    target = tmp_path / "data.json"
+    save_json(target, [{"value": 1}])
+    with pytest.raises(TypeError):
+        save_json(target, [{"value": object()}])
+    assert json.loads(target.read_text()) == [{"value": 1}]
+    assert list(tmp_path.iterdir()) == [target]

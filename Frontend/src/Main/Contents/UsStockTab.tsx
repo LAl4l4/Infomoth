@@ -1,4 +1,5 @@
 import './IntroPage.css';
+import RefreshStatus from './RefreshStatus';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -24,10 +25,12 @@ function formatPercent(v: number): string {
 
 export default function UsStockTab() {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: indices, loading, error } = useSelector(selectUsStockIndices);
+  const { data: indices, loading, error, updatedAt } = useSelector(selectUsStockIndices);
 
   useEffect(() => {
     dispatch(fetchUsStockIndices());
+    const timer = window.setInterval(() => dispatch(fetchUsStockIndices()), 5 * 60 * 1000);
+    return () => window.clearInterval(timer);
   }, [dispatch]);
 
   return (
@@ -39,8 +42,8 @@ export default function UsStockTab() {
       </p>
 
       {loading && <p className="state-text">加载中…</p>}
-      {!loading && error && <p className="exchange-error">{error}</p>}
-      {!loading && !error && indices && (
+      {!loading && error && <p className="exchange-error">{error}{indices !== null ? '（显示上次结果）' : ''}</p>}
+      {!loading && (!error || indices !== null) && indices && (
         <div className="stock-grid">
           {indices.map((idx: UsStockIndex) => {
             const up = idx.change >= 0;
@@ -58,6 +61,7 @@ export default function UsStockTab() {
           })}
         </div>
       )}
+      <RefreshStatus updatedAt={updatedAt} onRefresh={() => { dispatch(fetchUsStockIndices({ force: true })); }} />
     </section>
   );
 }

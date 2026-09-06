@@ -30,7 +30,7 @@ beforeEach(() => {
 
 describe('Login page', () => {
   it('logs in successfully and navigates home', async () => {
-    mockCheckLogin.mockResolvedValue({ data: { result: '登录成功' } });
+    mockCheckLogin.mockResolvedValue({ data: { success: true, result: '登录成功' } });
     const { store } = renderLogin();
 
     fireEvent.change(screen.getByPlaceholderText('yours@example.com/username'), {

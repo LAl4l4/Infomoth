@@ -24,45 +24,18 @@ def test_resolve_shared_directory_supports_relative_and_absolute_paths(tmp_path)
     assert analyser_main.resolve_shared_directory({"shared": {"directory": str(tmp_path)}}) == tmp_path
 
 
-@patch("main.ThreadPoolExecutor")
 @patch("main.FinanceAnalyser")
-def test_main_only_analyses_both_news_files(mock_analyser, mock_executor, tmp_path):
-    politics_analyser, tech_analyser = MagicMock(), MagicMock()
-    mock_analyser.side_effect = [politics_analyser, tech_analyser]
-    executor = mock_executor.return_value.__enter__.return_value
-    politics_future, tech_future = MagicMock(), MagicMock()
-    executor.submit.side_effect = [politics_future, tech_future]
-    with (
-        patch("main.load_config", return_value={"shared": {"directory": "Shared"}}),
-        patch("main.resolve_shared_directory", return_value=tmp_path),
-    ):
+def test_main_reuses_one_model_for_both_news_files(mock_analyser, tmp_path):
+    with patch("main.resolve_shared_directory", return_value=tmp_path):
         analyser_main.main()
-
-    assert executor.submit.call_args_list == [
-        call(politics_analyser.analyse, tmp_path / "politics_news.json"),
-        call(tech_analyser.analyse, tmp_path / "tech_news.json"),
-    ]
-    politics_future.result.assert_called_once_with()
-    tech_future.result.assert_called_once_with()
-    politics_analyser.setupMysql.assert_not_called()
-    tech_analyser.setupMysql.assert_not_called()
-    politics_analyser.saveAverageToMysql.assert_not_called()
-    tech_analyser.saveAverageToMysql.assert_not_called()
+    mock_analyser.assert_called_once_with()
+    assert mock_analyser.return_value.analyse.call_args_list == [
+        call(tmp_path / "politics_news.json"), call(tmp_path / "tech_news.json")]
 
 
-@patch("main.ThreadPoolExecutor")
 @patch("main.FinanceAnalyser")
-def test_main_propagates_analysis_failures(mock_analyser, mock_executor, tmp_path):
-    failed_future = MagicMock()
-    failed_future.result.side_effect = RuntimeError("analysis failed")
-    mock_executor.return_value.__enter__.return_value.submit.side_effect = [
-        failed_future,
-        MagicMock(),
-    ]
-
-    with (
-        patch("main.load_config", return_value={"shared": {"directory": "Shared"}}),
-        patch("main.resolve_shared_directory", return_value=tmp_path),
-        pytest.raises(RuntimeError, match="analysis failed"),
-    ):
+def test_main_attempts_other_source_before_propagating_failure(mock_analyser, tmp_path):
+    mock_analyser.return_value.analyse.side_effect = [RuntimeError("broken source"), None]
+    with patch("main.resolve_shared_directory", return_value=tmp_path), pytest.raises(RuntimeError):
         analyser_main.main()
+    assert mock_analyser.return_value.analyse.call_count == 2

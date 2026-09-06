@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ReleaseBack.Back.mapper.SentimentFileStateMapper">
+
+    <select id="find" resultType="ReleaseBack.Back.entity.SentimentFileState">
+        SELECT ID as id, politicsSha256, techSha256
+        FROM sentiment_file_state
+        WHERE ID = 1
+    </select>
+
+    <insert id="insert">
+        INSERT INTO sentiment_file_state (ID) VALUES (1)
+    </insert>
+
+    <update id="updatePoliticsSha256">
+        UPDATE sentiment_file_state
+        SET politicsSha256 = #{sha256}
+        WHERE ID = 1
+    </update>
+
+    <update id="updateTechSha256">
+        UPDATE sentiment_file_state
+        SET techSha256 = #{sha256}
+        WHERE ID = 1
+    </update>
+
+</mapper>

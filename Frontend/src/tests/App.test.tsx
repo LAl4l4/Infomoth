@@ -59,7 +59,7 @@ function renderApp() {
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCheckSession.mockResolvedValue({ data: { result: '登录有效' } });
+    mockCheckSession.mockResolvedValue({ data: { success: true, result: '登录有效' } });
   });
 
   it('renders the home shell with the tab bar and overview', async () => {
@@ -67,12 +67,12 @@ describe('App', () => {
 
     expect(await screen.findByRole('tablist')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '概览' })).toHaveAttribute('aria-selected', 'true');
-    expect(await screen.findByText('今日资讯概览')).toBeInTheDocument();
+    expect(await screen.findByText('资讯概览')).toBeInTheDocument();
   });
 
   it('switches tabs when a tab is clicked', async () => {
     const { store } = renderApp();
-    await screen.findByText('今日资讯概览');
+    await screen.findByText('资讯概览');
 
     fireEvent.click(screen.getByRole('tab', { name: '美股' }));
 
@@ -84,7 +84,7 @@ describe('App', () => {
   it('switches to the seven-day market trend tab', async () => {
     renderApp();
 
-    await screen.findByText('今日资讯概览');
+    await screen.findByText('资讯概览');
 
     fireEvent.click(screen.getByRole('tab', { name: '市场走势' }));
 

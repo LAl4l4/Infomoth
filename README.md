@@ -89,3 +89,9 @@ InfoMoth is under active development. Product behavior, data sources, and deploy
 InfoMoth is licensed under the [Apache License 2.0](LICENSE).
 
 Third-party data sources and model artifacts may have their own terms and licenses. Users are responsible for complying with those terms when operating their own instance.
+
+### Authentication deployment configuration
+
+Before starting the updated App stack, create a private `.env` alongside `docker-compose.app.yml` on the App VM with `JWT_SECRET=<random secret>` (generate a value with `openssl rand -hex 32`; do not reuse a password). Keep this value stable across restarts. The file is gitignored and should have mode 600. Compose passes it to Backend, which refuses deployed startup if it is absent. Local development without it uses a temporary random key.
+
+Deploy Frontend and Backend together: login/register now send JSON bodies and return `{ success, result }`. Replacing the previous signing key requires existing users to log in again. Old plaintext passwords are upgraded to BCrypt on successful login; accounts that have not logged in still retain their legacy password representation until upgraded.

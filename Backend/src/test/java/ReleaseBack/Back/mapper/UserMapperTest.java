@@ -94,6 +94,8 @@ class UserMapperTest {
         assertNotNull(loaded);
         assertEquals(user.getId(), loaded.getId());
         assertEquals("bob@example.com", loaded.getEmail());
+        userMapper.updatePassword(user.getId(), "encoded-password");
+        assertEquals("encoded-password", userMapper.findByUsername("bob").getPassword());
     }
 
     @Test

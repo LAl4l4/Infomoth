@@ -1,4 +1,5 @@
 import './IntroPage.css';
+import RefreshStatus from './RefreshStatus';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSentimentScore, selectSentimentScore } from '../../Variable/dataCache';
@@ -42,10 +43,12 @@ function SentimentMetric({
 
 export default function SentimentTab() {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: sentiment, loading, error } = useSelector(selectSentimentScore);
+  const { data: sentiment, loading, error, updatedAt } = useSelector(selectSentimentScore);
 
   useEffect(() => {
     dispatch(fetchSentimentScore());
+    const timer = window.setInterval(() => dispatch(fetchSentimentScore()), 5 * 60 * 1000);
+    return () => window.clearInterval(timer);
   }, [dispatch]);
 
   const readingScore = sentiment?.normalizedScore ?? null;
@@ -63,32 +66,33 @@ export default function SentimentTab() {
       <p className="eyebrow">Market Sentiment</p>
       <h2 className="panel-title">市场情绪指数</h2>
       <p className="panel-lead">
-        归一化指数使用当前 FinBERT 原始分数、全历史滚动平均与滚动标准差计算；
-        今日均值只聚合今天持久化的归一化指数。
+        标准化指数使用当前 FinBERT 原始分数、全历史滚动平均与滚动标准差计算；
+        今日均值只聚合今天持久化的标准化指数。
       </p>
 
       <div className="sentiment-stage">
         {loading && <p className="state-text">加载中…</p>}
-        {!loading && error && <p className="exchange-error">{error}</p>}
-        {!loading && !error && (
+        {!loading && error && <p className="exchange-error">{error}{sentiment !== null ? '（显示上次结果）' : ''}</p>}
+        {!loading && (!error || sentiment !== null) && (
           <div className="sentiment-grid">
             <SentimentMetric
-              title="归一化情绪"
+              title="标准化情绪"
               score={sentiment?.normalizedScore ?? null}
               caption="(原始分数 − 滚动平均) ÷ 滚动标准差"
             />
             <SentimentMetric
-              title="今日归一化均值"
+              title="今日标准化均值"
               score={sentiment?.dailyAverage ?? null}
-              caption="当天全部归一化样本的平均值"
+              caption="当天全部标准化样本的平均值"
             />
           </div>
         )}
       </div>
 
-      {!loading && !error && readingScore !== null && (
+      {!loading && (!error || sentiment !== null) && readingScore !== null && (
         <p className="sentiment-reading">{reading}</p>
       )}
+      <RefreshStatus updatedAt={updatedAt} onRefresh={() => { dispatch(fetchSentimentScore({ force: true })); }} />
     </section>
   );
 }

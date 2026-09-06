@@ -1,6 +1,8 @@
 package ReleaseBack.Back.security;
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+import java.nio.charset.StandardCharsets;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -12,7 +14,16 @@ import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtil {
-    private final String SECRET = "my_secret_key_which_should_be_long_enough";
+    private final SecretKey signingKey;
+
+    public JwtUtil(@Value("${JWT_SECRET:}") String secret,
+            @Value("${AUTH_REQUIRE_SECRET:false}") boolean requireSecret) {
+        if (requireSecret && secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET must be configured for deployment");
+        }
+        signingKey = secret.isBlank() ? Jwts.SIG.HS256.key().build()
+                : Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
     private final long EXPIRE = Duration.ofHours(48).toMillis();
 
 
@@ -36,6 +47,6 @@ public class JwtUtil {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return signingKey;
     }
 }

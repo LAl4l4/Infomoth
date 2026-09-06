@@ -13,6 +13,8 @@ public interface UserMapper {
 
     void saveUser(User user);
 
+    void updatePassword(@Param("userid") Integer userid, @Param("password") String password);
+
     void createProfile(Profile profile);
 
     Profile findProfileById(@Param("userid") Integer userid);

@@ -36,12 +36,12 @@ class SentimentSchemaMigrationTest {
             assertEquals(1, sampleCount(connection, "politics_average", 1));
             assertEquals(2, sampleCount(connection, "politics_average", 2));
             assertEquals(0.5, rollingAverage(connection, "politics_average", 2), 0.000001);
-            assertEquals(0.25, rollingStandardDeviation(connection, "politics_average", 2), 0.000001);
+            assertEquals(0.353553, rollingStandardDeviation(connection, "politics_average", 2), 0.000001);
             connection.createStatement().execute(
                     "INSERT INTO politics_average "
                             + "(ID, date, sentimentScore, rollingAverage, "
                             + "rollingStandardDeviation, sampleCount) "
-                            + "VALUES (3, DATE '2026-08-12', 0.5, 0.5, 0.204124, 3)");
+                            + "VALUES (3, DATE '2026-08-12', 0.5, 0.5, 0.25, 3)");
         }
     }
 

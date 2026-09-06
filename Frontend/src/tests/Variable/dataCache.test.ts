@@ -129,3 +129,38 @@ describe('clearDataCache', () => {
     expect(selectExchangeRates(state).data).toEqual({});
   });
 });
+
+
+describe('cache refresh', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('refreshes expired data, preserves stale values on failure, and supports forced retry', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
+    const original = [{ symbol: '^GSPC', price: 6000 }];
+    mockStocks.mockResolvedValueOnce(original).mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce([{ symbol: '^GSPC', price: 6100 }]);
+    const store = createTestStore();
+    await store.dispatch(fetchUsStockIndices());
+    now.mockReturnValue(301001);
+    await store.dispatch(fetchUsStockIndices());
+    expect(selectUsStockIndices(store.getState()).data).toEqual(original);
+    expect(selectUsStockIndices(store.getState()).error).toBe('offline');
+    expect(selectUsStockIndices(store.getState()).updatedAt).toBe(1000);
+    await store.dispatch(fetchUsStockIndices({ force: true }));
+    expect(selectUsStockIndices(store.getState()).data?.[0].price).toBe(6100);
+    expect(selectUsStockIndices(store.getState()).error).toBeNull();
+  });
+
+  it('expires exchange rates independently per pair', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
+    mockRate.mockResolvedValue(7);
+    const store = createTestStore();
+    await store.dispatch(fetchExchangeRate({ base: 'USD', quote: 'CNY' }));
+    now.mockReturnValue(201000);
+    await store.dispatch(fetchExchangeRate({ base: 'AUD', quote: 'CNY' }));
+    now.mockReturnValue(301001);
+    await store.dispatch(fetchExchangeRate({ base: 'USD', quote: 'CNY' }));
+    await store.dispatch(fetchExchangeRate({ base: 'AUD', quote: 'CNY' }));
+    expect(mockRate).toHaveBeenCalledTimes(3);
+  });
+});
