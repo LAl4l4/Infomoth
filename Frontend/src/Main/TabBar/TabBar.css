@@ -23,7 +23,8 @@
               inset 0 -1px 0 rgba(255, 200, 150, 0.08),
               0 8px 24px rgba(0, 0, 0, 0.3);
   position: relative;
-  overflow: hidden;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .tabbar::before {

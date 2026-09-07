@@ -1,5 +1,11 @@
 # Frontend PROJECT_SPEC
 
+## Market prediction tab
+- Append `情绪预测` at tab ID 6, preserving IDs 0–5 and supporting the new tab in default-page settings.
+- `/data/market-signal` is wrapped in `API/data.ts` and cached through a Redux thunk with five-minute expiry, in-flight deduplication, manual refresh and stale-result retention after failures.
+- Show raw input values, original dates, source status, selectable history, weight coverage, formulas and per-input contributions. The linear mock score is explicitly not a probability or expected return; insufficient coverage displays no score.
+- Contract and model assumptions: [MARKET_SIGNAL.md](../MARKET_SIGNAL.md).
+
 ## 1. Project Positioning
 - **Type**: React Single Page Application (SPA)
 - **Responsibilities**:

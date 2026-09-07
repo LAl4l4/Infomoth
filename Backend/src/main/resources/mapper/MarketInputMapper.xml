@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReleaseBack.Back.mapper.MarketInputMapper">
+    <resultMap id="observation" type="ReleaseBack.Back.entity.MarketObservation">
+        <id column="indicator" property="indicator"/>
+        <id column="observed_on" property="date"/>
+        <result column="observed_value" property="value"/>
+        <result column="source" property="source"/>
+        <result column="fetched_at" property="fetchedAt"/>
+        <result column="available_at" property="availableAt"/>
+    </resultMap>
+    <sql id="columns">indicator, observed_on, observed_value, source, fetched_at, available_at</sql>
+    <!-- The primary key supports a bounded reverse scan for each indicator. -->
+    <select id="findRecent" resultMap="observation">
+        SELECT <include refid="columns"/> FROM market_observation
+        WHERE indicator = #{indicator} AND observed_on BETWEEN #{date} AND #{today}
+            AND available_at &lt;= #{now}
+        ORDER BY observed_on DESC LIMIT 60
+    </select>
+    <select id="findSince" resultMap="observation">
+        SELECT <include refid="columns"/> FROM market_observation
+        WHERE observed_on &gt;= #{date} ORDER BY indicator, observed_on
+    </select>
+    <select id="findObservation" resultMap="observation">
+        SELECT <include refid="columns"/> FROM market_observation
+        WHERE indicator = #{indicator} AND observed_on = #{date}
+    </select>
+    <insert id="insertObservation">
+        INSERT INTO market_observation (indicator, observed_on, observed_value, source, fetched_at, available_at)
+        VALUES (#{indicator}, #{date}, #{value}, #{source}, #{fetchedAt}, #{availableAt})
+    </insert>
+    <update id="updateObservation">
+        UPDATE market_observation SET observed_value = #{value}, source = #{source},
+            fetched_at = #{fetchedAt}, available_at = #{availableAt}
+        WHERE indicator = #{indicator} AND observed_on = #{date}
+    </update>
+    <select id="findSources" resultType="ReleaseBack.Back.entity.MarketInputSource">
+        SELECT source, status, message, attempted_at FROM market_input_source ORDER BY source
+    </select>
+    <insert id="insertSource">
+        INSERT INTO market_input_source (source, status, message, attempted_at)
+        VALUES (#{source}, #{status}, #{message}, #{attemptedAt})
+    </insert>
+    <update id="updateSource">
+        UPDATE market_input_source SET status = #{status}, message = #{message}, attempted_at = #{attemptedAt}
+        WHERE source = #{source}
+    </update>
+</mapper>

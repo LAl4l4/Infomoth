@@ -54,7 +54,7 @@ class SettingsServiceTest {
     void updateDefaultPageShouldRejectOutOfRangePage() {
         BaseException exception = assertThrows(
                 BaseException.class,
-                () -> settingsService.updateDefaultPage(7, 6));
+                () -> settingsService.updateDefaultPage(7, 7));
 
         assertEquals(400, exception.getCode());
         verifyNoInteractions(settingsMapper);

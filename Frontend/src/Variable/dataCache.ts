@@ -5,8 +5,9 @@ import {
   pullPopularAISkills,
   pullSentimentScore,
   pullUsStockIndices,
+  pullMarketSignal,
 } from "../API/data";
-import type { RootState, AISkill, UsStockIndex, CurrencyCode, SentimentScore } from "../customTypes";
+import type { RootState, AISkill, UsStockIndex, CurrencyCode, SentimentScore, MarketSignalData } from "../customTypes";
 
 export const DATA_REFRESH_MS = 5 * 60 * 1000;
 
@@ -25,6 +26,7 @@ interface ExchangeRateCache {
 }
 
 interface DataCacheState {
+  marketSignal: CacheEntry<MarketSignalData>;
   aiSkills: CacheEntry<AISkill[]>;
   sentimentScore: CacheEntry<SentimentScore>;
   currencies: CacheEntry<CurrencyCode[]>;
@@ -39,6 +41,7 @@ const createEntry = <T>(): CacheEntry<T> => ({
 });
 
 const initialState: DataCacheState = {
+  marketSignal: createEntry<MarketSignalData>(),
   aiSkills: createEntry<AISkill[]>(),
   sentimentScore: createEntry<SentimentScore>(),
   currencies: createEntry<CurrencyCode[]>(),
@@ -108,11 +111,24 @@ export const fetchUsStockIndices = createAsyncThunk<
   },
 });
 
+export const fetchMarketSignal = createAsyncThunk<
+  MarketSignalData,
+  { force?: boolean } | void,
+  { state: RootState }
+>("dataCache/fetchMarketSignal", async () => pullMarketSignal(), {
+  condition: (options, { getState }) => {
+    const cached = getState().dataCache.marketSignal;
+    return !cached.loading && (options?.force || !cached.updatedAt
+      || Date.now() - cached.updatedAt >= DATA_REFRESH_MS);
+  },
+});
+
 const dataCacheSlice = createSlice({
   name: "dataCache",
   initialState,
   reducers: {
     clearDataCache(state) {
+      state.marketSignal = createEntry<MarketSignalData>();
       state.aiSkills = createEntry<AISkill[]>();
       state.sentimentScore = createEntry<SentimentScore>();
       state.currencies = createEntry<CurrencyCode[]>();
@@ -121,6 +137,18 @@ const dataCacheSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Keep previous data and its timestamp when a background request fails.
+    builder
+      .addCase(fetchMarketSignal.pending, (state) => {
+        state.marketSignal.loading = true;
+      })
+      .addCase(fetchMarketSignal.fulfilled, (state, action) => {
+        state.marketSignal = { data: action.payload, loading: false, error: null, updatedAt: Date.now() };
+      })
+      .addCase(fetchMarketSignal.rejected, (state, action) => {
+        state.marketSignal.loading = false;
+        state.marketSignal.error = action.error.message || "加载失败";
+      });
     // AI Skills
     builder
       .addCase(fetchAISkills.pending, (state) => {
@@ -212,3 +240,4 @@ export const selectSentimentScore = (s: RootState) => s.dataCache.sentimentScore
 export const selectCurrencies = (s: RootState) => s.dataCache.currencies;
 export const selectExchangeRates = (s: RootState) => s.dataCache.exchangeRates;
 export const selectUsStockIndices = (s: RootState) => s.dataCache.usStockIndices;
+export const selectMarketSignal = (s: RootState) => s.dataCache.marketSignal;

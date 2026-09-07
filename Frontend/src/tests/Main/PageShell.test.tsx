@@ -76,6 +76,7 @@ describe('PageShell', () => {
       '美股',
       '市场走势',
       '更多',
+      '情绪预测',
     ]);
 
     fireEvent.click(screen.getByRole('tab', { name: '市场情绪' }));

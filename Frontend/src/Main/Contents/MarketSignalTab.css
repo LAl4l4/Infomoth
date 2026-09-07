@@ -1,0 +1,24 @@
+.signal-panel { max-width: 1120px; }
+.signal-badge { font-size: 12px; vertical-align: middle; letter-spacing: 1px; padding: 5px 9px; border: 1px solid #67e8f9; border-radius: 12px; color: #67e8f9; }
+.signal-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.signal-summary > div, .signal-sources > div, .signal-detail { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 18px; }
+.signal-summary span, .signal-summary strong { display: block; }
+.signal-summary strong { font-size: 42px; margin: 8px 0; }
+.signal-summary span, .signal-sources { font-size: 13px; }
+.signal-sources { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.signal-sources small, .signal-table small { display: block; font-size: 11px; opacity: .7; margin-top: 5px; }
+.signal-table-wrap { width: 100%; overflow-x: auto; margin: 24px 0; }
+.signal-table { border-collapse: collapse; width: 100%; text-align: left; font-size: 13px; }
+.signal-table caption { text-align: left; font-size: 17px; margin-bottom: 14px; }
+.signal-table td, .signal-table th { border-bottom: 1px solid rgba(255,255,255,.12); padding: 12px 8px; white-space: nowrap; }
+.signal-table button { border: 0; background: none; color: inherit; cursor: pointer; text-align: left; padding: 0; font: inherit; text-decoration: underline; text-underline-offset: 4px; }
+.signal-select { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.signal-select select { max-width: 100%; color: white; background: #18323d; padding: 8px; border-radius: 8px; }
+.signal-history { margin: 24px 0; }
+.signal-history svg { display: block; width: 100%; margin-top: 12px; }
+.signal-history text { fill: currentColor; font-size: 11px; }
+.signal-detail { font-size: 13px; overflow-wrap: anywhere; }
+.signal-detail a { color: #67e8f9; }
+.signal-method { margin-top: 20px; font-size: 13px; line-height: 1.8; }
+.signal-method summary { cursor: pointer; }
+@media (max-width: 600px) { .signal-summary { grid-template-columns: 1fr; } .signal-summary strong { font-size: 32px; } }

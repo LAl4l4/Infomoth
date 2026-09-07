@@ -34,6 +34,7 @@ import ReleaseBack.Back.VO.TokenVO;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
+        "market.inputs.enabled=false",
         "spring.datasource.url=jdbc:h2:mem:smoke_db;MODE=MySQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER",
         "spring.datasource.driverClassName=org.h2.Driver",
         "spring.datasource.username=sa",
@@ -49,6 +50,9 @@ class ApplicationSmokeTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private ReleaseBack.Back.service.MarketSignalSnapshotService signalSnapshots;
 
     @BeforeEach
     void setUpSchema() {
@@ -95,6 +99,25 @@ class ApplicationSmokeTest {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void marketSignalRequiresAuthAndReturnsMockContract() {
+        jdbcTemplate.execute("UPDATE market_signal_state SET signature = NULL, payload = NULL WHERE id = 1");
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                restTemplate.getForEntity("/data/market-signal", String.class).getStatusCode());
+        String cookie = registerAndLogin("signal-user", "signal-pass");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, cookie);
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, restTemplate.exchange("/data/market-signal", HttpMethod.GET,
+                new HttpEntity<>(headers), String.class).getStatusCode());
+        signalSnapshots.refresh();
+        var response = restTemplate.exchange("/data/market-signal", HttpMethod.GET,
+                new HttpEntity<>(headers), com.fasterxml.jackson.databind.JsonNode.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("linear-mock-v1", response.getBody().path("prediction").path("modelVersion").asText());
+        assertTrue(response.getBody().path("prediction").path("score").isNull());
+        assertEquals(17, response.getBody().path("prediction").path("inputs").size());
     }
 
     @Test

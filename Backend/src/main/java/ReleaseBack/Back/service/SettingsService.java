@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class SettingsService {
 
     private static final int DEFAULT_PAGE = 0;
-    private static final int MAX_PAGE = 5;
+    private static final int MAX_PAGE = 6;
     private static final String DEFAULT_BASE_CURRENCY = "USD";
     private static final String DEFAULT_QUOTE_CURRENCY = "CNY";
     private static final String DEFAULT_BACKGROUND_COLOR = "#0C101C";
@@ -127,7 +127,7 @@ public class SettingsService {
         if (defaultPage == null || defaultPage < DEFAULT_PAGE || defaultPage > MAX_PAGE) {
             throw new BaseException(
                     HttpStatus.BAD_REQUEST.value(),
-                    "defaultPage must be between 0 and 5");
+                    "defaultPage must be between 0 and 6");
         }
     }
 

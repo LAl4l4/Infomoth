@@ -5,6 +5,7 @@ import type {
   CurrencyCode,
   MarketTrendData,
   SentimentScore,
+  MarketSignalData,
 } from "../customTypes";
 
 export async function pullCurrencies(): Promise<CurrencyCode[]> {
@@ -60,4 +61,15 @@ export async function pullMarketTrends(): Promise<MarketTrendData> {
     throw new Error("Invalid market trends response");
   }
   return res.data as MarketTrendData;
+}
+
+export async function pullMarketSignal(): Promise<MarketSignalData> {
+  const res = await instance.get("/data/market-signal");
+  const prediction = res.data?.prediction;
+  if (!prediction || !Array.isArray(prediction.inputs) || !Array.isArray(res.data.sources)
+      || (prediction.score !== null && (typeof prediction.score !== 'number' || !Number.isFinite(prediction.score)))
+      || typeof prediction.coverage !== 'number' || !Number.isFinite(prediction.coverage)) {
+    throw new Error("Invalid market signal response");
+  }
+  return res.data as MarketSignalData;
 }

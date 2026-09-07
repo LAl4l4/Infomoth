@@ -1,5 +1,11 @@
 # Crawler PROJECT_SPEC
 
+## Market prediction inputs
+- `infomoth/market_input_scraper.py` acquires FRED SP500/VIX/VIX3M/Treasury/high-yield spread, Cboe equity put/call, AAII public survey, delayed public NAAIM history and CFTC E-mini leveraged-fund positions.
+- The full cycle includes atomic, history-preserving `market_inputs.json` updates. `python main.py --market-inputs-only` runs these adapters independently; stock-only mode is unchanged.
+- Preserve observation dates and UTC retrieval timestamps. Persist source attempt status even when access fails; do not synthesize missing values or treat delayed surveys as current.
+- Contract, source restrictions and model integration: [MARKET_SIGNAL.md](../MARKET_SIGNAL.md).
+
 ## 1. Project Positioning
 - **Type**: Python Scraping Tasks (Batch Processing)
 - **Responsibilities**:

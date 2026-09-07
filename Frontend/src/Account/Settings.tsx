@@ -37,6 +37,7 @@ const HOME_PAGE_OPTIONS = [
   { value: 3, label: '美股' },
   { value: 4, label: '市场走势' },
   { value: 5, label: '更多' },
+  { value: 6, label: '情绪预测' },
 ];
 
 const DISPLAY_COLOR_FIELDS: Array<{

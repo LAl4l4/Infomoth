@@ -1,5 +1,14 @@
 # Changelog
 
+- `09/08/2026`:
+    - Added market-input crawlers for FRED, Cboe equity put/call, AAII sentiment, delayed public NAAIM exposure, and CFTC E-mini leveraged-fund positions, with atomic history retention, independent source status, and a `--market-inputs-only` command.
+    - Persisted dated market observations and source attempts through additive MyBatis schemas, preserving first availability for unchanged values and preventing older captures from overwriting newer observations.
+    - Added a replaceable linear mock model combining market indicators and existing FinBERT rolling z-scores, with explicit feature transforms, effective weights, contributions, freshness rules, and score suppression below 50% coverage.
+    - Added the authenticated market-signal API and the 情绪预测 tab (ID 6), including selectable indicator history, source status, five-minute refresh, failed-refresh retention, and default-page settings support.
+    - Moved prediction and response serialization into scheduled precomputation. The API reads one persisted JSON snapshot; rebuilds use at most 60 rows per raw indicator and run only when input, news, source, model, or UTC-date dependencies change. Failed rebuilds retain the previous response; initial missing snapshots return 503.
+    - Added a transactional SHA-256 ingestion checkpoint that skips unchanged files across restarts. Changed files still scan the cumulative observations and insert or update individual rows; delta-only ingestion is not implemented.
+    - Documented source access, data timestamps, model limitations, and snapshot behavior in `MARKET_SIGNAL.md`; verified 76 Crawler, 119 Backend, and 157 Frontend tests, plus frontend TypeScript checking and production build. Final HTTP-status adjustments passed the 12 affected backend tests.
+
 - `09/07/2026`:
     - Hardened authentication: login and registration now accept JSON bodies, return a stable `success` field, hash new passwords with BCrypt, upgrade legacy plaintext passwords after successful login, and load the deployed JWT signing key from `JWT_SECRET`.
     - Added five-minute frontend data expiry, mounted-tab refresh polling, manual refresh controls, last-success timestamps, stale-value retention after failed refreshes, and retryable runtime configuration loading.

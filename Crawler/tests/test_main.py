@@ -75,6 +75,7 @@ class TestSaveExchangeRates:
 
 
 class TestRun:
+    @patch("main.MarketInputScraper")
     @patch("main.load_shared_directory")
     @patch("main.save_json")
     @patch("main.USStockIndexScraper")
@@ -91,9 +92,11 @@ class TestRun:
         mock_stock_cls,
         mock_save,
         mock_shared_directory,
+        mock_market_cls,
         tmp_path,
     ):
         mock_shared_directory.return_value = tmp_path
+        mock_market_cls.return_value.scrape.return_value = {"observations": [], "sources": []}
         for cls_mock in (mock_tech_cls, mock_pol_cls, mock_ex_cls, mock_ai_cls, mock_stock_cls):
             instance = cls_mock.return_value
             instance.scrape.return_value = [{"data": "test"}]
@@ -101,7 +104,7 @@ class TestRun:
         from main import run
         run()
 
-        assert mock_save.call_count == 5
+        assert mock_save.call_count == 6
 
     @patch("main.USStockIndexScraper")
     @patch("main.load_shared_directory")
@@ -130,6 +133,7 @@ def test_partial_crawl_saves_successes_and_keeps_failed_source(tmp_path):
          patch("main.PoliticsNewsScraper.scrape", return_value=[{"title": "new"}]), \
          patch("main.ExchangeRateScraper.scrape", return_value=[]), \
          patch("main.AISkillsScraper.scrape", return_value=[]), \
+         patch("main.MarketInputScraper.scrape", return_value={"observations": [], "sources": []}), \
          patch("main.USStockIndexScraper.scrape", return_value=[]):
         run()
     assert json.loads((tmp_path / "tech_news.json").read_text()) == old

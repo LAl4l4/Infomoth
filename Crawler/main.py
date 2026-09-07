@@ -17,9 +17,10 @@ from infomoth import (
     USStockIndexScraper,
 )
 from infomoth.runtime_config import load_shared_directory
+from infomoth.market_input_scraper import MarketInputScraper
 
 
-def save_json(path: Path, payload: list[dict[str, Any]]) -> None:
+def save_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
@@ -78,6 +79,26 @@ def run_stocks() -> None:
     logging.info("Saved %s US stock indices to %s", len(results), output.name)
 
 
+def save_market_inputs(path: Path, payload: dict[str, Any]) -> None:
+    previous = {}
+    if path.exists():
+        try:
+            previous = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            logging.warning("Cannot merge previous market inputs")
+    # Retain each missing observation at its original date after a partial failure.
+    merged = {(p["indicator"], p["date"]): p for p in previous.get("observations", [])}
+    for point in payload["observations"]:
+        merged[(point["indicator"], point["date"])] = point
+    save_json(path, {"observations": sorted(merged.values(), key=lambda p: (p["indicator"], p["date"])),
+                     "sources": payload["sources"]})
+
+
+def run_market_inputs() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    save_market_inputs(load_shared_directory() / "market_inputs.json", MarketInputScraper().scrape())
+
+
 def run() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     shared_directory = load_shared_directory()
@@ -87,6 +108,7 @@ def run() -> None:
         "exchange": shared_directory / "exchangeRates.json",
         "ai_skills": shared_directory / "ai_skills_today.json",
         "indices": shared_directory / "us_stock_indices.json",
+        "market_inputs": shared_directory / "market_inputs.json",
     }
 
     tech_scraper = TechNewsScraper()
@@ -101,6 +123,7 @@ def run() -> None:
         "exchange": (exchange_rate_scraper, save_exchange_rates),
         "ai_skills": (ai_skills_scraper, save_json),
         "indices": (us_stock_index_scraper, save_us_stock_indices),
+        "market_inputs": (MarketInputScraper(), save_market_inputs),
     }
     failures = []
     with ThreadPoolExecutor(max_workers=5) as executor:
@@ -125,5 +148,7 @@ def run() -> None:
 if __name__ == "__main__":
     if sys.argv[1:] == ["--stocks-only"]:
         run_stocks()
+    elif sys.argv[1:] == ["--market-inputs-only"]:
+        run_market_inputs()
     else:
         run()

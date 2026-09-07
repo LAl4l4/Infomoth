@@ -10,6 +10,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @TestPropertySource(properties = {
+        "market.inputs.enabled=false",
         "spring.datasource.url=jdbc:h2:mem:schema_init_db;MODE=MySQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER",
         "spring.datasource.driverClassName=org.h2.Driver",
         "spring.datasource.username=sa",

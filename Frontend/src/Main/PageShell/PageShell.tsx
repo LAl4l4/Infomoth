@@ -16,6 +16,7 @@ import ExchangeRateTab from '../Contents/ExchangeRateTab';
 import UsStockTab from '../Contents/UsStockTab';
 import MarketTrendTab from '../Contents/MarketTrendTab';
 import MoreTab from '../Contents/MoreTab';
+import MarketSignalTab from '../Contents/MarketSignalTab';
 import type { AppDispatch, TabItem } from '../../customTypes';
 import { DEFAULT_DISPLAY_SETTINGS, hexToRgb } from '../../displaySettings';
 
@@ -26,6 +27,7 @@ const TABS: TabItem[] = [
   { key: 3, label: '美股' },
   { key: 4, label: '市场走势' },
   { key: 5, label: '更多' },
+  { key: 6, label: '情绪预测' },
 ];
 
 function clampTab(n: number): number {
@@ -201,6 +203,8 @@ export default function PageShell() {
     let lastAt = 0;
 
     const onWheel = (e: WheelEvent) => {
+      // Let the tab strip scroll horizontally when its buttons exceed the viewport.
+      if (e.target instanceof Element && e.target.closest('.tabbar')) return;
       // Only consume predominantly horizontal swipes; let vertical wheel scroll.
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
 
@@ -266,6 +270,7 @@ export default function PageShell() {
             {safeTab === 3 && <UsStockTab />}
             {safeTab === 4 && <MarketTrendTab />}
             {safeTab === 5 && <MoreTab />}
+            {safeTab === 6 && <MarketSignalTab />}
           </motion.div>
         </AnimatePresence>
       </div>

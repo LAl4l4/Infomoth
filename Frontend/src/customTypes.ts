@@ -104,3 +104,36 @@ export interface TabItem {
   key: number;
   label: string;
 }
+
+export interface MarketSignalInput {
+  indicator: string;
+  label: string;
+  unit: string;
+  source: string;
+  sourceUrl: string;
+  date: string | null;
+  value: number | null;
+  fetchedAt: number | null;
+  availableAt: number | null;
+  status: 'available' | 'stale' | 'missing';
+  transform: string;
+  normalized: number | null;
+  weight: number;
+  effectiveWeight: number;
+  contribution: number | null;
+  history: Array<{ date: string; value: number }>;
+}
+
+export interface MarketSignalData {
+  prediction: {
+    modelVersion: string;
+    target: string;
+    horizon: string;
+    generatedAt: number;
+    score: number | null;
+    coverage: number;
+    status: 'mock' | 'insufficient_data';
+    inputs: MarketSignalInput[];
+  };
+  sources: Array<{ source: string; status: string; message: string; attemptedAt: number }>;
+}

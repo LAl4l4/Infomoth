@@ -17,6 +17,8 @@ spring:
         - file:../Schema/05-us-stock-indices.sql
         - file:../Schema/07-market-correlation.sql
         - file:../Schema/08-sentiment-file-state.sql
+        - file:../Schema/09-market-inputs.sql
+        - file:../Schema/10-market-signal-state.sql
   
   
 server:
@@ -42,5 +44,9 @@ stock:
     fixed-delay-ms: ${STOCK_PERSISTENCE_FIXED_DELAY_MS:300000}
 
 market:
+  inputs:
+    enabled: ${MARKET_INPUTS_ENABLED:true}
+    initial-delay-ms: ${MARKET_INPUTS_INITIAL_DELAY_MS:5000}
+    fixed-delay-ms: ${MARKET_INPUTS_FIXED_DELAY_MS:300000}
   correlation:
     cron: ${MARKET_CORRELATION_CRON:0 10 0 * * *}

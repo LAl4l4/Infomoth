@@ -1,5 +1,13 @@
 # Backend PROJECT_SPEC
 
+## Market prediction inputs
+- Additive schema `09-market-inputs.sql` stores unique dated raw observations and separate source-attempt status. The independent `market.inputs` scheduler defaults to enabled (5-second startup delay, 5-minute interval).
+- `10-market-signal-state.sql` persists the input SHA-256 and latest serialized prediction response in one row. Unchanged files skip parsing and observation queries across restarts; changed imports commit their checkpoint transactionally.
+- The scheduler rebuilds the response only when input/news/source/model dependencies or the UTC date change, using at most 60 indexed rows per raw indicator and the latest two persisted news samples.
+- `GET /data/market-signal` is authenticated and returns the stored JSON through one primary-key query, without loading history or running a model. It returns provenance, freshness, history, feature contributions and a clearly labeled linear mock result. Missing initial snapshots return 503; failed rebuilds preserve the last successful snapshot. `generatedAt` records computation time.
+- `MarketPredictionModel` is the replaceable model boundary. No crawler/network acquisition belongs in Backend. See [MARKET_SIGNAL.md](../MARKET_SIGNAL.md) for time semantics, weights and limitations.
+- Saved default tab IDs now accept 0 through 6; existing IDs retain their meanings.
+
 ## 1. Project Positioning
 - **Type**: REST API Service
 - **Responsibilities**:
